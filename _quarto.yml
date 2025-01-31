@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "{{< var course.short >}} Submission Material"
+  description:
+    Course Projects for {{< var course.short >}} at Baruch College
+  site-url: "https://jlopez-6.github.io/{{< var course.repo >}}/"
+  navbar:
+    background: primary
+    search: false
+    
+format:
+  html:
+    theme: minty
+    toc: false
+
+editor:
+  mode: source
