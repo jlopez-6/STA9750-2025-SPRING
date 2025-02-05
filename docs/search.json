@@ -1,0 +1,9 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Welcome",
+    "section": "",
+    "text": "Hi, I’m Jocely Lopez Luna, a researcher with a Bachelor of Arts in environmental science (Columbia University ’20) and 5 years of work experience in seismology at Lamont-Doherty Earth Observatory. I’ve worked extensively with seismic data, programming, and quantitative research, and I’m currently expanding my expertise through an MS in Statistics at Baruch College.\nAt Lamont, I work on modernizing analog seismic data and modeling atmospheric and underground nuclear explosions. My research has been published in the Bulletin of the Seismological Society of America.\nAs a Catholic, my faith guides my approach to learning, discovery, and service. I strive to bring Truth, integrity, and purpose to everything I do.\nHere’s my resume. Explore my work, and let’s connect!\n\nLast Updated: r format(Sys.time(), \"%A %m %d, %Y at %H:%M%p\")"
+  }
+]
