@@ -1,9 +1,30 @@
 [
   {
+    "objectID": "week2/houston.html#history-of-house-sales",
+    "href": "week2/houston.html#history-of-house-sales",
+    "title": "Houston’s Housing Market",
+    "section": "History of House Sales",
+    "text": "History of House Sales\n\nIn the last 15 years, home sales peaked in 2006 and 2014.\nThey are currently in a steady decline."
+  },
+  {
+    "objectID": "week2/houston.html#average-sale-price",
+    "href": "week2/houston.html#average-sale-price",
+    "title": "Houston’s Housing Market",
+    "section": "Average Sale Price",
+    "text": "Average Sale Price"
+  },
+  {
+    "objectID": "week2/houston.html#how-does-houston-rank",
+    "href": "week2/houston.html#how-does-houston-rank",
+    "title": "Houston’s Housing Market",
+    "section": "How does Houston rank?",
+    "text": "How does Houston rank?\n\nNot great"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Welcome",
     "section": "",
-    "text": "Hi, I’m Jocely Lopez Luna, a researcher with a Bachelor of Arts in environmental science (Columbia University ’20) and 5 years of work experience in seismology at Lamont-Doherty Earth Observatory. I’ve worked extensively with seismic data, programming, and quantitative research, and I’m currently expanding my expertise through an MS in Statistics at Baruch College.\nAt Lamont, I work on modernizing analog seismic data and modeling atmospheric and underground nuclear explosions. My research has been published in the Bulletin of the Seismological Society of America.\nAs a Catholic, my faith guides my approach to learning, discovery, and service. I strive to bring Truth, integrity, and purpose to everything I do.\nHere’s my resume. Explore my work, and let’s connect!\n\nLast Updated: r format(Sys.time(), \"%A %m %d, %Y at %H:%M%p\")"
+    "text": "Hi, I’m Jocely Lopez Luna, a researcher with a B.A. in environmental science (Columbia University, ’20) and 5 years of work experience in seismology at Lamont-Doherty Earth Observatory. I’ve worked extensively with seismic data, programming, and quantitative research, and I’m currently expanding my expertise through an MS in Statistics at Baruch College.\nAt Lamont, I work on modernizing analog seismic data and investigating atmospheric and underground nuclear explosions. You can find my publications on ORCID.\nAs a Catholic, my faith guides my approach to learning, discovery, and service. I strive to bring truth, integrity, and purpose to everything I do.\nHere’s my resume. Explore my work, and let’s connect!\n\nLast updated: Friday February 07, 2025 at 11:58 PM"
   }
 ]

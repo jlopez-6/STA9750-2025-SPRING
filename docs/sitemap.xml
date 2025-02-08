@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://jlopez-6.github.io/{{&lt; var course.repo &gt;}}/week2/houston.html</loc>
+    <lastmod>2025-02-07T01:26:53.578Z</lastmod>
+  </url>
+  <url>
     <loc>https://jlopez-6.github.io/{{&lt; var course.repo &gt;}}/index.html</loc>
-    <lastmod>2025-02-05T03:12:35.995Z</lastmod>
+    <lastmod>2025-02-08T04:52:12.985Z</lastmod>
   </url>
 </urlset>
