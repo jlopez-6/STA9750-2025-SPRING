@@ -1,11 +1,16 @@
 project:
   type: website
   output-dir: docs
-
+  
+execute:
+  freeze: auto  # Ensures R code executes when needed
+  eval: true    # Allow R code execution
+  echo: false
+  
 website:
-  title: "{{< var course.short >}} Submission Material"
+  title: "STA9750 Submission Material"
   description:
-    Course Projects for {{< var course.short >}} at Baruch College
+    Course Projects for STA9750 at Baruch College
   site-url: "https://jlopez-6.github.io/{{< var course.repo >}}/"
   navbar:
     background: primary
