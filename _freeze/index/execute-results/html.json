@@ -1,0 +1,17 @@
+{
+  "hash": "acb5c0984bd1b79cd4cd531300121117",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Welcome\"\nexecute:\n  eval: true   \n  echo: false  \n---\n\n\n\n![](static/headshot.jpg)\n\nHi, I’m Jocely Lopez Luna, a researcher with a B.A. in environmental science (Columbia University, '20) and 5 years of work experience in seismology at Lamont-Doherty Earth Observatory. I’ve worked extensively with seismic data, programming, and quantitative research, and I’m currently expanding my expertise through an MS in Statistics at Baruch College.\n\nAt Lamont, I work on modernizing analog seismic data and investigating atmospheric and underground nuclear explosions. You can find my publications on [ORCID](https://orcid.org/0009-0000-6064-1860).\n\nAs a Catholic, my faith guides my approach to learning, discovery, and service. I strive to bring truth, integrity, and purpose to everything I do.\n\nHere's my [resume](static/cv.pdf). Explore my work, and let’s connect!\n\n--------------\nLast updated: Friday February 07, 2025 at 11:58 PM\n\n\n\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

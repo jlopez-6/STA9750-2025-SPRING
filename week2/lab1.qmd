@@ -1,0 +1,14 @@
+---
+title: "Lab1"
+format: pdf
+---
+# Greetings
+## English
+Hello! How *are* **you** doing? 
+
+## Spanish
+¡Hola! ¿Como te va?
+---
+[Don't click me!](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+
+![](https://www.nationalww2museum.org/sites/default/files/styles/wide_medium/public/2020-08/TB1%20-%20Edward%20Lengel.jpg)

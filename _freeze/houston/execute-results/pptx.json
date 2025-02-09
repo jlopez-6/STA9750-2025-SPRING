@@ -1,0 +1,17 @@
+{
+  "hash": "5ac3858010c3a2310c230acb00ff7f9e",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Houston's Housing Market\"\nauthor: \"Jocely Lopez Luna\"\nformat: pptx\n---\n\n\n\n# History of House Sales\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](houston_files/figure-pptx/unnamed-chunk-1-1.png)\n:::\n:::\n\n\n# Average Sale Price\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](houston_files/figure-pptx/unnamed-chunk-2-1.png)\n:::\n:::\n\n\n\n# How does Houston rank?\n\n\n::: {.cell}\n::: {.cell-output-display}\n![](houston_files/figure-pptx/unnamed-chunk-3-1.png)\n:::\n:::",
+    "supporting": [
+      "houston_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": null,
+    "postProcess": false
+  }
+}
