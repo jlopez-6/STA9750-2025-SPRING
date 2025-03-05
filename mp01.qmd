@@ -192,7 +192,7 @@ New York City's population of 8.26 million requires a sizable host of people to 
 
 # Problem Description
 
-In fiscal year 2024, ~31% (\$32,998,000) of the City's \$107,115,000 million budget was set aside to pay for the salaries and wages of government employees. However, in 2025, the city government estimates that it will see an 3.8% increase in personnel spending. Likewise, the City predicts that 2026 will see a 2.6% rise in salaries, even though total expenditures will be down 1.1% that year. Indeed, rising personnel costs is and will continue to be a pervasive problem for New York City, with the Comptroller estimating a 3.4% annual growth in payroll expenditure for 2026 and beyond (Figure 1) [@nyc_comptroller_annual_analysis].
+Around $32.5 billion went towards government employee salaries and wages in fiscal year 2024. In 2025, the city government estimates that it will see an 3.8% increase in personnel spending. Likewise, the City predicts that 2026 will see a 2.6% rise in salaries, even though total expenditures will be down 1.1% that year. Indeed, rising personnel costs is and will continue to be a pervasive problem for New York City, with the Comptroller estimating a 3.4% annual growth in payroll expenditure for 2026 and beyond (Figure 1) [@nyc_comptroller_annual_analysis].
 
 ::: {#fig-payroll_expenditure_plot}
 **Figure 1: New York City Payroll Expenditure per Year**
@@ -210,13 +210,14 @@ combined_data <- bind_rows(
   predicted_payroll |> mutate(type = "Predicted"),
   actual_payroll |> mutate(type = "Actual"))
 combined_data |>
-  ggplot(aes(x = fiscal_year, y = aggregate_pay, color = type, linetype = type)) +
+  mutate(in_billions = aggregate_pay/(10^9)) |>
+  ggplot(aes(x = fiscal_year, y = in_billions, color = type, linetype = type)) +
   geom_line(linewidth = 1.2) +  
   geom_point(size = 3) + 
   scale_color_manual(values = c("Actual" = "#78c2ad", "Predicted" = "gray80")) +  
   labs(
     x = "Fiscal Year",
-    y = "Aggregate Payroll ($)",
+    y = "Aggregate Payroll (Billions of $)",
   ) +
   theme_minimal()
 ```
@@ -284,11 +285,11 @@ mayor_pay <- nyc_payroll |>
 
 mayor_pay |>
   rename("Fiscal Year" = fiscal_year,
-         "Mayoral Cap" = mayoral_cap
+         "Mayoral Cap ($)" = mayoral_cap
          ) |>
   datatable(options = list(pageLength = N_ITEMS, autoWidth = TRUE), 
             rownames = FALSE) |> 
-  formatCurrency(columns = "Mayoral Cap", currency = "", digits = 0)
+  formatCurrency(columns = "Mayoral Cap ($)", currency = "", digits = 0)
 ```
 :::
 
@@ -317,7 +318,7 @@ ggplot(exceeding_agencies |> slice_max(n, n=N_ITEMS), aes(x = reorder(agency_nam
   coord_flip() +
   labs(
     x = "Agency",
-    y = "Number of Entries Exceeding Cap \n(FY2014-FY2024)"
+    y = "# of Entries Exceeding Cap \n(FY2014-FY2024)"
   ) +
   theme_minimal()
 ```
@@ -341,7 +342,7 @@ agency_titles_over_mayoral_cap |>
   arrange(desc(n_over)) |>
   rename("Agency Name" = agency_name,
          "Title Description" = title_description,
-         "Entries Over Mayoral Cap" = n_over) |>
+         "# of Entries Over Mayoral Cap" = n_over) |>
   datatable(options = list(pageLength = N_ITEMS,
                            autoWidth = TRUE))
 ```
