@@ -10,7 +10,6 @@ format:
     toc-location: right
     number-sections: true
     toc-depth: 3
-    css: styles.css
 execute:
   eval: true
 bibliography: references.bib

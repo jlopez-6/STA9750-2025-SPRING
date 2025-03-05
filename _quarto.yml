@@ -11,7 +11,7 @@ website:
   title: "STA9750 Submission Material"
   description:
     Course Projects for STA9750 at Baruch College
-  site-url: "https://jlopez-6.github.io/{{< var course.repo >}}/"
+  site-url: "https://jlopez-6.github.io/STA9750-2025-SPRING/"
   navbar:
     background: primary
     search: false

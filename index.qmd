@@ -3,6 +3,12 @@ title: "Welcome"
 execute:
   eval: true   
   echo: false  
+format: 
+  html:
+    toc: true            
+    toc-location: right   
+    number-sections: true
+    toc-depth: 3        
 ---
 
 ![](static/headshot.jpg)
@@ -13,7 +19,7 @@ At Lamont, I work on modernizing analog seismic data and investigating atmospher
 
 As a Catholic, my faith guides my approach to learning, discovery, and service. I strive to bring truth, integrity, and purpose to everything I do.
 
-Here's my [resume](static/cv.pdf). Explore my work, and let’s connect!
+Here's my [resume](cv.pdf). Explore my work, and let’s connect!
 
 --------------
 Last updated: `r format(Sys.time(), "%A %B %d, %Y at %I:%M %p")`
