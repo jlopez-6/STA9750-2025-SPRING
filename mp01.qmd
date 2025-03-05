@@ -16,7 +16,10 @@ bibliography: references.bib
 csl: apa.csl
 ---
 
-![CATS logo](docs/logo.jpeg){width=1in} **Commission to Analyze Taxpayer Spending**
+![CATS logo](docs/logo.jpeg){width=1in}
+[^1] **Commission to Analyze Taxpayer Spending**
+
+[^1]: This logo is courtesy of [@google_gemini].
 
 # Executive Summary
 
@@ -376,9 +379,9 @@ The Commission does not recommend a blanket capping subordinate salaries at the 
 ## Policy II: Increasing Staffing to Reduce Overtime Expenses
 
 A second approach to curtailing personnel expenditure is increasing staffing to reduce OT expenses. For this analysis, the Commission assumes that a full-time position is 2000 hours a year.
-Figure 3 presents OT hours converted to the number of new full-time employees required to fulfill the same amount of work hours. The total number of new employees needed to address the current OT load is **200,412**. This represents the workforce that would need to be hired if OT hours were eliminated through additional staffing. The Commission notes that this number is approximately **50%** of the last fiscal year's workforce [^1].
+Figure 3 presents OT hours converted to the number of new full-time employees required to fulfill the same amount of work hours. The total number of new employees needed to address the current OT load is **200,412**. This represents the workforce that would need to be hired if OT hours were eliminated through additional staffing. The Commission notes that this number is approximately **50%** of the last fiscal year's workforce [^2].
 
-[^1]: The Comptroller estimates that non-OT personnel spending will be $500 million lower than budgeted for in 2025. However, we have shown that an increase in regular personnal spending leads to substantial savings.
+[^2]: The Comptroller estimates that non-OT personnel spending will be $500 million lower than budgeted for in 2025 [@nyc_comptroller_annual_expenditure]. However, we have shown that an increase in regular personnal spending leads to substantial savings.
 
 ::: {#fig-OT_to_FTE}
 **Figure 3: Top 20 Full Time Personnel Counts, by Agency and Title **
