@@ -1,6 +1,7 @@
 ---
 title: "Analysis of New York City's Payroll Expenditure Data"
 author: Jocely Lopez Luna
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 format: 
   html: 
     code-tools: true
@@ -16,13 +17,9 @@ bibliography: references.bib
 csl: apa.csl
 ---
 
-![CATS logo](logo.png)
+![CATS logo](docs/logo.jpeg){width=1in} **Commission to Analyze Taxpayer Spending**
 
-# Analysis of New York City's Payroll Expenditure Data"
-
-*Commission to Analyze Taxpayer Spending*
-
-## Executive Summary
+# Executive Summary
 
 This report analyzes New York City personnel expenditure data collected between 2014 and 2024, with the goal of analyzing policies that effectively reduce personnel spending. The Commission proposes 3 policy options:
 
@@ -34,7 +31,7 @@ The data suggest that Policy II offers the largest amount of savings, although i
 
 The Commission most strongly recommends that the City implement Policy III, where raises for high earners are tied to demonstrated productivity improvements, ensuring sustainable wage growth.
 
-### Quick Facts
+## Quick Facts
 
 * The job title with the highest base rate of pay is **Chairman** with a rate of **\$567** per hour.
 
@@ -187,18 +184,18 @@ actual_payroll <-
   mutate(percent_change = ((aggregate_pay - lag(aggregate_pay)) / lag(aggregate_pay)) * 100)
 ```
 
-## Background
+# Background
 
 New York City's population of 8.26 million requires a sizable host of people to maintain a livable city for all [@fox5ny]. In 2024 alone, the City employed 562,898 people to put our fires out, teach our children, and clean up our streets, among other things [@nyc_open_data_payroll]. It follows then, that a large portion of the City's budget is dedicated to personnel costs. While the efforts of these individuals is highly appreciated, we must also strive for optimization in personnel costs to lower the cost of living so that New Yorkers can thrive in our city. 
 
-## Problem Description
+# Problem Description
 
 In fiscal year 2024, ~31% (\$32,998,000) of the City's \$107,115,000 million budget was set aside to pay for the salaries and wages of government employees. However, in 2025, the city government estimates that it will see an 3.8% increase in personnel spending. Likewise, the City predicts that 2026 will see a 2.6% rise in salaries, even though total expenditures will be down 1.1% that year. Indeed, rising personnel costs is and will continue to be a pervasive problem for New York City, with the Comptroller estimating a 3.4% annual growth in payroll expenditure for 2026 and beyond (Figure 1) [@nyc_comptroller_annual_analysis].
 
 ::: {#fig-payroll_expenditure_plot}
-**Figure 1: Payroll Expenditure per Year**
+**Figure 1: New York City Payroll Expenditure per Year**
 
-``` {r, echo=TRUE,message=FALSE,warning=FALSE, fig.align="center",label="payroll_expenditure_plot", fig.cap = "Source: NYC Payroll Data (Actual) + Forecast from NYC Comptroller"}
+```{r, echo=TRUE, message=FALSE, warning=FALSE,eval=TRUE}
 last_yr = tail(actual_payroll,n=1) |> pull(fiscal_year)
 last_ap = tail(actual_payroll,n=1) |> pull(aggregate_pay)
 
@@ -209,32 +206,30 @@ predicted_payroll <- tibble(
 
 combined_data <- bind_rows(
   predicted_payroll |> mutate(type = "Predicted"),
-  actual_payroll |> mutate(type = "Actual")
-)|>
+  actual_payroll |> mutate(type = "Actual"))
+combined_data |>
   ggplot(aes(x = fiscal_year, y = aggregate_pay, color = type, linetype = type)) +
   geom_line(linewidth = 1.2) +  
   geom_point(size = 3) + 
   scale_color_manual(values = c("Actual" = "#78c2ad", "Predicted" = "gray80")) +  
   labs(
-    title = "NYC Payroll Expenditure",
     x = "Fiscal Year",
     y = "Aggregate Payroll ($)",
   ) +
   theme_minimal()
 ```
-
 :::
 
 To address this problem, Mayor Eric L. Adams has tasked the Commission to Analyze Taxpayer Spending (CATS) with investigating payroll expenditures, formulating policies aimed at reducing the City’s payroll costs, and offering data based recommendations. This report presents our findings.
 
-## Data Acquisition and Preparation
+# Data Acquisition and Preparation
 
 The Commission acquired Citywide Payroll Data from NYC Open Data, wherein New York City agencies publish data that they collect and use. The data set contains various points of information on every city employee as inputted into the Personnel Management System by user Agencies. As an example of the datapoints in the set, table 1 presents an employee salary table for Mayor Eric L. Adams from 2014 to 2024.
 
 ::: {#tab-eric_adams_salary}
 **Table 1: Salary Table for Mayor Eric L. Adams**
 
-```{r, label="table-eric-adams-payroll",echo=TRUE,message=FALSE,warning=FALSE,message=FALSE, warning=FALSE}
+```{r, label="table-eric-adams-payroll",eval=TRUE,echo=TRUE,message=FALSE, warning=FALSE}
 eric_adams_payroll <- 
   nyc_payroll |>
   filter(
@@ -253,10 +248,11 @@ eric_adams_payroll <-
          "Total Salary" = total_salary,
          "Agency Name" = agency_name,
          "Position" = title_description
-  )|>
-  datatable(options = list(pageLength = 10), 
-            rownames = FALSE
   )
+eric_adams_payroll |>
+  datatable(options = list(pageLength = N_ITEMS), 
+            rownames = FALSE
+  )|> formatCurrency(columns = "Total Salary", currency = "", digits = 0)
 ```
 :::
 
@@ -267,11 +263,11 @@ The analysis was performed using R and several R packages, including [@R-core], 
 
 The ```total_pay``` column contains the total gross pay of each employee based on their base pay, their pay basis (per Hour, per Day, or assumed annual salary), and the number of hours--both regular and OT--reported. Several cases in the data set contained negative counts for hours. The Commision addressed this by setting total_pay to ```NA``` for these cases. The ```base_rate_hr``` column represents an employee's estimated hourly wage, calculated based on their pay basis, while ensuring reasonable hourly rate assumptions of less than $67,440 per hour. This assumption was developed to address pay basis and base salary mismatch errors.
 
-## Policy Analysis
+# Policy Analysis
 
 The Commission proposes the following policies to address mounting payroll expenditures.
 
-### Policy I: Capping Salaries at Mayoral Level
+## Policy I: Capping Salaries at Mayoral Level
 
 One approach to reducing personnel expenditures is to cap the salaries of subordinate employees, so that the mayor of the City earns the highest salary. Table 2 presents the salaries of New York City's Mayor from 2014 to 2024. 
 
@@ -284,14 +280,20 @@ mayor_pay <- nyc_payroll |>
            leave_status_as_of_june_30 == "Active") |>
   select(fiscal_year, mayoral_cap = total_pay)
 
-kable(mayor_pay, col.names = c("Fiscal Year", "Mayoral Cap ($)"))
+mayor_pay |>
+  rename("Fiscal Year" = fiscal_year,
+         "Mayoral Cap" = mayoral_cap
+         ) |>
+  datatable(options = list(pageLength = N_ITEMS, autoWidth = TRUE), 
+            rownames = FALSE) |> 
+  formatCurrency(columns = "Mayoral Cap", currency = "", digits = 0)
 ```
 :::
 
-In total, 1,566 job titles earned more money than the mayor did during the the same fiscal year. A distribution of the agencies with employees exceeding the mayoral salary is shown in figure 2. The vast majority of people who earned more money than the mayor work for the Department of Corrections. This is followed by the FDNY and the NYPD. These agencies would see the largest savings if personnel salaries are capped at the mayoral level. 
+In total, **1,566** job titles earned more money than the mayor did during the the same fiscal year. A distribution of the agencies with employees exceeding the mayoral salary is shown in figure 2. The vast majority of people who earned more money than the mayor work for the Department of Corrections. This is followed by the FDNY and the NYPD. These agencies would see the largest savings if personnel salaries are capped at the mayoral level. 
 
 ::: {#fig-agencies_exceeding_mayoral_cap}
-**Figure 2: Number of Employees in Agencies Exceeding Mayoral Cap**
+**Figure 2: Top 20 Number of Payroll Entries Exceeding Mayoral Cap, by Agency**
 
 ``` {r,echo=TRUE,message=FALSE,warning=FALSE}
 exceeding_agencies <- nyc_payroll |> 
@@ -308,14 +310,10 @@ remaining_sum <- exceeding_agencies |>
   summarize(sum_n = sum(n)) |> 
   pull(sum_n)
 
-remaining_agency_count
-remaining_sum
-
 ggplot(exceeding_agencies |> slice_max(n, n=N_ITEMS), aes(x = reorder(agency_name, n), y = n)) +
   geom_col(fill = "#69b3a2") +
   coord_flip() +
   labs(
-    title = paste("Top",N_ITEMS,"Agencies Exceeding Mayoral Cap"),
     x = "Agency",
     y = "Number of Entries Exceeding Cap \n(FY2014-FY2024)"
   ) +
@@ -342,11 +340,12 @@ agency_titles_over_mayoral_cap |>
   rename("Agency Name" = agency_name,
          "Title Description" = title_description,
          "Entries Over Mayoral Cap" = n_over) |>
-  datatable()
+  datatable(options = list(pageLength = N_ITEMS,
+                           autoWidth = TRUE))
 ```
 :::
 
-The total savings per fiscal year that could have resulted from enactment of the proposed policy are presented in table 4. The Commission notes that, had the proposed policy been enacted in 2014, New York City would have seen total savings of \$39,074,243.
+The total savings per fiscal year that could have resulted from enactment of the proposed policy are presented in table 4. The Commission notes that, had the proposed policy been enacted in 2014, New York City would have seen total savings of **\$39,074,243**.
 
 ::: {#tab-savings_per_annum_mayoral_cap}
 **Table 4: Savings per Annum from Policy I**
@@ -362,25 +361,28 @@ savings_per_year <-
 
 total_savings <- savings_per_year |> summarize(sum(total_savings, na.rm=TRUE))
 
-datatable(savings_per_year |>
-            rename("Fiscal Year" = fiscal_year,
+savings_per_year |>
+  rename("Fiscal Year" = fiscal_year,
                    "# of Entries Exceeding Mayoral Cap" = n_over,
-                   "Savings ($)" = total_savings))
+                   "Savings ($)" = total_savings) |>
+  datatable(options = list(pageLength = N_ITEMS,
+                           autoWidth = TRUE))|>
+  formatCurrency(columns = "Savings ($)", currency = "", digits = 0)
 
 ```
 :::
 
 The Commission does not recommend a blanket capping subordinate salaries at the mayoral level. A majority of employees earning more than the mayor hold positions that involve significant risks. Given the nature of these high-risk jobs, the Commission believes that these employees should be fairly compensated for the additional responsibilities and dangers they face in their roles. However, the Commission is not against capping salaries on a title-by-title basis. 
 
-### Policy II: Increasing Staffing to Reduce Overtime Expenses
+## Policy II: Increasing Staffing to Reduce Overtime Expenses
 
 A second approach to curtailing personnel expenditure is increasing staffing to reduce OT expenses. For this analysis, the Commission assumes that a full-time position is 2000 hours a year.
-Figure 3 presents OT hours converted to the number of new full-time employees required to fulfill the same amount of work hours. The total number of new employees needed to address the current OT load is 200,412. This represents the workforce that would need to be hired if OT hours were eliminated through additional staffing. The Commission notes that this number is approximately **50%** of the last fiscal year's workforce [^1].
+Figure 3 presents OT hours converted to the number of new full-time employees required to fulfill the same amount of work hours. The total number of new employees needed to address the current OT load is **200,412**. This represents the workforce that would need to be hired if OT hours were eliminated through additional staffing. The Commission notes that this number is approximately **50%** of the last fiscal year's workforce [^1].
 
 [^1]: The Comptroller estimates that non-OT personnel spending will be $500 million lower than budgeted for in 2025. However, we have shown that an increase in regular personnal spending leads to substantial savings.
 
 ::: {#fig-OT_to_FTE}
-**Figure 3: Full Time Personnel Equivalent, by Agency and Title **
+**Figure 3: Top 20 Full Time Personnel Counts, by Agency and Title **
 ``` {r ,echo=TRUE,message=FALSE,warning=FALSE}
 nyc_payroll |>
   filter(ot_hours > 0) |>
@@ -395,15 +397,14 @@ nyc_payroll |>
   geom_col(fill = "#69b3a2") +
   coord_flip() +  
   labs(
-    title = "OT Hours Converted to FTE",
     x = "Agency | Job Title",
-    y = "Number of Full-Time Equivalent Positions",
+    y = "Number of Positions",
   ) +
   theme_minimal()
 ```
 :::
 
-The total potential savings from this proposed policy amount to \$15,025,441,508 (Table 5). The commission notes that the potential savings from this policy are almost **400x** that of Policy I. 
+The total potential savings from this proposed policy amount to **\$15,025,441,508** (Table 5). The commission notes that the potential savings from this policy are almost **400x** that of Policy I. 
 
 Enacting this policy entails recruiting:
 
@@ -425,12 +426,14 @@ nyc_payroll |>
   summarize(total_savings = round(sum(savings, na.rm=TRUE),0)) |>
   arrange(desc(total_savings)) |>
   rename("Agency Name" = agency_name,
-         "Total Savings ($)" = total_savings) |>
-  datatable()
+         "Savings ($)" = total_savings) |>
+  datatable(options = list(pageLength = N_ITEMS,
+                           autoWidth = TRUE)) |>
+  formatCurrency(columns = "Savings ($)", currency = "", digits = 0)
 ```
 
-### Policy III: Reduce Salary Increases for Top Earners
-The third policy the Commission proposes to reduce personnel spending is the reduction of salary increases for the top 10% of earners in their respective agencies to 1.05% of their base hourly rate. The Commission found that on average, high earners get a raise every 1.85 years, and presents the distribution of the frequency of raises per year in figure \@ref(fig:pay_raise_freq).
+## Policy III: Reduce Salary Increases for Top Earners
+The third policy the Commission proposes to reduce personnel spending is the reduction of salary increases for the top 10% of earners in their respective agencies to 1.05% of their base hourly rate. The Commission found that on average, high earners get a raise every **1.85** years, and presents the distribution of the frequency of raises per year in figure 4.
 
 ::: {#fig-pay_raise_freq}
 **Figure 4: Distribution of Pay Raise Frequency**
@@ -447,7 +450,6 @@ high_earners <-
          !is.na(fiscal_year),
          total_pay > high_earner_threshold)
 
-# Calculate the number of raises per year for each employee
 high_earners_with_raises <- 
   high_earners |>
   group_by(agency_name, title_description, first_name, mid_init, last_name) |>
@@ -455,7 +457,7 @@ high_earners_with_raises <-
   mutate(
     base_rate_change = case_when( is.na(lag(base_rate_hr)) | is.na(lag(fiscal_year)) ~ 0,
                                   TRUE ~ (base_rate_hr - lag(base_rate_hr))/(fiscal_year - lag(fiscal_year))),
-    years_worked = max(fiscal_year,na.rm=TRUE) - min(fiscal_year,na.rm=TRUE),  # Calculate years worked
+    years_worked = max(fiscal_year,na.rm=TRUE) - min(fiscal_year,na.rm=TRUE), 
     n_raises = sum(base_rate_change > 0, na.rm = TRUE),
     raises_per_year = n_raises / years_worked,
     avg_rate_increase_per_person = mean(base_rate_change, na.rm=TRUE),
@@ -464,12 +466,11 @@ high_earners_with_raises <-
   ) |>
   filter(!is.na(n_raises),years_worked>0) |>
   ungroup()
-
-# Plot histogram of raises per year
-ggplot(high_earners_with_raises |> filter(raises_per_year <= 1), aes(x = raises_per_year)) +
+high_earners_with_raises |>
+  filter(raises_per_year <= 1) |>
+  ggplot(aes(x = raises_per_year)) +
   geom_histogram(binwidth = 0.05, fill = "#69b3a2", color = "white") +
   labs(
-    title = "Number of Pay Raises Per Year Among High Earners",
     x = "Raises per Year",
     y = "Number of Employees"
   ) +
@@ -477,10 +478,8 @@ ggplot(high_earners_with_raises |> filter(raises_per_year <= 1), aes(x = raises_
 ```
 :::
 
-We determine the agencies and titles with the highest average number of raises per year, and present the findings in table 6. 523 high-salary jobs have an average pay raise rate of one a year. 
+We determine the agencies and titles with the highest average number of raises per year, and find 523 high-salary jobs with an average pay raise rate of once a year. 
 
-::: {#tab-one_raise_per_year}
-**Table 6: Distribution of Pay Raise Frequency**
 ``` {r,label=one_raise_per_year,echo=TRUE,message=FALSE,warning=FALSE}
 avg_pay_raise_rate_data <-
   high_earners_with_raises |>
@@ -490,20 +489,12 @@ avg_pay_raise_rate_data <-
             med_pay_raise_rate = median(raises_per_year, na.rm=TRUE),
             n_raises_per_agency = sum(n_raises,na.rm=TRUE),
             .groups="drop")
-
-avg_pay_raise_rate_data |> 
-  filter(avg_pay_raise_rate == 1) |> 
-  select(agency_name,title_description) |>
-  rename("Agency Name" = agency_name,
-         "Title Description" = title_description) |>
-  datatable()
 ```
-:::
 
-We find the average amount that the hourly base rate increases per agency. The highest average increase is $7.70 at Brooklyn Community Board 12. The Commission also notes the appearance of **11** community boards within the top 20 agencies (Figure 5).
+We find the average amount that the hourly base rate increases per agency. The highest average increase is **$7.70** at Brooklyn Community Board 12. The Commission also notes the appearance of **11** community boards within the top 20 agencies (Figure 5).
 
 ::: {#fig-avg_pay_raise_amt_per_agency}
-**Figure 5: Average Increase in Hourly Rate per Agency**
+**Figure 5: Top 20 Average Increases in Hourly Rate, by Agency**
 
 ``` {r, fig.cap="Average pay raise amount per agency", fig.name="avg_pay_raise_amt_per_agency", echo=TRUE,message=FALSE,warning=FALSE}
 avg_rate_increase_per_agency_data <-
@@ -518,7 +509,6 @@ avg_rate_increase_per_agency_data |>
   geom_col(fill = "#69b3a2") +
   coord_flip() +  
   labs(
-    title = paste("Top",N_ITEMS,"Agencies by Mean Pay Raise Amount"),
     x = "Agency",
     y = "Mean Pay Raise Amount ($/hr)"
   ) +
@@ -526,10 +516,10 @@ avg_rate_increase_per_agency_data |>
 ```
 :::
 
-Combining these two metrics, we get an estimate of the amount spent per agency on high-earner raises over the last 10 fiscal years. The Department of Education far outranks all other agencies with an expenditure of almost \$500 million (Figure 6). They are followed by the Police Department at just over \$200 million. Over the last 10 years, the total amount spent by the City on pay raises for high earners was about \$1.9 billion.
+Combining these two metrics, we get an estimate of the amount spent per agency on high-earner raises over the last 10 fiscal years. The Department of Education far outranks all other agencies with an expenditure of almost **\$500 million** (Figure 6). They are followed by the Police Department at just over **\$200 million**. Over the last 10 years, the total amount spent by the City on pay raises for high earners was about **\$1.9 billion**.
 
 ::: {#fig-most_raise_spending_per_agency}
-**Figure 6: Agencies Spending the Most on Raises for High-Earners**
+**Figure 6: Top 20 Agencies Spending the Most on Raises for High-Earners**
 
 ``` {r, label=most_raise_spending_per_agency, echo=TRUE,message=FALSE,warning=FALSE}
 total_raise_spending <- 
@@ -539,20 +529,20 @@ total_raise_spending <-
   summarize(total_raise_spend_per_year = sum(n_raises_per_agency * avg_pay_raise_rate * avg_rate_increase_per_agency * 2000, na.rm=TRUE)) 
   
 total_raise_spending |>
-  slice_max(total_raise_spend_per_year,n=20) |>
-  ggplot(aes(x = reorder(agency_name, total_raise_spend_per_year), y = total_raise_spend_per_year)) +
+  mutate(in_millions = total_raise_spend_per_year/(10^6))|>
+  slice_max(in_millions,n=20) |>
+  ggplot(aes(x = reorder(agency_name, in_millions), y = in_millions)) +
   geom_col(fill = "#69b3a2") +
   coord_flip() +  
   labs(
-    title = paste("Top",N_ITEMS,"Agencies by Amount Spent on Pay Raises for High Earners"),
     x = "Agency",
-    y = "Dollars"
+    y = "Dollars (in millions)"
   ) +
   theme_minimal()
 ```
 :::
 
-The Commission estimates that, if high-earner raises had been capped at 0.05% in 2014, total savings by the City are approximately \$976 million. Such a policy could have slashed 10-year-expenditure by up to 50%. The following analysis demonstrates the potential savings:
+The Commission estimates that, if high-earner raises had been capped at 0.05% in 2014, total savings by the City are approximately **\$976 million**. Such a policy could have slashed 10-year-expenditure by up to **50%**. The following analysis demonstrates the potential savings:
 
 ``` {r, label=savings_from_capping,echo=TRUE,message=FALSE,warning=FALSE}
 savings_from_capping <- 
@@ -568,6 +558,6 @@ savings_from_capping <-
 
 Based on these findings, the Commission recommends adopting a measured approach to this policy. High earners should be permitted to receive higher compensation if it is justified by demonstrable productivity improvements. This ensures that wage growth is tied to measurable value.
 
-## Conclusion
+# Conclusion
 
 In conclusion, the Commission's report highlights the potential benefits of the implementation of three policies: capping salaries at the mayoral level, increasing staffing to reduce overtime, and reducing salary increases for top earners. Given the fiscal challenges facing New York City, and the Commission's analysis of New York City's personnel expenditure data, we most strongly support the adoption of Policy III. This option offers reasonable savings and is easy to implement. 
