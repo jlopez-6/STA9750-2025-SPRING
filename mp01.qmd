@@ -1,5 +1,6 @@
 ---
 title: "Analysis of New York City's Payroll Expenditure Data"
+subtitle: "Commission to Analyze Taxpayer Spending"
 author: Jocely Lopez Luna
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 format: 
@@ -12,12 +13,12 @@ format:
     toc-depth: 3
 execute:
   eval: true
-bibliography: references.bib
+bibliography: mp01_ref.bib
 csl: apa.csl
 ---
 
 ![CATS logo](docs/logo.jpeg){width=1in}
-[^1] **Commission to Analyze Taxpayer Spending**
+
 
 [^1]: This logo is courtesy of [@google_gemini].
 
@@ -38,57 +39,6 @@ The Commission most strongly recommends that the City implement Policy III, wher
 * The job title with the highest base rate of pay is **Chairman** with a rate of **\$567** per hour.
 
 ``` {r, echo=TRUE, message=FALSE, warning=FALSE}
-if(!file.exists("data/mp01/nyc_payroll_export.csv")){
-    dir.create("data/mp01", showWarnings=FALSE, recursive=TRUE)
-    
-    ENDPOINT <- "https://data.cityofnewyork.us/resource/k397-673e.json"
-    
-    if(!require("httr2")) install.packages("httr2")
-    library(httr2)
-    
-    if(!require("jsonlite")) install.packages("jsonlite")
-    library(jsonlite)
-    
-    if(!require("dplyr")) install.packages("dplyr")
-    library(dplyr)
-    
-    if(!require("readr")) install.packages("readr")
-    library(readr)
-    
-    BATCH_SIZE <- 50000
-    OFFSET     <- 0
-    END_OF_EXPORT <- FALSE
-    ALL_DATA <- list()
-    
-    while(!END_OF_EXPORT){
-        cat("Requesting items", OFFSET, "to", BATCH_SIZE + OFFSET, "\n")
-        
-        req <- request(ENDPOINT) |>
-                  req_url_query(`$limit`  = BATCH_SIZE, 
-                                `$offset` = OFFSET)
-        
-        resp <- req_perform(req)
-        
-        batch_data <- fromJSON(resp_body_string(resp))
-        
-        ALL_DATA <- c(ALL_DATA, list(batch_data))
-        
-        if(NROW(batch_data) != BATCH_SIZE){
-            END_OF_EXPORT <- TRUE
-            
-            cat("End of Data Export Reached\n")
-        } else {
-            OFFSET <- OFFSET + BATCH_SIZE
-        }
-    }
-    
-    ALL_DATA <- bind_rows(ALL_DATA)
-    
-    cat("Data export complete:", NROW(ALL_DATA), "rows and", NCOL(ALL_DATA), "columns.")
-    
-    write_csv(ALL_DATA, "data/mp01/nyc_payroll_export.csv")
-}
-
 library(readr)
 library(stringr)
 library(dplyr)
@@ -314,7 +264,7 @@ The analysis was performed using R and several R packages, including [@R-core], 
 1. ```total_pay```
 2. ```base_rate_hr```
 
-The ```total_pay``` column contains the total gross pay of each employee based on their base pay, their pay basis (per Hour, per Day, or assumed annual salary), and the number of hours--both regular and OT--reported. Several cases in the data set contained negative counts for hours. The Commision addressed this by setting total_pay to ```NA``` for these cases. The ```base_rate_hr``` column represents an employee's estimated hourly wage, calculated based on their pay basis, while ensuring reasonable hourly rate assumptions of less than $67,440 per hour. This assumption was developed to address pay basis and base salary mismatch errors.
+The ```total_pay``` column contains the total gross pay of each employee based on their base pay, their pay basis (per Hour, per Day, or assumed annual salary), and the number of hours--both regular and OT--reported. Several cases in the data set contained negative counts for hours. The Commission addressed this by setting total_pay to ```NA``` for these cases. The ```base_rate_hr``` column represents an employee's estimated hourly wage, calculated based on their pay basis, while ensuring reasonable hourly rate assumptions of less than $67,440 per hour. This assumption was developed to address pay basis and base salary mismatch errors.
 
 # Policy Analysis
 

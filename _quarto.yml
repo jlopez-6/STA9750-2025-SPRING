@@ -18,7 +18,9 @@ website:
       - text: About Me
         href: index.html
       - text: CATS Payroll Report
-        href: mp01.html  
+        href: mp01.html
+      - text: GTA IV 2025 Greenies
+        href: mp02.html
     
 format:
   html:

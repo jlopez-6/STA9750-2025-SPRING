@@ -1,0 +1,695 @@
+---
+title: "GTA IV Announces Winners of the 2025 Greenies"
+author: Jocely Lopez Luna
+format: 
+  html: 
+    code-tools: true
+    code-fold: true
+    toc: true
+    toc-location: right
+    number-sections: true
+    toc-depth: 3
+execute:
+  eval: true
+  messages: false
+bibliography: mp02_ref.bib
+csl: apa.csl
+---
+
+<style>
+.hero-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+</style>
+
+<img src="gtaiv_cover.jpeg" class="hero-image" alt="Urban Transit Cover">
+
+``` {r lib_imports, messages=FALSE, warnings=FALSE}
+# Library imports
+library(stringr)
+library(readr)
+library(stringr)
+library(dplyr)
+library(knitr)
+library(DT)
+library(ggplot2)
+library(rvest)
+library(readxl)
+
+# Constants
+MPG <- 49 # standard vehicle fuel economy for 2026.
+MCF_TO_GALLONS <- 7.48052 * 1000 # conversion factor for metric cubic feet to gallons.
+
+```
+
+``` {r download_IEA}
+# Instructor provided code for downloading and tidying up data.
+ensure_package <- function(pkg){
+    pkg <- as.character(substitute(pkg))
+    options(repos = c(CRAN = "https://cloud.r-project.org"))
+    if(!require(pkg, character.only=TRUE)) install.packages(pkg)
+    stopifnot(require(pkg, character.only=TRUE))
+}
+
+ensure_package(httr2)
+ensure_package(rvest)
+ensure_package(datasets)
+ensure_package(purrr)
+ensure_package(DT)
+
+
+get_eia_sep <- function(state, abbr){
+    state_formatted <- str_to_lower(state) |> str_replace_all("\\s", "")
+    
+    dir_name <- file.path("data", "mp02")
+    file_name <- file.path(dir_name, state_formatted)
+    
+    dir.create(dir_name, showWarnings=FALSE, recursive=TRUE)
+    
+    if(!file.exists(file_name)){
+        BASE_URL <- "https://www.eia.gov"
+        REQUEST <- request(BASE_URL) |> 
+            req_url_path("electricity", "state", state_formatted)
+    
+        RESPONSE <- req_perform(REQUEST)
+    
+        resp_check_status(RESPONSE)
+        
+        writeLines(resp_body_string(RESPONSE), file_name)
+    }
+    
+    TABLE <- read_html(file_name) |> 
+        html_element("table") |> 
+        html_table() |>
+        mutate(Item = str_to_lower(Item))
+    
+    if("U.S. rank" %in% colnames(TABLE)){
+        TABLE <- TABLE |> rename(Rank = `U.S. rank`)
+    }
+    
+    CO2_MWh <- TABLE |> 
+        filter(Item == "carbon dioxide (lbs/mwh)") |>
+        pull(Value) |> 
+        str_replace_all(",", "") |>
+        as.numeric()
+    
+    PRIMARY <- TABLE |> 
+        filter(Item == "primary energy source") |> 
+        pull(Rank)
+    
+    RATE <- TABLE |>
+        filter(Item == "average retail price (cents/kwh)") |>
+        pull(Value) |>
+        as.numeric()
+    
+    GENERATION_MWh <- TABLE |>
+        filter(Item == "net generation (megawatthours)") |>
+        pull(Value) |>
+        str_replace_all(",", "") |>
+        as.numeric()
+    
+    data.frame(CO2_MWh               = CO2_MWh, 
+               primary_source        = PRIMARY,
+               electricity_price_MWh = RATE * 10, # / 100 cents to dollars &
+               # * 1000 kWh to MWH 
+               generation_MWh        = GENERATION_MWh, 
+               state                 = state, 
+               abbreviation          = abbr
+    )
+}
+
+EIA_SEP_REPORT <- map2(state.name, state.abb, get_eia_sep) |> list_rbind()
+
+ensure_package(scales)
+ensure_package(DT)
+
+EIA_SEP_REPORT |> 
+    select(-abbreviation) |>
+    arrange(desc(CO2_MWh)) |>
+    mutate(CO2_MWh = number(CO2_MWh, big.mark=","), 
+           electricity_price_MWh = dollar(electricity_price_MWh), 
+           generation_MWh = number(generation_MWh, big.mark=",")) |>
+    rename(`Pounds of CO2 Emitted per MWh of Electricity Produced`=CO2_MWh, 
+           `Primary Source of Electricity Generation`=primary_source, 
+           `Average Retail Price for 1000 kWh`=electricity_price_MWh, 
+           `Total Generation Capacity (MWh)`= generation_MWh, 
+           State=state) |>
+    datatable()
+
+```
+``` {r task2}
+
+colnames(EIA_SEP_REPORT)
+# Which state has the most expensive retail electricity?
+EIA_SEP_REPORT |>
+  slice_max(electricity_price_MWh, n = 1)
+# Which state has the ‘dirtiest’ electricity mix?
+EIA_SEP_REPORT |>
+  slice_max(CO2_MWh, n = 1)
+# On average, how many pounds of CO2 are emitted per MWh of electricity produced in the US? (Note that you will need to use a suitably weighted average here.)
+EIA_SEP_REPORT |>
+  summarize(weighted_avg = sum(CO2_MWh * generation_MWh) / sum(generation_MWh))
+  
+# What is the rarest primary energy source in the US? What is the associated cost of electricity and where is it used?
+
+rarest_source <-
+  EIA_SEP_REPORT |>
+  group_by(primary_source) |>
+  summarize(count = n()) |>
+  slice_min(count, n = 1) |>
+  pull(primary_source)
+
+EIA_SEP_REPORT |>
+  select(primary_source,
+         electricity_price_MWh,
+         state) |>
+  filter(primary_source == rarest_source)
+
+# My home state, Texas, has a reputation as being the home of “dirty fossil fuels” while NY has a reputation as a leader in clean energy. How many times cleaner is NY’s energy mix than that of Texas?
+
+tx_co2 <-
+  EIA_SEP_REPORT |>
+  filter(state == "Texas") |>
+  pull(CO2_MWh)
+
+ny_co2 <-
+  EIA_SEP_REPORT |>
+  filter(state == "New York") |>
+  pull(CO2_MWh)
+
+ tx_co2 / ny_co2
+
+```
+``` {r download_NTD}
+ensure_package(readxl)
+# Create 'data/mp02' directory if not already present
+DATA_DIR <- file.path("data", "mp02")
+dir.create(DATA_DIR, showWarnings=FALSE, recursive=TRUE)
+
+NTD_ENERGY_FILE <- file.path(DATA_DIR, "2023_ntd_energy.xlsx")
+
+if(!file.exists(NTD_ENERGY_FILE)){
+    DS <- download.file("https://www.transit.dot.gov/sites/fta.dot.gov/files/2024-10/2023%20Energy%20Consumption.xlsx", 
+                  destfile=NTD_ENERGY_FILE, 
+                  method="curl")
+    
+    if(DS | (file.info(NTD_ENERGY_FILE)$size == 0)){
+        cat("I was unable to download the NTD Energy File. Please try again.\n")
+        stop("Download failed")
+    }
+}
+
+NTD_ENERGY_RAW <- read_xlsx(NTD_ENERGY_FILE)
+
+ensure_package(tidyr)
+to_numeric_fill_0 <- function(x){
+    replace_na(as.numeric(x), 0)
+}
+
+NTD_ENERGY <- NTD_ENERGY_RAW |> 
+    select(-c(`Reporter Type`, 
+              `Reporting Module`, 
+              `Other Fuel`, 
+              `Other Fuel Description`)) |>
+    mutate(across(-c(`Agency Name`, 
+                     `Mode`,
+                     `TOS`), 
+                  to_numeric_fill_0)) |>
+    group_by(`NTD ID`, `Mode`, `Agency Name`) |>
+    summarize(across(where(is.numeric), sum), 
+              .groups = "keep") |>
+    mutate(ENERGY = sum(c_across(c(where(is.numeric))))) |>
+    filter(ENERGY > 0) |>
+    select(-ENERGY) |>
+    ungroup()
+```
+
+
+``` {r task3}
+
+NTD_ENERGY <- NTD_ENERGY |>
+    mutate(Mode=case_when(
+        Mode == "HR" ~ "Heavy Rail", 
+        Mode == "AR" ~ "Alaska Railroad",
+        Mode == "CB" ~ "Commuter Bus",
+        Mode == "CC" ~ "Cable Car",
+        Mode == "CR" ~ "Commuter Rail",
+        Mode == "DR" ~ "Demand Response",
+        Mode == "FB" ~ "Ferryboat",
+        Mode == "IP" ~ "Inclined Plane",
+        Mode == "LR" ~ "Light Rail",
+        Mode == "MB" ~ "Bus",
+        Mode == "MG" ~ "Monorail and Automated Guideway modes",
+        Mode == "PB" ~ "Publico",
+        Mode == "RB" ~ "Bus Rapid Transit",
+        Mode == "SR" ~ "Streetcar Rail",
+        Mode == "TB" ~ "Trolleybus",
+        Mode == "TR" ~ "Aerial Tramways",
+        Mode == "VP" ~ "Vanpool",
+        Mode == "YR" ~ "Hybrid Rail",
+        TRUE ~ "Unknown"))
+```
+
+``` {r download_NTD2}
+NTD_SERVICE_FILE <- file.path(DATA_DIR, "2023_service.csv")
+if(!file.exists(NTD_SERVICE_FILE)){
+    DS <- download.file("https://data.transportation.gov/resource/6y83-7vuw.csv", 
+                  destfile=NTD_SERVICE_FILE, 
+                  method="curl")
+    
+    if(DS | (file.info(NTD_SERVICE_FILE)$size == 0)){
+        cat("I was unable to download the NTD Service File. Please try again.\n")
+        stop("Download failed")
+    }
+}
+
+NTD_SERVICE_RAW <- read_csv(NTD_SERVICE_FILE)
+
+NTD_SERVICE <- NTD_SERVICE_RAW |>
+    mutate(`NTD ID` = as.numeric(`_5_digit_ntd_id`)) |> 
+    rename(Agency = agency, 
+           City   = max_city, 
+           State  = max_state,
+           UPT    = sum_unlinked_passenger_trips_upt, 
+           MILES  = sum_passenger_miles) |>
+    select(matches("^[A-Z]", ignore.case=FALSE)) |>
+    filter(MILES > 0)
+```
+
+``` {r}
+colnames(NTD_SERVICE)
+NTD_SERVICE |> glimpse()
+```
+``` {r task4}
+
+# Which transit service has the most UPT annually?
+NTD_SERVICE |>
+  slice_max(UPT,n = 1)
+
+# What is the average trip length of a trip on MTA NYC?
+NTD_SERVICE |>
+  filter(Agency == "MTA New York City Transit") |>
+  mutate(miles_per_upt = MILES/UPT) |>
+  pull()
+
+# Which transit service in NYC has the longest average trip length?
+# (NB: You need to be careful with the City column here. Certain MTA services are officially located in “New York City” while others are located in Brooklyn.)
+
+NTD_SERVICE |>
+  filter(State == "NY", City == "New York" | City == "Brooklyn") |>
+  mutate(miles_per_upt = MILES/UPT) |>
+  slice_max(miles_per_upt, n = 1)
+
+# Which state has the fewest total miles travelled by public transit?
+NTD_SERVICE |>
+  group_by(State) |>
+  summarize(total_miles = sum(MILES)) |>
+  slice_min(total_miles, n = 1)
+
+# Are all states represented in this data? If no, which ones are missing? The state.name and state.abb objects we used above may be useful here.
+
+missing_states <- EIA_SEP_REPORT |>
+    anti_join(NTD_SERVICE, join_by("abbreviation" == "State"))
+
+missing_states |> select(state)
+```
+
+``` {r read-EIA-task-5}
+# Read the Excel file 
+co2_vol_mass <- read_excel("co2_vol_mass.xlsx")
+
+# clean up 
+co2_vol_mass <-
+  co2_vol_mass |>
+  rename(
+    co2_factors = "Carbon Dioxide Emissions Coefficients by Fuel",
+    pounds_co2 = "...2",
+    pounds_co2_per_unit = "...3",
+    kg_co2 = "...4",
+    kg_co2_per_unit  = "...5",
+    pounds_co2_per_mil_btu = "...6",
+    kg_co2_per_mil_btu = "...7"
+  ) |>
+  filter(!is.na(pounds_co2),
+         !is.na(pounds_co2_per_unit),
+         !is.na(kg_co2),
+         !is.na(kg_co2_per_unit),
+         !is.na(pounds_co2_per_mil_btu),
+         !is.na(kg_co2_per_mil_btu)) |>
+  mutate(
+    pounds_co2 = as.numeric(pounds_co2),
+    kg_co2 = as.numeric(kg_co2),
+    pounds_co2_per_mil_btu = as.numeric(pounds_co2_per_mil_btu),
+    kg_co2_per_mil_btu = as.numeric(kg_co2_per_mil_btu),
+    )
+
+
+agency_modes <- 
+  NTD_SERVICE |> 
+  inner_join(NTD_ENERGY,
+             join_by("NTD ID" == "NTD ID")
+             ) |> 
+  inner_join(EIA_SEP_REPORT,
+             join_by(State == "abbreviation")
+             ) |>
+  rename(`Methanol` = `Methonal`) |>
+  mutate(
+    biodiesel_emissions = case_when(
+      `Bio-Diesel` > 0 ~ `Bio-Diesel` * (co2_vol_mass |> 
+        filter(co2_factors == "Diesel and Home Heating Fuel (Distillate Fuel Oil)") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    bunkerfuel_emissions = case_when(
+      `Bunker Fuel` > 0 ~ `Bunker Fuel` * (co2_vol_mass |> 
+        filter(co2_factors == "Residual Heating Fuel (Businesses only)") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    cnaturalgas_emissions = case_when(
+      `C Natural Gas` > 0 ~ `C Natural Gas` * (co2_vol_mass |> 
+        filter(co2_factors == "Natural Gas") |> 
+        pull(kg_co2) * MCF_TO_GALLONS),
+      TRUE ~ 0
+    ),
+    dieselfuel_emissions = case_when(
+      `Diesel Fuel` > 0 ~ `Diesel Fuel` * (co2_vol_mass |> 
+        filter(co2_factors == "Diesel and Home Heating Fuel (Distillate Fuel Oil)") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    ethanol_emissions= case_when(
+      `Ethanol` > 0 ~ `Ethanol` * (co2_vol_mass |> 
+        filter(co2_factors == "Finished Motor Gasoline") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    methanol_emissions= case_when(
+      `Methanol` > 0 ~ `Methanol` * (co2_vol_mass |> 
+        filter(co2_factors == "Natural Gas") |> 
+        pull(kg_co2) * MCF_TO_GALLONS),
+      TRUE ~ 0
+    ),
+    gasoline_emissions = case_when(
+      `Gasoline` > 0 ~ `Gasoline` * (co2_vol_mass |> 
+        filter(co2_factors == "Finished Motor Gasoline") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    kerosene_emissions = case_when(
+      `Kerosene` > 0 ~ `Kerosene` * (co2_vol_mass |> 
+        filter(co2_factors == "Kerosene") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    liqnatgas_emissions = case_when(
+      `Liquified Nat Gas` > 0 ~ `Liquified Nat Gas` * (
+        co2_vol_mass |> 
+        filter(co2_factors == "Natural Gas") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    liqpetgas_emissions = case_when(
+      `Liquified Petroleum Gas` > 0 ~ `Liquified Petroleum Gas` * (co2_vol_mass |> 
+        filter(co2_factors == "Propane") |> 
+        pull(kg_co2)),
+      TRUE ~ 0
+    ),
+    electricbattery_emissions = case_when(
+      `Electric Battery` > 0 ~ `Electric Battery` * (`CO2_MWh` / 1000),
+      TRUE ~ 0
+    ),
+    electricprop_emissions = case_when(
+      `Electric Propulsion` > 0 ~ `Electric Propulsion` * (`CO2_MWh` / 1000),
+      TRUE ~ 0
+    ),
+    total_emissions_of_mode = (
+      biodiesel_emissions +
+        bunkerfuel_emissions +
+        cnaturalgas_emissions +
+        dieselfuel_emissions +
+        ethanol_emissions +
+        methanol_emissions +
+        gasoline_emissions +
+        kerosene_emissions +
+        liqnatgas_emissions +
+        liqpetgas_emissions +
+        electricbattery_emissions +
+        electricprop_emissions
+      )
+  )
+
+
+```
+
+``` {r task-6}
+
+PERCENTILE_33 <- quantile(agency_modes |> select(UPT) |> unique() |> pull(UPT), 0.33)
+PERCENTILE_66 <- quantile(agency_modes |> select(UPT) |> unique() |> pull(UPT), 0.66)
+
+agency_modes <-
+  agency_modes |>
+  group_by(`NTD ID`) |>
+  mutate(
+    agency_emissions_per_capita = sum(total_emissions_of_mode) / UPT,
+    emissions_per_transit = sum(total_emissions_of_mode) / MILES,
+    green_score = round(sqrt(agency_emissions_per_capita * emissions_per_transit),2),
+    size = case_when(
+      UPT < PERCENTILE_33 ~ "small",
+      UPT >= PERCENTILE_33 & UPT <= PERCENTILE_66 ~ "medium",
+      UPT > PERCENTILE_66 ~ "large",
+    )
+    ) |>
+  ungroup()
+```
+
+``` {r}
+agency_modes |> 
+  filter(size == "small") |>  # Filter for small agencies
+  distinct(`NTD ID`, Agency, .keep_all = TRUE) |>  # Keep only one row per agency
+  slice_min(green_score, n = 10) |>  # Select the 10 agencies with the lowest emissions per capita
+  select(Agency, size, green_score)  # Keep only relevant columns
+agency_modes |> 
+  filter(size == "medium") |>  # Filter for small agencies
+  distinct(`NTD ID`, Agency, .keep_all = TRUE) |>  # Keep only one row per agency
+  slice_min(green_score, n = 10) |>  # Select the 10 agencies with the lowest emissions per capita
+  select(Agency, size, green_score)  # Keep only relevant columns
+agency_modes |> 
+  filter(size == "large") |>  # Filter for small agencies
+  distinct(`NTD ID`, Agency, .keep_all = TRUE) |>  # Keep only one row per agency
+  slice_min(green_score, n = 10) |>  # Select the 10 agencies with the lowest emissions per capita
+  select(Agency, size, green_score)  # Keep only relevant columns
+
+```
+
+``` {r most-emissions-avoided}
+agency_modes |> 
+  filter(size == "small") |>
+  group_by(`NTD ID`, Agency) |>  # Group by agency to avoid mode duplication
+  summarise(emissions_avoided = first((MILES / MPG) * (co2_vol_mass |> 
+      filter(co2_factors == "Finished Motor Gasoline") |> 
+      pull(kg_co2))), .groups = "drop") |>  # Get first (same for all modes)
+  arrange(desc(emissions_avoided)) |> # Sort descending
+  slice_head(n = 1)  # Pick the single highest agency
+
+agency_modes |> 
+  filter(size == "medium") |>
+  group_by(`NTD ID`, Agency) |>  # Group by agency to avoid mode duplication
+  summarise(emissions_avoided = first((MILES / MPG) * (co2_vol_mass |> 
+      filter(co2_factors == "Finished Motor Gasoline") |> 
+      pull(kg_co2))), .groups = "drop") |>  # Get first (same for all modes)
+  arrange(desc(emissions_avoided)) |> # Sort descending
+  slice_head(n = 1)  # Pick the single highest agency
+
+agency_modes |> 
+  filter(size == "large") |>
+  group_by(`NTD ID`, Agency) |>  # Group by agency to avoid mode duplication
+  summarise(emissions_avoided = first((MILES / MPG) * (co2_vol_mass |> 
+      filter(co2_factors == "Finished Motor Gasoline") |> 
+      pull(kg_co2))), .groups = "drop") |>  # Get first (same for all modes)
+  arrange(desc(emissions_avoided)) |> # Sort descending
+  slice_head(n = 1)  # Pick the single highest agency
+
+
+```
+``` {r }
+
+# agencies with the smallest total emissions compared to their states total electricity emissions?
+
+# Read the Excel file 
+NST_EST_POP <- read_excel("NST-EST2024-POP.xlsx")
+
+# clean up 
+NST_EST_POP <-
+  NST_EST_POP |>
+  rename(
+    state = "table with row headers in column A and column headers in rows 3 through 4. (leading dots indicate sub-parts)",
+    population = "...7",
+  ) |>
+  select(state,population) |>
+  mutate(state = str_remove(state, "^\\.+")) |>
+  filter(!is.na(population),
+         !is.na(state))
+
+LBS_TO_KG <- 0.453592
+agency_modes |> 
+  inner_join(
+    NST_EST_POP,
+    join_by(state == state)) |>
+  mutate(
+    state_emissions_per_capita = (CO2_MWh * generation_MWh) / population,
+    ratio = agency_emissions_per_capita / state_emissions_per_capita
+    ) |>
+  distinct(`NTD ID`, .keep_all = TRUE) |>
+  filter(size=='small') |>
+  select(Agency, ratio, agency_emissions_per_capita, state_emissions_per_capita) |>
+  slice_min(ratio, n=10)
+
+agency_modes |> 
+  inner_join(
+    NST_EST_POP,
+    join_by(state == state)) |>
+  mutate(
+    state_emissions_per_capita = (CO2_MWh * generation_MWh) / population,
+    ratio = agency_emissions_per_capita / state_emissions_per_capita
+    ) |>
+  distinct(`NTD ID`, .keep_all = TRUE) |>
+  filter(size=='medium') |>
+  select(Agency, ratio, agency_emissions_per_capita, state_emissions_per_capita) |>
+  slice_min(ratio, n=10)
+
+agency_modes |> 
+  inner_join(
+    NST_EST_POP,
+    join_by(state == state)) |>
+  mutate(
+    state_emissions_per_capita = (CO2_MWh * generation_MWh) / population,
+    ratio = agency_emissions_per_capita/state_emissions_per_capita
+    ) |>
+  distinct(`NTD ID`, .keep_all = TRUE) |>
+  filter(size=='large') |>
+  select(Agency, ratio, agency_emissions_per_capita, state_emissions_per_capita) |>
+  slice_min(ratio, n=20)
+  
+```
+Since emissions per capita (EPC) and emissions per mile (EPM) are on different scales, the geometric mean is useful because it prevents one metric from dominating if they have different ranges.
+Lower values mean greener agencies (since lower emissions are better).
+This balances both factors without requiring normalization.
+
+The award for the greenest transit agency among small (< 33rd percentile UPT) agencies goes to:
+Mecklenburg County, dba: Mecklenburg Transportation System. green score$^{\text{tm}}$ of $0.49$
+
+The award for the greenest transit agency among medium (33rd percentile<x<66th percentile )
+City of Seattle, dba: Seattle Center Monorail, with a green score$^{\text{tm}}$ of $0.07$.
+
+The award for the greenest transit agency among medium (>66th percentile UPT)
+Tri-County Metropolitan Transportation District of Oregon, dba: TriMet, with a green score$^{\text{tm}}$ of $0.19$.
+
+
+For the third award, determine an additional metric on which a transit agency can be considered to be highly green (e.g., highest percentage of electrification) and then determine the appropriate winner.
+metric that compares state emissions per capita with agency emissions per capita. agencies with smallest metric are awarded for outstanding performance compared to their state. 
+small sized agency category:
+Ohio Valley Regional Transportation Authority
+medium size:
+City of Seattle, dba: Seattle Center Monorail
+large size:
+City of Portland, dba: Portland Streetcar
+
+Finally, for the fourth award, “name and shame” an agency which does not have particularly ‘green’ operations. As with the third award, you can determine a metric you think is best.
+agency with the highest percentage of their total emissions coming from the dirtiest transportation fuel, natural gas.
+``` {r}
+agency_modes |> 
+  filter(size=="small") |>
+  group_by(`NTD ID`, Agency, state) |>  
+  summarise(
+    total_emissions_of_agency = sum(total_emissions_of_mode, na.rm = TRUE),
+    total_natural_gas_of_agency = sum(
+      cnaturalgas_emissions + methanol_emissions + liqnatgas_emissions, na.rm = TRUE
+    ),
+    ratio = total_natural_gas_of_agency / total_emissions_of_agency
+  ) |> 
+  ungroup() |>  
+  select(`NTD ID`, Agency, state, total_natural_gas_of_agency, total_emissions_of_agency, ratio) |>  
+  arrange(desc(ratio))  # Sort to see highest or lowest ratios
+
+agency_modes |> 
+  filter(size=="medium") |>
+  group_by(`NTD ID`, Agency, state) |>  
+  summarise(
+    total_emissions_of_agency = sum(total_emissions_of_mode, na.rm = TRUE),
+    total_natural_gas_of_agency = sum(
+      cnaturalgas_emissions + methanol_emissions + liqnatgas_emissions, na.rm = TRUE
+    ),
+    ratio = total_natural_gas_of_agency / total_emissions_of_agency
+  ) |> 
+  ungroup() |>  
+  select(`NTD ID`, Agency, state, total_natural_gas_of_agency, total_emissions_of_agency, ratio) |>  
+  arrange(desc(ratio))  # Sort to see highest or lowest ratios
+
+agency_modes |> 
+  filter(size=="large") |>
+  group_by(`NTD ID`, Agency, state) |>  
+  summarise(
+    total_emissions_of_agency = sum(total_emissions_of_mode, na.rm = TRUE),
+    total_natural_gas_of_agency = sum(
+      cnaturalgas_emissions + methanol_emissions + liqnatgas_emissions, na.rm = TRUE
+    ),
+    ratio = total_natural_gas_of_agency / total_emissions_of_agency
+  ) |> 
+  ungroup() |>  
+  select(`NTD ID`, Agency, state, total_natural_gas_of_agency, total_emissions_of_agency, ratio) |>  
+  arrange(desc(ratio))  # Sort to see highest or lowest ratios
+
+```
+
+``` {r}
+hist(agency_modes |> select(emissions_per_transit) |> pull())
+hist(agency_modes |> select(agency_emissions_per_capita) |> pull())
+agency_modes |>
+  select(Agency, state, UPT, agency_emissions_per_capita) |>
+  slice_max(agency_emissions_per_capita, n=10)
+```
+Press Release Format
+1. Header
+Organization Name: Green Transit Alliance for Investigation of Variance (GTA IV)
+Press Release Date: `r format(Sys.time(), '%B %d, %Y')`
+Contact Information: Name, Email, Phone Number
+2. Headline (Catchy and Concise)
+
+3. Subheadline (Optional, for additional context)
+Example: Recognizing the nation’s most eco-friendly transit agencies
+4. Lead Paragraph (Who, What, When, Where, Why?)
+
+Since 1997, GTA IV (maybe instead of consecutive years hint @ intermittent releases of video game: e.g. since 1997, GTA IV has announced Greenies award winners at least 5 times.) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in an opening statement last night. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
+
+- Greenest Transit Agency
+- Most Emissions Avoided
+- Leader of the State
+
+and because shame is a powerful social tool for diminishing unwanted behavior in others, several particularly emissive agencies were rated Noxious. Recipients of Greenies receive... [why is receiving a Greenie good? like what is the point?]
+
+## Award Winners
+
+### Greenest Transit Agency
+
+pee pee poo poo
+
+5. Body Paragraphs (Detailed Information & Key Findings)
+Discuss the methodology:
+How data was analyzed (multi-table joins, data sources used)
+
+Criteria for selection (e.g., fuel efficiency, emissions reduction, ridership sustainability)
+List the award categories and winners (e.g., Best Overall Green Transit, Most Energy-Efficient Fleet, Lowest Carbon Emissions Per Rider).
+Highlight notable statistics and insights that led to each agency’s selection.
+Quotes from winning transit agencies or industry experts add credibility and engagement.
+7. Closing Paragraph (Call to Action & Future Outlook)
+Mention any future initiatives or research by GTA IV.
+Encourage public transit agencies to adopt greener practices.
+Provide a link or contact for more information.
+8. Boilerplate (About GTA IV)
+A short section about GTA IV, its mission, and its work in transit sustainability.
+9. ###END###
+Indicates the end of the press release.
