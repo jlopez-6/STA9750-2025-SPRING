@@ -18,8 +18,6 @@ csl: apa.csl
 ---
 
 ![CATS logo](docs/logo.jpeg){width=1in}
-
-
 [^1]: This logo is courtesy of [@google_gemini].
 
 # Executive Summary
