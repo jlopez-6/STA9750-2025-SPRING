@@ -19,7 +19,7 @@ csl: apa.csl
 ---
 
 
-!["The official 2025 Greenies flyer"](gtaiv_cover.jpeg)
+!["The Official 2025 Greenies Flyer"](gtaiv_cover.jpeg)
 
 Since 1997, GTA IV scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
 
