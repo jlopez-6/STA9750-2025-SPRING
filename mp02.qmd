@@ -589,7 +589,7 @@ Lower scores indicate more environmentally friendly agencies.
 
 # grouping for ease of use
 green_scores <-
-  agency_modes |> 
+  agency_modes |>
   group_by(size, ntd_id) |>
   summarize(
     agency = first(agency),
@@ -597,23 +597,23 @@ green_scores <-
     state = first(state),
     green_score = first(green_score),
     .groups = 'drop'
-  ) |> 
+  ) |>
   ungroup()
 
 # Select the greenest agency per size category
 greenest_agencies <-
-  green_scores |> 
-  group_by(size) |> 
-  slice_min(green_score, n = 1) |>  
-  select(Agency = agency, City = city, State = state, `Green Score` = green_score) 
+  green_scores |>
+  group_by(size) |>
+  slice_min(green_score, n = 1) |>
+  select(Agency = agency, City = city, State = state, `Green Score` = green_score)
 
 # Compute median green score per size category
-median_green <- green_scores |> 
-  group_by(size) |> 
+median_green <- green_scores |>
+  group_by(size) |>
   summarise(median_green = median(green_score, na.rm = TRUE))
 
 # Display table of greenest agencies with nice formatting
-greenest_agencies |> 
+greenest_agencies |>
   left_join(median_green, join_by("size" == "size")) |>
   rename(
     "Agency Size" = size,
@@ -638,8 +638,8 @@ green_agencies_plot <-
   left_join(median_green, join_by("size" == "size"))
 
 # Fix agency names, and fix case for size
-green_agencies_plot <- green_agencies_plot |> 
-  mutate(agency = str_replace_all(agency, "-", " ")) |>  
+green_agencies_plot <- green_agencies_plot |>
+  mutate(agency = str_replace_all(agency, "-", " ")) |>
   mutate(
     agency = case_when(
       str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?<=, dba: ).*"), width = 12),
@@ -657,18 +657,18 @@ green_agencies_plot <- green_agencies_plot |>
 
 # plot code
 ggplot(green_agencies_plot, aes(y = fct_reorder(agency, -green_score), x = green_score)) +
-  geom_col(fill = MINTY) +  
-  geom_vline(data = median_green, aes(xintercept = median_green, linetype = "Median"), 
-             color = MINTY, linewidth = 1) +  
+  geom_col(fill = MINTY) +
+  geom_vline(data = median_green, aes(xintercept = median_green, linetype = "Median"),
+             color = MINTY, linewidth = 1) +
   labs(
-    x = "Green Score", 
-    y = "Agency Name", 
+    x = "Green Score",
+    y = "Agency Name",
     title = "3 Greenest Agencies By Size",
     linetype = "Legend",
-    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP).",width=90)
+    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP).", width = 90)
   ) +
   scale_linetype_manual(values = c("Median" = "dashed")) +
-  scale_x_continuous(breaks = seq(0, 2, by = 0.5)) +  # Fix x-axis tick spacing for readability
+  scale_x_continuous(breaks = seq(0, 2, by = 0.5)) +
   theme_minimal() +
   theme(
     panel.grid = element_blank(),
@@ -687,8 +687,8 @@ $$\text{Avoided Emissions} = (\text{Passenger Miles}\cdot\text{Avg Car Emissions
 Average gasoline vehicle efficiency was used as the baseline [@NHTSA2022]. The table below presents the small-, medium-, and large-sized agencies with the largest mass of emissions avoided. The median value of avoided emissions is also provided for each agency size. 
 ``` {r emissions_avoided, eval=TRUE,echo=FALSE, warning=FALSE, message=FALSE, include=TRUE}
 # Compute emissions avoided per agency
-emissions_avoided <- agency_modes |> 
-  group_by(size, ntd_id) |>  
+emissions_avoided <- agency_modes |>
+  group_by(size, ntd_id) |>
   summarise(
     agency = first(agency),
     city = first(city),
@@ -699,8 +699,8 @@ emissions_avoided <- agency_modes |>
   slice_max(emissions_avoided, n = 1) # Select agency with highest emissions avoided per size
 
 # Compute emissions avoided for all agencies, sorted
-bubble_data <- agency_modes |> 
-  group_by(size, ntd_id) |>  
+bubble_data <- agency_modes |>
+  group_by(size, ntd_id) |>
   summarise(
     agency = first(agency),
     city = first(city),
@@ -709,16 +709,16 @@ bubble_data <- agency_modes |>
     emissions_avoided = first((miles / MPG) * 
       co2_vol_mass |> filter(co2_factors == "Finished Motor Gasoline") |> pull(kg_co2))
   ) |>  
-  arrange(desc(emissions_avoided))  # Sort for annotation
+  arrange(desc(emissions_avoided))
 
 # Calculate median emissions avoided per size
 median_emissions_avoided <- bubble_data |>
   group_by(size) |>
   summarize(median_emissions = median(emissions_avoided, na.rm = TRUE))
 
-emissions_avoided |> 
+emissions_avoided |>
   left_join(median_emissions_avoided, join_by(size == size)) |>
-  rename(`Agency` = agency,`Size` = size, `NTD ID` = ntd_id, `City` = city, `State` = state, `Emissions Avoided (kg CO2)` = emissions_avoided, `Median Emissions Avoided` = median_emissions) |> 
+  rename(`Agency` = agency,`Size` = size, `NTD ID` = ntd_id, `City` = city, `State` = state, `Emissions Avoided (kg CO2)` = emissions_avoided, `Median Emissions Avoided` = median_emissions) |>
   kable(digits = 2, format.args = list(big.mark = ","), caption = "Top Agencies by Emissions Avoided (kg CO2)")
 ```
 The figure below presents the emissions avoided by different sized transit agencies.
@@ -837,6 +837,7 @@ top_statal <-
   ) |>
   ungroup()
 ```
+The plot below presents the top 5 agencies outperforming their states in emissions per capita.
 ``` {r green-giant-plot, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE, include=TRUE}
 # Create the lollipop plot
 ggplot(top_5, aes(x = reorder(agency, ratio_in_k), y = ratio_in_k)) +
@@ -988,7 +989,7 @@ combined_pie_data <- bind_rows(avg_emissions_pie, noxious_emissions_pie) |>
 ggplot(combined_pie_data, aes(x = "", y = pct_of_emissions, fill = fuel_type)) +
   geom_col(width = 1, color = "white") +
   coord_polar(theta = "y") +
-  scale_fill_brewer(palette = "Set2") +  # Standard color scheme
+  scale_fill_brewer(palette = "Set2") +
   labs(
     x = "", y = "", fill = "Fuel Type",
     title = "Transit Agency Emissions Breakdown",
