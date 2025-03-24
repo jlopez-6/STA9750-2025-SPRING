@@ -17,8 +17,9 @@ bibliography: mp01_ref.bib
 csl: apa.csl
 ---
 
-![CATS logo](docs/logo.jpeg){width=1in}[^1]
-[^1]: This logo is courtesy of [@google_gemini].
+![CATS logo[^1].](logo.jpeg){width=1in}
+
+[^1]: This logo was generated with Google Gemini [@google_gemini].
 
 # Executive Summary
 

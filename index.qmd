@@ -12,7 +12,7 @@ format:
 ---
 
 <center>
-![](docs/headshot.jpg){width=200px height=200px}
+![](headshot.jpg){width=200px height=200px}
 </center>
   
 Hi, I’m Jocely Lopez Luna, a researcher with a B.A. in environmental science (Columbia University, '20) and 5 years of work experience in seismology at Lamont-Doherty Earth Observatory. I’ve worked extensively with seismic data, programming, and quantitative research, and I’m currently expanding my expertise through an MS in Statistics at Baruch College.

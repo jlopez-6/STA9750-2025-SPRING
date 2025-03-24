@@ -18,7 +18,10 @@ bibliography: mp02_ref.bib
 csl: apa.csl
 ---
 
-![The Official 2025 Greenies Flyer](gtaiv_cover.jpeg)
+![The Official 2025 Greenies Flyer[^1].](gtaiv_cover.jpeg)
+
+
+[^1]: This image was generated with Google Gemini [@google-gemini].
 
 Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
 
@@ -26,7 +29,7 @@ Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) sc
 - Most Emissions Avoided,
 - Green Giant.
 
-While the Greenies celebrate sustainability leaders, GTA IV also holds accountable those agencies that fall short. This year, the organization introduced the Noxious rating. Before handing out the ratings, Lopez Luna expressed a plucky, "hope that [these transit agencies] will reflect on and make better [their] operations."
+While the Greenies celebrate sustainability leaders, GTA IV also holds accountable those agencies that fall short. This year, the organization introduced the Noxious rating. Before handing out the ratings, Lopez Luna expressed a plucky, "hope that [these transit agencies] will reflect on and lessen the environmental impact of [their] operations."
 
 # The Greenie Goes To...
 
@@ -41,9 +44,9 @@ Three winners took home Greenies for Greenest Transit Agency:
 - Greenest Large-sized Transit Agency:
   - **Tri-County Metropolitan Transportation District of Oregon, dba: TriMet**, from Portland, Oregon, earning a green score of $0.19$.
 
-GTA IV's green score was calculated from the geometric mean[^1] of agency emissions per capita (EPC) and agency emissions per mile (EPM)--with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: "We do it for our riders--because they can’t take trips if they’ve died from air pollution."
+GTA IV's green score was calculated from the geometric mean[^2] of agency emissions per capita (EPC) and agency emissions per mile (EPM)--with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: "We do it for our riders--because they can’t take trips if they’ve died from air pollution."
 
-[^1]: The geometric mean was chosen because EPC and EPM are on different scales.
+[^2]: The geometric mean was chosen because EPC and EPM are on different scales.
 
 ## Most Emissions Avoided
 
@@ -71,11 +74,11 @@ Three agencies were awarded Greenies for outstanding performance in their state.
 - Large-sized Transit Agency:
   - **City of Portland, dba: Portland Streetcar** from Portland, Oregon, whose state's EPC is $18,650$ times larger than their own. Among large-sized agencies, the median factor of difference was about $12,700$.
 
-This metric compares state emissions per capita with agency emissions per capita. Agencies with the largest metrics are awarded for outstanding performance compared to their state. "We will continue to take West Virginians home down country roads in a green way, and we hope our Mountain Mama will follow our lead," said a representative from the Ohio Valley Regional Transportation Authority. While some transit agencies set the gold standard for sustainability, others lean heavily on high-emission fuels.
+This metric compares state emissions per capita with agency emissions per capita. Agencies with the largest metrics are awarded for outstanding performance compared to their state. "We will continue to take West Virginians home down country roads in a green way, and we hope our Mountain Mama will follow our lead," said a representative from the Ohio Valley Regional Transportation Authority.
 
 ## Noxious Ratings
 
-Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is by far the dirtiest transportation fuel. GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.
+While some transit agencies set the gold standard for sustainability, others rely heavily on high-emission fuels. Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is by far the most polluting transportation fuel. Therefore, GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.
 
 - Small-sized Transit Agency:
   - **City of Albany, dba: Albany Transit System** from Albany, Georgia, with $99.99999\%$ of their total emissions being derived from natural gas. For comparison, the average small-sized transit agency derives $11.1\%$ of its emissions from natural gas.
@@ -86,7 +89,7 @@ Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is
   
 To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. "What is that smell?!" gasped a Nassau Inter County Express representative between coughs, while Albany Transit System’s Chief Legal Officer, Sue Salot, wasted no time in threatening legal action against GTA IV.
 
-GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. "We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us," stated Lopez Luna before dropping her microphone.
+After the olfactory assault, GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. "We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us," stated Lopez Luna before dropping her microphone.
 
 # Appendix: Methodology and Analysis
 
