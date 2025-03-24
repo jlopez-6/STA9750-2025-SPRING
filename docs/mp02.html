@@ -203,23 +203,23 @@ window.Quarto = {
   <li><a href="#greenest-transit-agency" id="toc-greenest-transit-agency" class="nav-link" data-scroll-target="#greenest-transit-agency">Greenest Transit Agency</a></li>
   <li><a href="#most-emissions-avoided" id="toc-most-emissions-avoided" class="nav-link" data-scroll-target="#most-emissions-avoided">Most Emissions Avoided</a></li>
   <li><a href="#green-giant" id="toc-green-giant" class="nav-link" data-scroll-target="#green-giant">Green Giant</a></li>
-  <li><a href="#most-noxious" id="toc-most-noxious" class="nav-link" data-scroll-target="#most-noxious">Most Noxious</a></li>
+  <li><a href="#noxious-ratings" id="toc-noxious-ratings" class="nav-link" data-scroll-target="#noxious-ratings">Noxious Ratings</a></li>
   </ul></li>
   <li><a href="#appendix-methodology-and-analysis" id="toc-appendix-methodology-and-analysis" class="nav-link" data-scroll-target="#appendix-methodology-and-analysis">Appendix: Methodology and Analysis</a>
   <ul class="collapse">
   <li><a href="#data-sources-and-retrieval" id="toc-data-sources-and-retrieval" class="nav-link" data-scroll-target="#data-sources-and-retrieval">Data Sources and Retrieval</a>
   <ul class="collapse">
-  <li><a href="#data-clean-up" id="toc-data-clean-up" class="nav-link" data-scroll-target="#data-clean-up">Data Clean Up</a></li>
+  <li><a href="#data-processing-cleaning" id="toc-data-processing-cleaning" class="nav-link" data-scroll-target="#data-processing-cleaning">Data Processing &amp; Cleaning</a></li>
   </ul></li>
   <li><a href="#analysis-of-eia-state-electricity-data-set" id="toc-analysis-of-eia-state-electricity-data-set" class="nav-link" data-scroll-target="#analysis-of-eia-state-electricity-data-set">Analysis of EIA State Electricity Data Set</a></li>
   <li><a href="#analysis-of-ntd-service-data-set" id="toc-analysis-of-ntd-service-data-set" class="nav-link" data-scroll-target="#analysis-of-ntd-service-data-set">Analysis of NTD Service Data Set</a></li>
-  <li><a href="#merging-of-data-sets" id="toc-merging-of-data-sets" class="nav-link" data-scroll-target="#merging-of-data-sets">Merging of Data Sets</a></li>
+  <li><a href="#combining-data-sources" id="toc-combining-data-sources" class="nav-link" data-scroll-target="#combining-data-sources">Combining Data Sources</a></li>
   <li><a href="#calculation-methodologies" id="toc-calculation-methodologies" class="nav-link" data-scroll-target="#calculation-methodologies">Calculation Methodologies</a>
   <ul class="collapse">
   <li><a href="#greenest-transit-agency-1" id="toc-greenest-transit-agency-1" class="nav-link" data-scroll-target="#greenest-transit-agency-1">Greenest Transit Agency</a></li>
   <li><a href="#emissions-avoided" id="toc-emissions-avoided" class="nav-link" data-scroll-target="#emissions-avoided">Emissions Avoided</a></li>
   <li><a href="#green-giant-1" id="toc-green-giant-1" class="nav-link" data-scroll-target="#green-giant-1">Green Giant</a></li>
-  <li><a href="#most-noxious-rating" id="toc-most-noxious-rating" class="nav-link" data-scroll-target="#most-noxious-rating">Most Noxious Rating</a></li>
+  <li><a href="#noxious-rating" id="toc-noxious-rating" class="nav-link" data-scroll-target="#noxious-rating">Noxious Rating</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -257,10 +257,10 @@ window.Quarto = {
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="gtaiv_cover.jpeg" class="img-fluid figure-img"></p>
-<figcaption>“The Official 2025 Greenies Flyer”</figcaption>
+<figcaption>The Official 2025 Greenies Flyer</figcaption>
 </figure>
 </div>
-<p>Since 1997, GTA IV scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories:</p>
+<p>Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories:</p>
 <ul>
 <li>Greenest Transit Agency,</li>
 <li>Most Emissions Avoided,</li>
@@ -286,7 +286,7 @@ window.Quarto = {
 <li><strong>Tri-County Metropolitan Transportation District of Oregon, dba: TriMet</strong>, from Portland, Oregon, earning a green score of <span class="math inline">\(0.19\)</span>.</li>
 </ul></li>
 </ul>
-<p>GTA IV’s green score was calculated from the geometric mean<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> of agency emissions per capita (EPC) and agency emissions per mile (EPM)–with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: “We do it for our riders–because they can’t take trips if they’ve died of air pollution.”</p>
+<p>GTA IV’s green score was calculated from the geometric mean<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> of agency emissions per capita (EPC) and agency emissions per mile (EPM)–with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: “We do it for our riders–because they can’t take trips if they’ve died from air pollution.”</p>
 </section>
 <section id="most-emissions-avoided" class="level2">
 <h2 class="anchored" data-anchor-id="most-emissions-avoided">Most Emissions Avoided</h2>
@@ -327,8 +327,8 @@ window.Quarto = {
 </ul>
 <p>This metric compares state emissions per capita with agency emissions per capita. Agencies with the largest metrics are awarded for outstanding performance compared to their state. “We will continue to take West Virginians home down country roads in a green way, and we hope our Mountain Mama will follow our lead,” said a representative from the Ohio Valley Regional Transportation Authority. While some transit agencies set the gold standard for sustainability, others lean heavily on high-emission fuels.</p>
 </section>
-<section id="most-noxious" class="level2">
-<h2 class="anchored" data-anchor-id="most-noxious">Most Noxious</h2>
+<section id="noxious-ratings" class="level2">
+<h2 class="anchored" data-anchor-id="noxious-ratings">Noxious Ratings</h2>
 <p>Natural gas, with average <span class="math inline">\(\text{CO}_2\)</span> emissions of <span class="math inline">\(410,043\)</span> kg per gallon, is by far the dirtiest transportation fuel. GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.</p>
 <ul>
 <li>Small-sized Transit Agency:
@@ -344,7 +344,7 @@ window.Quarto = {
 <li><strong>County of Nassau, dba: Nassau Inter County Express</strong> from Mineola, New York, with <span class="math inline">\(99.99984\%\)</span> of total emissions from natural gas–far exceeding the large-agency average of <span class="math inline">\(28.7\%\)</span>.</li>
 </ul></li>
 </ul>
-<p>To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. “What is that smell?!” shouted a representative from Nassau Inter County Express between gags. Meanwhile, Chief Legal Officer Sue Salot from Albany Transit System threatened GTA IV with litigation.</p>
+<p>To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. “What is that smell?!” gasped a Nassau Inter County Express representative between coughs, while Albany Transit System’s Chief Legal Officer, Sue Salot, wasted no time in threatening legal action against GTA IV.</p>
 <p>GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. “We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us,” stated Lopez Luna before dropping her microphone.</p>
 </section>
 </section>
@@ -520,8 +520,8 @@ window.Quarto = {
 <span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a>NST_EST_POP <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"NST-EST2024-POP.xlsx"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="data-clean-up" class="level3">
-<h3 class="anchored" data-anchor-id="data-clean-up">Data Clean Up</h3>
+<section id="data-processing-cleaning" class="level3">
+<h3 class="anchored" data-anchor-id="data-processing-cleaning">Data Processing &amp; Cleaning</h3>
 <p>The data sets were cleaned up as in the code below:</p>
 <div class="cell">
 <details class="code-fold">
@@ -1062,8 +1062,8 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="merging-of-data-sets" class="level2">
-<h2 class="anchored" data-anchor-id="merging-of-data-sets">Merging of Data Sets</h2>
+<section id="combining-data-sources" class="level2">
+<h2 class="anchored" data-anchor-id="combining-data-sources">Combining Data Sources</h2>
 <p>The following process was used to merge the primary datasets:</p>
 <div class="cell">
 <details class="code-fold">
@@ -1163,7 +1163,7 @@ window.Quarto = {
 <section id="greenest-transit-agency-1" class="level3">
 <h3 class="anchored" data-anchor-id="greenest-transit-agency-1">Greenest Transit Agency</h3>
 <p>GTA IV calculates the green score as,</p>
-<p><span class="math display">\[\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}\]</span>. Lower scores indicate more environmentally friendly agencies.</p>
+<p><span class="math display">\[\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}\]</span> Lower scores indicate more environmentally friendly agencies.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1457,9 +1457,9 @@ window.Quarto = {
 </div>
 </div>
 </section>
-<section id="most-noxious-rating" class="level3">
-<h3 class="anchored" data-anchor-id="most-noxious-rating">Most Noxious Rating</h3>
-<p>Because natural gas was the most “dirty” fuel type in this data set, GTA IV identified agencies deserving the Most Noxious Rating by as having the largest percentage of their total emissions from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest percentage of emissions from natural gas.</p>
+<section id="noxious-rating" class="level3">
+<h3 class="anchored" data-anchor-id="noxious-rating">Noxious Rating</h3>
+<p>Since natural gas was the “dirtiest” fuel type in this data set, GTA IV identified agencies deserving of the Noxious Rating as those with the highest percentage of their total emissions coming from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest proportion of emissions from natural gas.</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -2226,9 +2226,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="al">!["The Official 2025 Greenies Flyer"](gtaiv_cover.jpeg)</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="al">![The Official 2025 Greenies Flyer](gtaiv_cover.jpeg)</span></span>
 <span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>Since 1997, GTA IV scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: </span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: </span>
 <span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Greenest Transit Agency,</span>
 <span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Most Emissions Avoided,</span>
@@ -2249,7 +2249,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Greenest Large-sized Transit Agency:</span>
 <span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>**Tri-County Metropolitan Transportation District of Oregon, dba: TriMet**, from Portland, Oregon, earning a green score of $0.19$.</span>
 <span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>GTA IV's green score was calculated from the geometric mean<span class="ot">[^1]</span> of agency emissions per capita (EPC) and agency emissions per mile (EPM)--with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: "We do it for our riders--because they can’t take trips if they’ve died of air pollution."</span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>GTA IV's green score was calculated from the geometric mean<span class="ot">[^1]</span> of agency emissions per capita (EPC) and agency emissions per mile (EPM)--with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: "We do it for our riders--because they can’t take trips if they’ve died from air pollution."</span>
 <span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>The geometric mean was chosen because EPC and EPM are on different scales.</span>
 <span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a></span>
@@ -2281,7 +2281,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-74"><a href="#cb18-74" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-75"><a href="#cb18-75" aria-hidden="true" tabindex="-1"></a>This metric compares state emissions per capita with agency emissions per capita. Agencies with the largest metrics are awarded for outstanding performance compared to their state. "We will continue to take West Virginians home down country roads in a green way, and we hope our Mountain Mama will follow our lead," said a representative from the Ohio Valley Regional Transportation Authority. While some transit agencies set the gold standard for sustainability, others lean heavily on high-emission fuels.</span>
 <span id="cb18-76"><a href="#cb18-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-77"><a href="#cb18-77" aria-hidden="true" tabindex="-1"></a><span class="fu">## Most Noxious</span></span>
+<span id="cb18-77"><a href="#cb18-77" aria-hidden="true" tabindex="-1"></a><span class="fu">## Noxious Ratings</span></span>
 <span id="cb18-78"><a href="#cb18-78" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-79"><a href="#cb18-79" aria-hidden="true" tabindex="-1"></a>Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is by far the dirtiest transportation fuel. GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.</span>
 <span id="cb18-80"><a href="#cb18-80" aria-hidden="true" tabindex="-1"></a></span>
@@ -2292,7 +2292,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-85"><a href="#cb18-85" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Large-sized Transit Agency:</span>
 <span id="cb18-86"><a href="#cb18-86" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>**County of Nassau, dba: Nassau Inter County Express** from Mineola, New York, with $99.99984\%$ of total emissions from natural gas--far exceeding the large-agency average of $28.7\%$.</span>
 <span id="cb18-87"><a href="#cb18-87" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb18-88"><a href="#cb18-88" aria-hidden="true" tabindex="-1"></a>To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. "What is that smell?!" shouted a representative from Nassau Inter County Express between gags. Meanwhile, Chief Legal Officer Sue Salot from Albany Transit System threatened GTA IV with litigation. </span>
+<span id="cb18-88"><a href="#cb18-88" aria-hidden="true" tabindex="-1"></a>To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. "What is that smell?!" gasped a Nassau Inter County Express representative between coughs, while Albany Transit System’s Chief Legal Officer, Sue Salot, wasted no time in threatening legal action against GTA IV.</span>
 <span id="cb18-89"><a href="#cb18-89" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-90"><a href="#cb18-90" aria-hidden="true" tabindex="-1"></a>GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. "We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us," stated Lopez Luna before dropping her microphone.</span>
 <span id="cb18-91"><a href="#cb18-91" aria-hidden="true" tabindex="-1"></a></span>
@@ -2469,7 +2469,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-262"><a href="#cb18-262" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-263"><a href="#cb18-263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb18-264"><a href="#cb18-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-265"><a href="#cb18-265" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Clean Up</span></span>
+<span id="cb18-265"><a href="#cb18-265" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Processing &amp; Cleaning</span></span>
 <span id="cb18-266"><a href="#cb18-266" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-267"><a href="#cb18-267" aria-hidden="true" tabindex="-1"></a>The data sets were cleaned up as in the code below:</span>
 <span id="cb18-268"><a href="#cb18-268" aria-hidden="true" tabindex="-1"></a></span>
@@ -2690,7 +2690,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-483"><a href="#cb18-483" aria-hidden="true" tabindex="-1"></a><span class="in">kable(missing_states, caption = "States Missing from the Transit Data")</span></span>
 <span id="cb18-484"><a href="#cb18-484" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb18-485"><a href="#cb18-485" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-486"><a href="#cb18-486" aria-hidden="true" tabindex="-1"></a><span class="fu">## Merging of Data Sets</span></span>
+<span id="cb18-486"><a href="#cb18-486" aria-hidden="true" tabindex="-1"></a><span class="fu">## Combining Data Sources</span></span>
 <span id="cb18-487"><a href="#cb18-487" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-488"><a href="#cb18-488" aria-hidden="true" tabindex="-1"></a>The following process was used to merge the primary datasets:</span>
 <span id="cb18-489"><a href="#cb18-489" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r task_5_6, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
@@ -2789,7 +2789,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-582"><a href="#cb18-582" aria-hidden="true" tabindex="-1"></a><span class="fu">### Greenest Transit Agency</span></span>
 <span id="cb18-583"><a href="#cb18-583" aria-hidden="true" tabindex="-1"></a>GTA IV calculates the green score as,</span>
 <span id="cb18-584"><a href="#cb18-584" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-585"><a href="#cb18-585" aria-hidden="true" tabindex="-1"></a>$$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$.</span>
+<span id="cb18-585"><a href="#cb18-585" aria-hidden="true" tabindex="-1"></a>$$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$</span>
 <span id="cb18-586"><a href="#cb18-586" aria-hidden="true" tabindex="-1"></a>Lower scores indicate more environmentally friendly agencies.</span>
 <span id="cb18-587"><a href="#cb18-587" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-588"><a href="#cb18-588" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r greenest-transit-agency, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
@@ -3070,9 +3070,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb18-863"><a href="#cb18-863" aria-hidden="true" tabindex="-1"></a><span class="in">  )</span></span>
 <span id="cb18-864"><a href="#cb18-864" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb18-865"><a href="#cb18-865" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-866"><a href="#cb18-866" aria-hidden="true" tabindex="-1"></a><span class="fu">### Most Noxious Rating</span></span>
+<span id="cb18-866"><a href="#cb18-866" aria-hidden="true" tabindex="-1"></a><span class="fu">### Noxious Rating</span></span>
 <span id="cb18-867"><a href="#cb18-867" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-868"><a href="#cb18-868" aria-hidden="true" tabindex="-1"></a>Because natural gas was the most "dirty" fuel type in this data set, GTA IV identified agencies deserving the Most Noxious Rating by as having the largest percentage of their total emissions from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest percentage of emissions from natural gas.</span>
+<span id="cb18-868"><a href="#cb18-868" aria-hidden="true" tabindex="-1"></a>Since natural gas was the "dirtiest" fuel type in this data set, GTA IV identified agencies deserving of the Noxious Rating as those with the highest percentage of their total emissions coming from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest proportion of emissions from natural gas.</span>
 <span id="cb18-869"><a href="#cb18-869" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r noxious, warning=FALSE, message=FALSE, echo=FALSE, eval=TRUE, include=TRUE}</span></span>
 <span id="cb18-870"><a href="#cb18-870" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute percentage of emissions from natural gas per agency</span></span>
 <span id="cb18-871"><a href="#cb18-871" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_scores &lt;- agency_modes |&gt; </span></span>

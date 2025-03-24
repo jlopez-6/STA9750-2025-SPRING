@@ -19,9 +19,9 @@ csl: apa.csl
 ---
 
 
-!["The Official 2025 Greenies Flyer"](gtaiv_cover.jpeg)
+![The Official 2025 Greenies Flyer](gtaiv_cover.jpeg)
 
-Since 1997, GTA IV scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
+Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
 
 - Greenest Transit Agency,
 - Most Emissions Avoided,
@@ -42,7 +42,7 @@ Three winners took home Greenies for Greenest Transit Agency:
 - Greenest Large-sized Transit Agency:
   - **Tri-County Metropolitan Transportation District of Oregon, dba: TriMet**, from Portland, Oregon, earning a green score of $0.19$.
 
-GTA IV's green score was calculated from the geometric mean[^1] of agency emissions per capita (EPC) and agency emissions per mile (EPM)--with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: "We do it for our riders--because they can’t take trips if they’ve died of air pollution."
+GTA IV's green score was calculated from the geometric mean[^1] of agency emissions per capita (EPC) and agency emissions per mile (EPM)--with lower green scores meaning greener agencies. When asked about the win, TriMet’s representative proudly declared above the roaring crowd: "We do it for our riders--because they can’t take trips if they’ve died from air pollution."
 
 [^1]: The geometric mean was chosen because EPC and EPM are on different scales.
 
@@ -74,7 +74,7 @@ Three agencies were awarded Greenies for outstanding performance in their state.
 
 This metric compares state emissions per capita with agency emissions per capita. Agencies with the largest metrics are awarded for outstanding performance compared to their state. "We will continue to take West Virginians home down country roads in a green way, and we hope our Mountain Mama will follow our lead," said a representative from the Ohio Valley Regional Transportation Authority. While some transit agencies set the gold standard for sustainability, others lean heavily on high-emission fuels.
 
-## Most Noxious
+## Noxious Ratings
 
 Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is by far the dirtiest transportation fuel. GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.
 
@@ -85,7 +85,7 @@ Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is
 - Large-sized Transit Agency:
   - **County of Nassau, dba: Nassau Inter County Express** from Mineola, New York, with $99.99984\%$ of total emissions from natural gas--far exceeding the large-agency average of $28.7\%$.
   
-To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. "What is that smell?!" shouted a representative from Nassau Inter County Express between gags. Meanwhile, Chief Legal Officer Sue Salot from Albany Transit System threatened GTA IV with litigation. 
+To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. "What is that smell?!" gasped a Nassau Inter County Express representative between coughs, while Albany Transit System’s Chief Legal Officer, Sue Salot, wasted no time in threatening legal action against GTA IV.
 
 GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. "We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us," stated Lopez Luna before dropping her microphone.
 
@@ -262,7 +262,7 @@ NST_EST_POP <- read_excel("NST-EST2024-POP.xlsx")
 
 ```
 
-### Data Clean Up
+### Data Processing & Cleaning
 
 The data sets were cleaned up as in the code below:
 
@@ -483,7 +483,7 @@ missing_states <- EIA_SEP_REPORT |>
 kable(missing_states, caption = "States Missing from the Transit Data")
 ```
 
-## Merging of Data Sets
+## Combining Data Sources
 
 The following process was used to merge the primary datasets:
 ``` {r task_5_6, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
@@ -582,7 +582,7 @@ This section provides a brief summary of the key metrics used in the analysis an
 ### Greenest Transit Agency
 GTA IV calculates the green score as,
 
-$$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$.
+$$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$
 Lower scores indicate more environmentally friendly agencies.
 
 ``` {r greenest-transit-agency, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
@@ -863,9 +863,9 @@ ggplot(top_5, aes(x = reorder(agency, ratio_in_k), y = ratio_in_k)) +
   )
 ```
 
-### Most Noxious Rating
+### Noxious Rating
 
-Because natural gas was the most "dirty" fuel type in this data set, GTA IV identified agencies deserving the Most Noxious Rating by as having the largest percentage of their total emissions from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest percentage of emissions from natural gas.
+Since natural gas was the "dirtiest" fuel type in this data set, GTA IV identified agencies deserving of the Noxious Rating as those with the highest percentage of their total emissions coming from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest proportion of emissions from natural gas.
 ``` {r noxious, warning=FALSE, message=FALSE, echo=FALSE, eval=TRUE, include=TRUE}
 # Compute percentage of emissions from natural gas per agency
 noxious_scores <- agency_modes |> 
