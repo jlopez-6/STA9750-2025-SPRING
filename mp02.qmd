@@ -585,7 +585,7 @@ This section provides a brief summary of the key metrics used in the analysis an
 GTA IV calculates the green score as,
 
 $$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$
-Lower scores indicate more environmentally friendly agencies.
+Lower scores indicate more environmentally friendly agencies. The table below presents the small-, medium-, and large-sized transit agencies with the lowest green score. 
 
 ``` {r greenest-transit-agency, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 
@@ -687,7 +687,7 @@ GTA IV found the emissions avoided using,
 $$\text{Avoided Emissions} = (\text{Passenger Miles}\cdot\text{Avg Car Emissions}) - \text{Agency Emissions}$$
 
 Average gasoline vehicle efficiency was used as the baseline [@NHTSA2022]. The table below presents the small-, medium-, and large-sized agencies with the largest mass of emissions avoided. The median value of avoided emissions is also provided for each agency size. 
-``` {r emissions_avoided, eval=TRUE,echo=FALSE, warning=FALSE, message=FALSE, include=TRUE}
+``` {r emissions_avoided, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 # Compute emissions avoided per agency
 emissions_avoided <- agency_modes |>
   group_by(size, ntd_id) |>
@@ -724,7 +724,7 @@ emissions_avoided |>
   kable(digits = 2, format.args = list(big.mark = ","), caption = "Top Agencies by Emissions Avoided (kg CO2)")
 ```
 The figure below presents the emissions avoided by different sized transit agencies.
-``` {r emissions-avoided-plot, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE, include=TRUE}
+``` {r emissions-avoided-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 # Normalize sizes and colors within each size category
 bubble_data <- bubble_data |>
   group_by(size) |>
@@ -767,7 +767,7 @@ $$\text{State Factor} = \frac{\text{State’s Emissions per Capita}}{\text{Agenc
 This metric highlights agencies that achieve greater environmental efficiency compared to the average emissions per capita in their respective states.
 
 The table below shows agencies with highest state-to-agency emissions ratio. The higher the ratio, the better the agency's performance.
-``` {r green-giant, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE, include=TRUE}
+``` {r green-giant, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 # Compute state emissions per capita and ratio to agency emissions
 statal_scores <- agency_modes |> 
   inner_join(NST_EST_POP, join_by(state == state)) |>
@@ -840,7 +840,7 @@ top_statal <-
   ungroup()
 ```
 The plot below presents the top 5 agencies outperforming their states in emissions per capita.
-``` {r green-giant-plot, eval=TRUE, echo=FALSE, warning=FALSE, message=FALSE, include=TRUE}
+``` {r green-giant-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 # Create the lollipop plot
 ggplot(top_5, aes(x = reorder(agency, ratio_in_k), y = ratio_in_k)) +
   geom_segment(aes(xend = agency, y = 0, yend = ratio_in_k), color = "gray70") +
@@ -868,7 +868,7 @@ ggplot(top_5, aes(x = reorder(agency, ratio_in_k), y = ratio_in_k)) +
 ### Noxious Rating
 
 Since natural gas was the "dirtiest" fuel type in this data set, GTA IV identified agencies deserving of the Noxious Rating as those with the highest percentage of their total emissions coming from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest proportion of emissions from natural gas.
-``` {r noxious, warning=FALSE, message=FALSE, echo=FALSE, eval=TRUE, include=TRUE}
+``` {r noxious, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 # Compute percentage of emissions from natural gas per agency
 noxious_scores <- agency_modes |> 
   group_by(size, ntd_id) |>  
