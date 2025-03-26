@@ -728,6 +728,7 @@ median_emissions_avoided <- bubble_data |>
 emissions_avoided |>
   left_join(median_emissions_avoided, join_by(size == size)) |>
   rename(`Agency` = agency,`Size` = size, `NTD ID` = ntd_id, `City` = city, `State` = state, `Emissions Avoided (kg CO2)` = emissions_avoided, `Median Emissions Avoided` = median_emissions) |>
+  mutate(`NTD ID` = as.character(`NTD ID`)) |>
   kable(digits = 2, format.args = list(big.mark = ","), caption = "Top Agencies by Emissions Avoided (kg CO2)")
 ```
 The figure below presents the emissions avoided by different sized transit agencies.
