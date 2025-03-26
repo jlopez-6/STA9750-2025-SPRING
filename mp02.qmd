@@ -1014,7 +1014,6 @@ ggplot(combined_pie_data, aes(x = "", y = pct_of_emissions, fill = fuel_type)) +
   ) +
   facet_wrap(~ type)
 ```
- ###END###
 
 ----
  
