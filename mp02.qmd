@@ -23,7 +23,7 @@ csl: apa.csl
 
 [^1]: This image was generated with Google Gemini [@google-gemini].
 
-Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
+NEW YORK, March 2, 2025 – Since 1997, the Green Transit Alliance for Investigation of Variance (GTA IV) scours publicly available transit data to honor the transportation agencies that champion environmental responsibility in their operations. On March 1, 2025, GTA IV presented awards at the annual Greenies in New York City. “These awards highlight the incredible efforts of transit agencies committed to sustainability,” said Jocely Lopez Luna, Executive Director of GTA IV, in her opening statement at the Noli Timere theater. Small-, medium-, and large-sized transit agencies were awarded for their excellence in three categories: 
 
 - Greenest Transit Agency
 - Most Emissions Avoided
@@ -78,7 +78,7 @@ This metric compares state emissions per capita with agency emissions per capita
 
 ## Noxious Ratings
 
-While some transit agencies set the gold standard for sustainability, others rely heavily on high-emission fuels. Natural gas, with average $\text{CO}_2$ emissions of $410,043$ kg per gallon, is by far the most polluting transportation fuel. Therefore, GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.
+While some transit agencies set the gold standard for sustainability, others rely heavily on high-emission fuels. Natural gas, with average $\text{CO}_2$ emissions of approximately $410,000$ kg per gallon, is by far the most polluting transportation fuel. Therefore, GTA IV handed out Noxious ratings to the three agencies with the highest percentage of their total emissions coming from natural gas.
 
 - Small-sized Transit Agency:
   - **City of Albany, dba: Albany Transit System** from Albany, Georgia, with $99.99999\%$ of their total emissions being derived from natural gas. For comparison, the average small-sized transit agency derives $11.1\%$ of its emissions from natural gas.
@@ -89,7 +89,15 @@ While some transit agencies set the gold standard for sustainability, others rel
   
 To help recipients of the Noxious rating truly understand the impact of natural gas on the environment, GTA IV staged an unforgettable closing ceremony. A harmless yet pungent gas was released on stage, allowing awardees to experience their contribution to air pollution firsthand. "What is that smell?!" gasped a Nassau Inter County Express representative between coughs, while Albany Transit System’s Chief Legal Officer, Sue Salot, wasted no time in threatening legal action against GTA IV.
 
-After the olfactory assault, GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. "We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us," stated Lopez Luna before dropping her microphone.
+After the olfactory assault, GTA IV announced their intention to continue funding grants for transit agencies committed to reducing their environmental impact. "We implore all of you to look deep within your operations and find ways to minimize your footprint. The world we inherit also belongs to those who come after us," stated Lopez Luna. Agencies wishing to apply for next year's awards can do so at www.gtaiv.org/apply. Applications open on July 11, 2025, and the alliance encourages all transit agencies to participate. Lopez Luna punctuated the night with a decisive mic drop. 
+
+GTA IV is a nonprofit organization dedicated to improving sustainability in America's transit agencies. Established in 1997, it provides grants, education, and resources to transit agency leaders to help reduce their environmental impact and pave the way for a greener future.
+
+**For media inquiries, please contact:**\
+*Margaret Cortona*\
+*Green Transit Alliance for Investigation of Variance (GTA IV)*\
+*Phone: 212-000-0000*\
+*Email: mcortona@gtaiv.org*
 
 # Appendix: Methodology and Analysis
 
@@ -273,7 +281,6 @@ The data sets were cleaned up as in the code below:
 MPG <- 49 # standard vehicle fuel economy for 2026.
 MCF_TO_GALLONS <- 7.48052 * 1000 # conversion factor for metric cubic feet to gallons.
 MINTY <- "#78c2ad"
-set.seed(now())
 # Facet labels
 FACET_BY_SIZE_LABELS <- c(
   "Small" = "Small-Sized\nTransit Agencies",
