@@ -1161,6 +1161,70 @@ window.Quarto = {
 <span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<p>The table below presents the agency with the lowest emissions per capita.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 46%">
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">NTD ID</th>
+<th style="text-align: left;">Agency Name</th>
+<th style="text-align: left;">City</th>
+<th style="text-align: left;">State</th>
+<th style="text-align: right;">Agency Emissions Per Capita</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">23</td>
+<td style="text-align: left;">City of Seattle, dba: Seattle Center Monorail</td>
+<td style="text-align: left;">Seattle</td>
+<td style="text-align: left;">Washington</td>
+<td style="text-align: right;">0.06916</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The table below presents the agency with the lowest emissions per transit mile.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 46%">
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">NTD ID</th>
+<th style="text-align: left;">Agency Name</th>
+<th style="text-align: left;">City</th>
+<th style="text-align: left;">State</th>
+<th style="text-align: right;">Agency Emissions Per Mile</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">23</td>
+<td style="text-align: left;">City of Seattle, dba: Seattle Center Monorail</td>
+<td style="text-align: left;">Seattle</td>
+<td style="text-align: left;">Washington</td>
+<td style="text-align: right;">0.07684</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
 <section id="calculation-methodologies" class="level2">
 <h2 class="anchored" data-anchor-id="calculation-methodologies">Calculation Methodologies</h2>
@@ -1919,7 +1983,7 @@ Clarke, E., &amp; Sherrill-Mix, S. (2023). <em>Ggbeeswarm: Categorical scatter (
 Federal Transit Administration. (2023). <em>2023 annual database: Energy consumption</em>. <a href="https://www.transit.dot.gov/ntd/data-product/2023-annual-database-energy-consumption">https://www.transit.dot.gov/ntd/data-product/2023-annual-database-energy-consumption</a>
 </div>
 <div id="ref-google-gemini" class="csl-entry" role="listitem">
-Google Gemini. (2025). <em><span class="nocase">GTA IV-inspired cover illustration with urban transit elements</span></em>. <span>Generated using Google Gemini AI based on a prompt by [Your Name]</span>.
+Google Gemini. (2025). <em><span class="nocase">GTA IV-inspired cover illustration with urban transit elements</span></em>. <span>Generated using Google Gemini AI.</span>
 </div>
 <div id="ref-lubridate2023" class="csl-entry" role="listitem">
 Grolemund, G., &amp; Wickham, H. (2023). <em>Lubridate: Make dealing with dates a little easier</em>. <a href="https://CRAN.R-project.org/package=lubridate">https://CRAN.R-project.org/package=lubridate</a>
@@ -3025,442 +3089,473 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb25-582"><a href="#cb25-582" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
 <span id="cb25-583"><a href="#cb25-583" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
 <span id="cb25-584"><a href="#cb25-584" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
-<span id="cb25-585"><a href="#cb25-585" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-586"><a href="#cb25-586" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-587"><a href="#cb25-587" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-588"><a href="#cb25-588" aria-hidden="true" tabindex="-1"></a><span class="fu">## Calculation Methodologies</span></span>
-<span id="cb25-589"><a href="#cb25-589" aria-hidden="true" tabindex="-1"></a>This section provides a brief summary of the key metrics used in the analysis and the code used to identify the most--and least--environmentally friendly transit agencies.</span>
-<span id="cb25-590"><a href="#cb25-590" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-591"><a href="#cb25-591" aria-hidden="true" tabindex="-1"></a><span class="fu">### Greenest Transit Agency</span></span>
-<span id="cb25-592"><a href="#cb25-592" aria-hidden="true" tabindex="-1"></a>GTA IV calculates the green score as,</span>
-<span id="cb25-593"><a href="#cb25-593" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-594"><a href="#cb25-594" aria-hidden="true" tabindex="-1"></a>$$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$</span>
-<span id="cb25-595"><a href="#cb25-595" aria-hidden="true" tabindex="-1"></a>Lower scores indicate more environmentally friendly agencies. The table below presents the small-, medium-, and large-sized transit agencies with the lowest green score. </span>
-<span id="cb25-596"><a href="#cb25-596" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-597"><a href="#cb25-597" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r greenest-transit-agency, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-598"><a href="#cb25-598" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-599"><a href="#cb25-599" aria-hidden="true" tabindex="-1"></a><span class="in"># grouping for ease of use</span></span>
-<span id="cb25-600"><a href="#cb25-600" aria-hidden="true" tabindex="-1"></a><span class="in">green_scores &lt;-</span></span>
-<span id="cb25-601"><a href="#cb25-601" aria-hidden="true" tabindex="-1"></a><span class="in">  agency_modes |&gt;</span></span>
-<span id="cb25-602"><a href="#cb25-602" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
-<span id="cb25-603"><a href="#cb25-603" aria-hidden="true" tabindex="-1"></a><span class="in">  summarize(</span></span>
-<span id="cb25-604"><a href="#cb25-604" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
-<span id="cb25-605"><a href="#cb25-605" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
-<span id="cb25-606"><a href="#cb25-606" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
-<span id="cb25-607"><a href="#cb25-607" aria-hidden="true" tabindex="-1"></a><span class="in">    green_score = first(green_score),</span></span>
-<span id="cb25-608"><a href="#cb25-608" aria-hidden="true" tabindex="-1"></a><span class="in">    .groups = 'drop'</span></span>
-<span id="cb25-609"><a href="#cb25-609" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-610"><a href="#cb25-610" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
-<span id="cb25-611"><a href="#cb25-611" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-612"><a href="#cb25-612" aria-hidden="true" tabindex="-1"></a><span class="in"># Select the greenest agency per size category</span></span>
-<span id="cb25-613"><a href="#cb25-613" aria-hidden="true" tabindex="-1"></a><span class="in">greenest_agencies &lt;-</span></span>
-<span id="cb25-614"><a href="#cb25-614" aria-hidden="true" tabindex="-1"></a><span class="in">  green_scores |&gt;</span></span>
-<span id="cb25-615"><a href="#cb25-615" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
-<span id="cb25-616"><a href="#cb25-616" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_min(green_score, n = 1) |&gt;</span></span>
-<span id="cb25-617"><a href="#cb25-617" aria-hidden="true" tabindex="-1"></a><span class="in">  select(Agency = agency, City = city, State = state, `Green Score` = green_score)</span></span>
+<span id="cb25-585"><a href="#cb25-585" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-586"><a href="#cb25-586" aria-hidden="true" tabindex="-1"></a>The table below presents the agency with the lowest emissions per capita. </span>
+<span id="cb25-587"><a href="#cb25-587" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r}</span></span>
+<span id="cb25-588"><a href="#cb25-588" aria-hidden="true" tabindex="-1"></a><span class="in"># agency with lowest emissions per capita.</span></span>
+<span id="cb25-589"><a href="#cb25-589" aria-hidden="true" tabindex="-1"></a><span class="in">agency_modes |&gt;</span></span>
+<span id="cb25-590"><a href="#cb25-590" aria-hidden="true" tabindex="-1"></a><span class="in">  select(ntd_id, agency, city, state, agency_emissions_per_capita) |&gt;</span></span>
+<span id="cb25-591"><a href="#cb25-591" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(agency_emissions_per_capita = round(agency_emissions_per_capita, 5)) |&gt;</span></span>
+<span id="cb25-592"><a href="#cb25-592" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_min(order_by = agency_emissions_per_capita, n = 1, with_ties = FALSE) |&gt;</span></span>
+<span id="cb25-593"><a href="#cb25-593" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
+<span id="cb25-594"><a href="#cb25-594" aria-hidden="true" tabindex="-1"></a><span class="in">    "NTD ID" = ntd_id,</span></span>
+<span id="cb25-595"><a href="#cb25-595" aria-hidden="true" tabindex="-1"></a><span class="in">    "Agency Name" = agency,</span></span>
+<span id="cb25-596"><a href="#cb25-596" aria-hidden="true" tabindex="-1"></a><span class="in">    "City" = city,</span></span>
+<span id="cb25-597"><a href="#cb25-597" aria-hidden="true" tabindex="-1"></a><span class="in">    "State" = state,</span></span>
+<span id="cb25-598"><a href="#cb25-598" aria-hidden="true" tabindex="-1"></a><span class="in">    "Agency Emissions Per Capita" = agency_emissions_per_capita</span></span>
+<span id="cb25-599"><a href="#cb25-599" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-600"><a href="#cb25-600" aria-hidden="true" tabindex="-1"></a><span class="in">  kable()</span></span>
+<span id="cb25-601"><a href="#cb25-601" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-602"><a href="#cb25-602" aria-hidden="true" tabindex="-1"></a>The table below presents the agency with the lowest emissions per transit mile. </span>
+<span id="cb25-603"><a href="#cb25-603" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r}</span></span>
+<span id="cb25-604"><a href="#cb25-604" aria-hidden="true" tabindex="-1"></a><span class="in"># agency with lowest emissions per capita.</span></span>
+<span id="cb25-605"><a href="#cb25-605" aria-hidden="true" tabindex="-1"></a><span class="in">agency_modes |&gt;</span></span>
+<span id="cb25-606"><a href="#cb25-606" aria-hidden="true" tabindex="-1"></a><span class="in">  select(ntd_id, agency, city, state, emissions_per_transit) |&gt;</span></span>
+<span id="cb25-607"><a href="#cb25-607" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(emissions_per_transit = round(emissions_per_transit, 5)) |&gt;</span></span>
+<span id="cb25-608"><a href="#cb25-608" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_min(order_by = emissions_per_transit, n = 1, with_ties = FALSE) |&gt;</span></span>
+<span id="cb25-609"><a href="#cb25-609" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
+<span id="cb25-610"><a href="#cb25-610" aria-hidden="true" tabindex="-1"></a><span class="in">    "NTD ID" = ntd_id,</span></span>
+<span id="cb25-611"><a href="#cb25-611" aria-hidden="true" tabindex="-1"></a><span class="in">    "Agency Name" = agency,</span></span>
+<span id="cb25-612"><a href="#cb25-612" aria-hidden="true" tabindex="-1"></a><span class="in">    "City" = city,</span></span>
+<span id="cb25-613"><a href="#cb25-613" aria-hidden="true" tabindex="-1"></a><span class="in">    "State" = state,</span></span>
+<span id="cb25-614"><a href="#cb25-614" aria-hidden="true" tabindex="-1"></a><span class="in">    "Agency Emissions Per Mile" = emissions_per_transit</span></span>
+<span id="cb25-615"><a href="#cb25-615" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-616"><a href="#cb25-616" aria-hidden="true" tabindex="-1"></a><span class="in">  kable()</span></span>
+<span id="cb25-617"><a href="#cb25-617" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb25-618"><a href="#cb25-618" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-619"><a href="#cb25-619" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute median green score per size category</span></span>
-<span id="cb25-620"><a href="#cb25-620" aria-hidden="true" tabindex="-1"></a><span class="in">median_green &lt;- green_scores |&gt;</span></span>
-<span id="cb25-621"><a href="#cb25-621" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
-<span id="cb25-622"><a href="#cb25-622" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(median_green = median(green_score, na.rm = TRUE))</span></span>
-<span id="cb25-623"><a href="#cb25-623" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-624"><a href="#cb25-624" aria-hidden="true" tabindex="-1"></a><span class="in"># Display table of greenest agencies with nice formatting</span></span>
-<span id="cb25-625"><a href="#cb25-625" aria-hidden="true" tabindex="-1"></a><span class="in">greenest_agencies |&gt;</span></span>
-<span id="cb25-626"><a href="#cb25-626" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_green, join_by("size" == "size")) |&gt;</span></span>
-<span id="cb25-627"><a href="#cb25-627" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
-<span id="cb25-628"><a href="#cb25-628" aria-hidden="true" tabindex="-1"></a><span class="in">    "Agency Size" = size,</span></span>
-<span id="cb25-629"><a href="#cb25-629" aria-hidden="true" tabindex="-1"></a><span class="in">    "Median Green Score" = median_green</span></span>
-<span id="cb25-630"><a href="#cb25-630" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-631"><a href="#cb25-631" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(caption = "**Greenest Transit Agency in Each Size Category**")</span></span>
-<span id="cb25-632"><a href="#cb25-632" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-633"><a href="#cb25-633" aria-hidden="true" tabindex="-1"></a>The figure below presents the top three greenest transit agencies in each size category.</span>
-<span id="cb25-634"><a href="#cb25-634" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r greenest-transit-agencies-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-635"><a href="#cb25-635" aria-hidden="true" tabindex="-1"></a><span class="in"># create tibble with data that will go on plot</span></span>
-<span id="cb25-636"><a href="#cb25-636" aria-hidden="true" tabindex="-1"></a><span class="in">green_agencies_plot &lt;-</span></span>
-<span id="cb25-637"><a href="#cb25-637" aria-hidden="true" tabindex="-1"></a><span class="in">  agency_modes |&gt;</span></span>
-<span id="cb25-638"><a href="#cb25-638" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
-<span id="cb25-639"><a href="#cb25-639" aria-hidden="true" tabindex="-1"></a><span class="in">  summarize(</span></span>
-<span id="cb25-640"><a href="#cb25-640" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
-<span id="cb25-641"><a href="#cb25-641" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
-<span id="cb25-642"><a href="#cb25-642" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
-<span id="cb25-643"><a href="#cb25-643" aria-hidden="true" tabindex="-1"></a><span class="in">    green_score = first(green_score)</span></span>
-<span id="cb25-644"><a href="#cb25-644" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-645"><a href="#cb25-645" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_min(green_score, n = 3, with_ties = FALSE) |&gt;</span></span>
-<span id="cb25-646"><a href="#cb25-646" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup() |&gt;</span></span>
-<span id="cb25-647"><a href="#cb25-647" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_green, join_by("size" == "size"))</span></span>
-<span id="cb25-648"><a href="#cb25-648" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-649"><a href="#cb25-649" aria-hidden="true" tabindex="-1"></a><span class="in"># Fix agency names, and fix case for size</span></span>
-<span id="cb25-650"><a href="#cb25-650" aria-hidden="true" tabindex="-1"></a><span class="in">green_agencies_plot &lt;- green_agencies_plot |&gt;</span></span>
-<span id="cb25-651"><a href="#cb25-651" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(agency = str_replace_all(agency, "-", " ")) |&gt;</span></span>
-<span id="cb25-652"><a href="#cb25-652" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-653"><a href="#cb25-653" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
-<span id="cb25-654"><a href="#cb25-654" aria-hidden="true" tabindex="-1"></a><span class="in">      str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?&lt;=, dba: ).*"), width = 12),</span></span>
-<span id="cb25-655"><a href="#cb25-655" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ str_wrap(agency, width = 12)</span></span>
-<span id="cb25-656"><a href="#cb25-656" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
-<span id="cb25-657"><a href="#cb25-657" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-658"><a href="#cb25-658" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(agency) |&gt;</span></span>
-<span id="cb25-659"><a href="#cb25-659" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-660"><a href="#cb25-660" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
-<span id="cb25-661"><a href="#cb25-661" aria-hidden="true" tabindex="-1"></a><span class="in">      n() &gt; 1 ~ str_wrap(paste0(agency, " (", city, ")"), width = 12),</span></span>
-<span id="cb25-662"><a href="#cb25-662" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ agency</span></span>
-<span id="cb25-663"><a href="#cb25-663" aria-hidden="true" tabindex="-1"></a><span class="in">      )</span></span>
-<span id="cb25-664"><a href="#cb25-664" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
-<span id="cb25-665"><a href="#cb25-665" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
-<span id="cb25-666"><a href="#cb25-666" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-667"><a href="#cb25-667" aria-hidden="true" tabindex="-1"></a><span class="in"># plot code</span></span>
-<span id="cb25-668"><a href="#cb25-668" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(green_agencies_plot, aes(y = fct_reorder(agency, -green_score), x = green_score)) +</span></span>
-<span id="cb25-669"><a href="#cb25-669" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_col(fill = MINTY) +</span></span>
-<span id="cb25-670"><a href="#cb25-670" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_vline(data = median_green, aes(xintercept = median_green, linetype = "Median"),</span></span>
-<span id="cb25-671"><a href="#cb25-671" aria-hidden="true" tabindex="-1"></a><span class="in">             color = MINTY, linewidth = 1) +</span></span>
-<span id="cb25-672"><a href="#cb25-672" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
-<span id="cb25-673"><a href="#cb25-673" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "Green Score",</span></span>
-<span id="cb25-674"><a href="#cb25-674" aria-hidden="true" tabindex="-1"></a><span class="in">    y = "Agency Name",</span></span>
-<span id="cb25-675"><a href="#cb25-675" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "3 Greenest Agencies By Size",</span></span>
-<span id="cb25-676"><a href="#cb25-676" aria-hidden="true" tabindex="-1"></a><span class="in">    linetype = "Legend",</span></span>
-<span id="cb25-677"><a href="#cb25-677" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP).", width = 90)</span></span>
-<span id="cb25-678"><a href="#cb25-678" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-679"><a href="#cb25-679" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_linetype_manual(values = c("Median" = "dashed")) +</span></span>
-<span id="cb25-680"><a href="#cb25-680" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_x_continuous(breaks = seq(0, 2, by = 0.5)) +</span></span>
-<span id="cb25-681"><a href="#cb25-681" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
-<span id="cb25-682"><a href="#cb25-682" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
-<span id="cb25-683"><a href="#cb25-683" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
-<span id="cb25-684"><a href="#cb25-684" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
-<span id="cb25-685"><a href="#cb25-685" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-686"><a href="#cb25-686" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~size, scales = "free_y", labeller = labeller(size = FACET_BY_SIZE_LABELS))</span></span>
-<span id="cb25-687"><a href="#cb25-687" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-688"><a href="#cb25-688" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-689"><a href="#cb25-689" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-690"><a href="#cb25-690" aria-hidden="true" tabindex="-1"></a><span class="fu">### Emissions Avoided</span></span>
-<span id="cb25-691"><a href="#cb25-691" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-692"><a href="#cb25-692" aria-hidden="true" tabindex="-1"></a>GTA IV found the emissions avoided using, </span>
-<span id="cb25-693"><a href="#cb25-693" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-694"><a href="#cb25-694" aria-hidden="true" tabindex="-1"></a>$$\text{Avoided Emissions} = (\text{Passenger Miles}\cdot\text{Avg Car Emissions}) - \text{Agency Emissions}$$</span>
-<span id="cb25-695"><a href="#cb25-695" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-696"><a href="#cb25-696" aria-hidden="true" tabindex="-1"></a>Average gasoline vehicle efficiency was used as the baseline <span class="co">[</span><span class="ot">@NHTSA2022</span><span class="co">]</span>. The table below presents the small-, medium-, and large-sized agencies with the largest mass of emissions avoided. The median value of avoided emissions is also provided for each agency size. </span>
-<span id="cb25-697"><a href="#cb25-697" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r emissions_avoided, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-698"><a href="#cb25-698" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute emissions avoided per agency</span></span>
-<span id="cb25-699"><a href="#cb25-699" aria-hidden="true" tabindex="-1"></a><span class="in">emissions_avoided &lt;- agency_modes |&gt;</span></span>
-<span id="cb25-700"><a href="#cb25-700" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
-<span id="cb25-701"><a href="#cb25-701" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
-<span id="cb25-702"><a href="#cb25-702" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
-<span id="cb25-703"><a href="#cb25-703" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
-<span id="cb25-704"><a href="#cb25-704" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
-<span id="cb25-705"><a href="#cb25-705" aria-hidden="true" tabindex="-1"></a><span class="in">    emissions_avoided = first((miles / MPG) * </span></span>
-<span id="cb25-706"><a href="#cb25-706" aria-hidden="true" tabindex="-1"></a><span class="in">      co2_vol_mass |&gt; filter(co2_factors == "Finished Motor Gasoline") |&gt; pull(kg_co2))</span></span>
-<span id="cb25-707"><a href="#cb25-707" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
-<span id="cb25-708"><a href="#cb25-708" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(emissions_avoided, n = 1) # Select agency with highest emissions avoided per size</span></span>
-<span id="cb25-709"><a href="#cb25-709" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-710"><a href="#cb25-710" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute emissions avoided for all agencies, sorted</span></span>
-<span id="cb25-711"><a href="#cb25-711" aria-hidden="true" tabindex="-1"></a><span class="in">bubble_data &lt;- agency_modes |&gt;</span></span>
-<span id="cb25-712"><a href="#cb25-712" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
-<span id="cb25-713"><a href="#cb25-713" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
-<span id="cb25-714"><a href="#cb25-714" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
-<span id="cb25-715"><a href="#cb25-715" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
-<span id="cb25-716"><a href="#cb25-716" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
-<span id="cb25-717"><a href="#cb25-717" aria-hidden="true" tabindex="-1"></a><span class="in">    miles = first(miles),</span></span>
-<span id="cb25-718"><a href="#cb25-718" aria-hidden="true" tabindex="-1"></a><span class="in">    emissions_avoided = first((miles / MPG) * </span></span>
-<span id="cb25-719"><a href="#cb25-719" aria-hidden="true" tabindex="-1"></a><span class="in">      co2_vol_mass |&gt; filter(co2_factors == "Finished Motor Gasoline") |&gt; pull(kg_co2))</span></span>
-<span id="cb25-720"><a href="#cb25-720" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
-<span id="cb25-721"><a href="#cb25-721" aria-hidden="true" tabindex="-1"></a><span class="in">  arrange(desc(emissions_avoided))</span></span>
+<span id="cb25-619"><a href="#cb25-619" aria-hidden="true" tabindex="-1"></a><span class="fu">## Calculation Methodologies</span></span>
+<span id="cb25-620"><a href="#cb25-620" aria-hidden="true" tabindex="-1"></a>This section provides a brief summary of the key metrics used in the analysis and the code used to identify the most--and least--environmentally friendly transit agencies.</span>
+<span id="cb25-621"><a href="#cb25-621" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-622"><a href="#cb25-622" aria-hidden="true" tabindex="-1"></a><span class="fu">### Greenest Transit Agency</span></span>
+<span id="cb25-623"><a href="#cb25-623" aria-hidden="true" tabindex="-1"></a>GTA IV calculates the green score as,</span>
+<span id="cb25-624"><a href="#cb25-624" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-625"><a href="#cb25-625" aria-hidden="true" tabindex="-1"></a>$$\text{Green Score} = \sqrt{\text{Emissions per Capita} \cdot \text{Emissions per Mile}}$$</span>
+<span id="cb25-626"><a href="#cb25-626" aria-hidden="true" tabindex="-1"></a>Lower scores indicate more environmentally friendly agencies. The table below presents the small-, medium-, and large-sized transit agencies with the lowest green score. </span>
+<span id="cb25-627"><a href="#cb25-627" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-628"><a href="#cb25-628" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r greenest-transit-agency, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-629"><a href="#cb25-629" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-630"><a href="#cb25-630" aria-hidden="true" tabindex="-1"></a><span class="in"># grouping for ease of use</span></span>
+<span id="cb25-631"><a href="#cb25-631" aria-hidden="true" tabindex="-1"></a><span class="in">green_scores &lt;-</span></span>
+<span id="cb25-632"><a href="#cb25-632" aria-hidden="true" tabindex="-1"></a><span class="in">  agency_modes |&gt;</span></span>
+<span id="cb25-633"><a href="#cb25-633" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
+<span id="cb25-634"><a href="#cb25-634" aria-hidden="true" tabindex="-1"></a><span class="in">  summarize(</span></span>
+<span id="cb25-635"><a href="#cb25-635" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
+<span id="cb25-636"><a href="#cb25-636" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
+<span id="cb25-637"><a href="#cb25-637" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
+<span id="cb25-638"><a href="#cb25-638" aria-hidden="true" tabindex="-1"></a><span class="in">    green_score = first(green_score),</span></span>
+<span id="cb25-639"><a href="#cb25-639" aria-hidden="true" tabindex="-1"></a><span class="in">    .groups = 'drop'</span></span>
+<span id="cb25-640"><a href="#cb25-640" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-641"><a href="#cb25-641" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-642"><a href="#cb25-642" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-643"><a href="#cb25-643" aria-hidden="true" tabindex="-1"></a><span class="in"># Select the greenest agency per size category</span></span>
+<span id="cb25-644"><a href="#cb25-644" aria-hidden="true" tabindex="-1"></a><span class="in">greenest_agencies &lt;-</span></span>
+<span id="cb25-645"><a href="#cb25-645" aria-hidden="true" tabindex="-1"></a><span class="in">  green_scores |&gt;</span></span>
+<span id="cb25-646"><a href="#cb25-646" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
+<span id="cb25-647"><a href="#cb25-647" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_min(green_score, n = 1) |&gt;</span></span>
+<span id="cb25-648"><a href="#cb25-648" aria-hidden="true" tabindex="-1"></a><span class="in">  select(Agency = agency, City = city, State = state, `Green Score` = green_score)</span></span>
+<span id="cb25-649"><a href="#cb25-649" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-650"><a href="#cb25-650" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute median green score per size category</span></span>
+<span id="cb25-651"><a href="#cb25-651" aria-hidden="true" tabindex="-1"></a><span class="in">median_green &lt;- green_scores |&gt;</span></span>
+<span id="cb25-652"><a href="#cb25-652" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
+<span id="cb25-653"><a href="#cb25-653" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(median_green = median(green_score, na.rm = TRUE))</span></span>
+<span id="cb25-654"><a href="#cb25-654" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-655"><a href="#cb25-655" aria-hidden="true" tabindex="-1"></a><span class="in"># Display table of greenest agencies with nice formatting</span></span>
+<span id="cb25-656"><a href="#cb25-656" aria-hidden="true" tabindex="-1"></a><span class="in">greenest_agencies |&gt;</span></span>
+<span id="cb25-657"><a href="#cb25-657" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_green, join_by("size" == "size")) |&gt;</span></span>
+<span id="cb25-658"><a href="#cb25-658" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
+<span id="cb25-659"><a href="#cb25-659" aria-hidden="true" tabindex="-1"></a><span class="in">    "Agency Size" = size,</span></span>
+<span id="cb25-660"><a href="#cb25-660" aria-hidden="true" tabindex="-1"></a><span class="in">    "Median Green Score" = median_green</span></span>
+<span id="cb25-661"><a href="#cb25-661" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-662"><a href="#cb25-662" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(caption = "**Greenest Transit Agency in Each Size Category**")</span></span>
+<span id="cb25-663"><a href="#cb25-663" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-664"><a href="#cb25-664" aria-hidden="true" tabindex="-1"></a>The figure below presents the top three greenest transit agencies in each size category.</span>
+<span id="cb25-665"><a href="#cb25-665" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r greenest-transit-agencies-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-666"><a href="#cb25-666" aria-hidden="true" tabindex="-1"></a><span class="in"># create tibble with data that will go on plot</span></span>
+<span id="cb25-667"><a href="#cb25-667" aria-hidden="true" tabindex="-1"></a><span class="in">green_agencies_plot &lt;-</span></span>
+<span id="cb25-668"><a href="#cb25-668" aria-hidden="true" tabindex="-1"></a><span class="in">  agency_modes |&gt;</span></span>
+<span id="cb25-669"><a href="#cb25-669" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
+<span id="cb25-670"><a href="#cb25-670" aria-hidden="true" tabindex="-1"></a><span class="in">  summarize(</span></span>
+<span id="cb25-671"><a href="#cb25-671" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
+<span id="cb25-672"><a href="#cb25-672" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
+<span id="cb25-673"><a href="#cb25-673" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
+<span id="cb25-674"><a href="#cb25-674" aria-hidden="true" tabindex="-1"></a><span class="in">    green_score = first(green_score)</span></span>
+<span id="cb25-675"><a href="#cb25-675" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-676"><a href="#cb25-676" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_min(green_score, n = 3, with_ties = FALSE) |&gt;</span></span>
+<span id="cb25-677"><a href="#cb25-677" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup() |&gt;</span></span>
+<span id="cb25-678"><a href="#cb25-678" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_green, join_by("size" == "size"))</span></span>
+<span id="cb25-679"><a href="#cb25-679" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-680"><a href="#cb25-680" aria-hidden="true" tabindex="-1"></a><span class="in"># Fix agency names, and fix case for size</span></span>
+<span id="cb25-681"><a href="#cb25-681" aria-hidden="true" tabindex="-1"></a><span class="in">green_agencies_plot &lt;- green_agencies_plot |&gt;</span></span>
+<span id="cb25-682"><a href="#cb25-682" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(agency = str_replace_all(agency, "-", " ")) |&gt;</span></span>
+<span id="cb25-683"><a href="#cb25-683" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-684"><a href="#cb25-684" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
+<span id="cb25-685"><a href="#cb25-685" aria-hidden="true" tabindex="-1"></a><span class="in">      str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?&lt;=, dba: ).*"), width = 12),</span></span>
+<span id="cb25-686"><a href="#cb25-686" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ str_wrap(agency, width = 12)</span></span>
+<span id="cb25-687"><a href="#cb25-687" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb25-688"><a href="#cb25-688" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-689"><a href="#cb25-689" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(agency) |&gt;</span></span>
+<span id="cb25-690"><a href="#cb25-690" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-691"><a href="#cb25-691" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
+<span id="cb25-692"><a href="#cb25-692" aria-hidden="true" tabindex="-1"></a><span class="in">      n() &gt; 1 ~ str_wrap(paste0(agency, " (", city, ")"), width = 12),</span></span>
+<span id="cb25-693"><a href="#cb25-693" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ agency</span></span>
+<span id="cb25-694"><a href="#cb25-694" aria-hidden="true" tabindex="-1"></a><span class="in">      )</span></span>
+<span id="cb25-695"><a href="#cb25-695" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
+<span id="cb25-696"><a href="#cb25-696" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-697"><a href="#cb25-697" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-698"><a href="#cb25-698" aria-hidden="true" tabindex="-1"></a><span class="in"># plot code</span></span>
+<span id="cb25-699"><a href="#cb25-699" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(green_agencies_plot, aes(y = fct_reorder(agency, -green_score), x = green_score)) +</span></span>
+<span id="cb25-700"><a href="#cb25-700" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_col(fill = MINTY) +</span></span>
+<span id="cb25-701"><a href="#cb25-701" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_vline(data = median_green, aes(xintercept = median_green, linetype = "Median"),</span></span>
+<span id="cb25-702"><a href="#cb25-702" aria-hidden="true" tabindex="-1"></a><span class="in">             color = MINTY, linewidth = 1) +</span></span>
+<span id="cb25-703"><a href="#cb25-703" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
+<span id="cb25-704"><a href="#cb25-704" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "Green Score",</span></span>
+<span id="cb25-705"><a href="#cb25-705" aria-hidden="true" tabindex="-1"></a><span class="in">    y = "Agency Name",</span></span>
+<span id="cb25-706"><a href="#cb25-706" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "3 Greenest Agencies By Size",</span></span>
+<span id="cb25-707"><a href="#cb25-707" aria-hidden="true" tabindex="-1"></a><span class="in">    linetype = "Legend",</span></span>
+<span id="cb25-708"><a href="#cb25-708" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP).", width = 90)</span></span>
+<span id="cb25-709"><a href="#cb25-709" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-710"><a href="#cb25-710" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_linetype_manual(values = c("Median" = "dashed")) +</span></span>
+<span id="cb25-711"><a href="#cb25-711" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_x_continuous(breaks = seq(0, 2, by = 0.5)) +</span></span>
+<span id="cb25-712"><a href="#cb25-712" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
+<span id="cb25-713"><a href="#cb25-713" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
+<span id="cb25-714"><a href="#cb25-714" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
+<span id="cb25-715"><a href="#cb25-715" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
+<span id="cb25-716"><a href="#cb25-716" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-717"><a href="#cb25-717" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~size, scales = "free_y", labeller = labeller(size = FACET_BY_SIZE_LABELS))</span></span>
+<span id="cb25-718"><a href="#cb25-718" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-719"><a href="#cb25-719" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-720"><a href="#cb25-720" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-721"><a href="#cb25-721" aria-hidden="true" tabindex="-1"></a><span class="fu">### Emissions Avoided</span></span>
 <span id="cb25-722"><a href="#cb25-722" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-723"><a href="#cb25-723" aria-hidden="true" tabindex="-1"></a><span class="in"># Calculate median emissions avoided per size</span></span>
-<span id="cb25-724"><a href="#cb25-724" aria-hidden="true" tabindex="-1"></a><span class="in">median_emissions_avoided &lt;- bubble_data |&gt;</span></span>
-<span id="cb25-725"><a href="#cb25-725" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
-<span id="cb25-726"><a href="#cb25-726" aria-hidden="true" tabindex="-1"></a><span class="in">  summarize(median_emissions = median(emissions_avoided, na.rm = TRUE))</span></span>
-<span id="cb25-727"><a href="#cb25-727" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-728"><a href="#cb25-728" aria-hidden="true" tabindex="-1"></a><span class="in">emissions_avoided |&gt;</span></span>
-<span id="cb25-729"><a href="#cb25-729" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_emissions_avoided, join_by(size == size)) |&gt;</span></span>
-<span id="cb25-730"><a href="#cb25-730" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(`Agency` = agency,`Size` = size, `NTD ID` = ntd_id, `City` = city, `State` = state, `Emissions Avoided (kg CO2)` = emissions_avoided, `Median Emissions Avoided` = median_emissions) |&gt;</span></span>
-<span id="cb25-731"><a href="#cb25-731" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(`NTD ID` = as.character(`NTD ID`)) |&gt;</span></span>
-<span id="cb25-732"><a href="#cb25-732" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(digits = 2, format.args = list(big.mark = ","), caption = "Top Agencies by Emissions Avoided (kg CO2)")</span></span>
-<span id="cb25-733"><a href="#cb25-733" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-734"><a href="#cb25-734" aria-hidden="true" tabindex="-1"></a>The figure below presents the emissions avoided by different sized transit agencies.</span>
-<span id="cb25-735"><a href="#cb25-735" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r emissions-avoided-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-736"><a href="#cb25-736" aria-hidden="true" tabindex="-1"></a><span class="in"># Normalize sizes and colors within each size category</span></span>
-<span id="cb25-737"><a href="#cb25-737" aria-hidden="true" tabindex="-1"></a><span class="in">bubble_data &lt;- bubble_data |&gt;</span></span>
-<span id="cb25-738"><a href="#cb25-738" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
-<span id="cb25-739"><a href="#cb25-739" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-740"><a href="#cb25-740" aria-hidden="true" tabindex="-1"></a><span class="in">    size_scaled = scales::rescale(emissions_avoided, to = c(5, 20)),</span></span>
-<span id="cb25-741"><a href="#cb25-741" aria-hidden="true" tabindex="-1"></a><span class="in">    color_scaled = scales::rescale(emissions_avoided, to = c(0, 1))</span></span>
-<span id="cb25-742"><a href="#cb25-742" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-743"><a href="#cb25-743" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup() |&gt;</span></span>
-<span id="cb25-744"><a href="#cb25-744" aria-hidden="true" tabindex="-1"></a><span class="in">  arrange(emissions_avoided)</span></span>
-<span id="cb25-745"><a href="#cb25-745" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-746"><a href="#cb25-746" aria-hidden="true" tabindex="-1"></a><span class="in"># Plot emissions avoided by transit agencies</span></span>
-<span id="cb25-747"><a href="#cb25-747" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(bubble_data, aes(x = size, y = emissions_avoided, size = size_scaled, color = color_scaled)) +</span></span>
-<span id="cb25-748"><a href="#cb25-748" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_quasirandom(alpha = 0.9, width = 0.3) +</span></span>
-<span id="cb25-749"><a href="#cb25-749" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_y_log10() +</span></span>
-<span id="cb25-750"><a href="#cb25-750" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_cartesian(ylim = c(min(bubble_data$emissions_avoided) * 0.8, max(bubble_data$emissions_avoided) * 5)) +</span></span>
-<span id="cb25-751"><a href="#cb25-751" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_size_continuous(range = c(5, 20)) +</span></span>
-<span id="cb25-752"><a href="#cb25-752" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_color_gradient(low = "gray75", high = MINTY) +</span></span>
-<span id="cb25-753"><a href="#cb25-753" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
-<span id="cb25-754"><a href="#cb25-754" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "Emissions Avoided by Transit Agencies",</span></span>
-<span id="cb25-755"><a href="#cb25-755" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "",</span></span>
-<span id="cb25-756"><a href="#cb25-756" aria-hidden="true" tabindex="-1"></a><span class="in">    y = "Emissions Avoided (kg CO2, Log Scale)",</span></span>
-<span id="cb25-757"><a href="#cb25-757" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP). Baseline MPG from National Highway Traffic Safety Administration (NHTSA).", width = 90)</span></span>
-<span id="cb25-758"><a href="#cb25-758" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-759"><a href="#cb25-759" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
-<span id="cb25-760"><a href="#cb25-760" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
-<span id="cb25-761"><a href="#cb25-761" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "none",</span></span>
-<span id="cb25-762"><a href="#cb25-762" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
-<span id="cb25-763"><a href="#cb25-763" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.title.x = element_blank(),</span></span>
-<span id="cb25-764"><a href="#cb25-764" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.text.x = element_blank()</span></span>
-<span id="cb25-765"><a href="#cb25-765" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-766"><a href="#cb25-766" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~ size, scales = "free_x", labeller = labeller(size = FACET_BY_SIZE_LABELS))</span></span>
-<span id="cb25-767"><a href="#cb25-767" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-768"><a href="#cb25-768" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-769"><a href="#cb25-769" aria-hidden="true" tabindex="-1"></a><span class="fu">### Green Giant</span></span>
-<span id="cb25-770"><a href="#cb25-770" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-771"><a href="#cb25-771" aria-hidden="true" tabindex="-1"></a>GTA IV identified the Statal Eco-Leader using the following metric: </span>
-<span id="cb25-772"><a href="#cb25-772" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-773"><a href="#cb25-773" aria-hidden="true" tabindex="-1"></a>$$\text{State Factor} = \frac{\text{State’s Emissions per Capita}}{\text{Agency’s Emissions per Capita}}$$</span>
-<span id="cb25-774"><a href="#cb25-774" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-775"><a href="#cb25-775" aria-hidden="true" tabindex="-1"></a>This metric highlights agencies that achieve greater environmental efficiency compared to the average emissions per capita in their respective states.</span>
+<span id="cb25-723"><a href="#cb25-723" aria-hidden="true" tabindex="-1"></a>GTA IV found the emissions avoided using, </span>
+<span id="cb25-724"><a href="#cb25-724" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-725"><a href="#cb25-725" aria-hidden="true" tabindex="-1"></a>$$\text{Avoided Emissions} = (\text{Passenger Miles}\cdot\text{Avg Car Emissions}) - \text{Agency Emissions}$$</span>
+<span id="cb25-726"><a href="#cb25-726" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-727"><a href="#cb25-727" aria-hidden="true" tabindex="-1"></a>Average gasoline vehicle efficiency was used as the baseline <span class="co">[</span><span class="ot">@NHTSA2022</span><span class="co">]</span>. The table below presents the small-, medium-, and large-sized agencies with the largest mass of emissions avoided. The median value of avoided emissions is also provided for each agency size. </span>
+<span id="cb25-728"><a href="#cb25-728" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r emissions_avoided, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-729"><a href="#cb25-729" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute emissions avoided per agency</span></span>
+<span id="cb25-730"><a href="#cb25-730" aria-hidden="true" tabindex="-1"></a><span class="in">emissions_avoided &lt;- agency_modes |&gt;</span></span>
+<span id="cb25-731"><a href="#cb25-731" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
+<span id="cb25-732"><a href="#cb25-732" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
+<span id="cb25-733"><a href="#cb25-733" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
+<span id="cb25-734"><a href="#cb25-734" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
+<span id="cb25-735"><a href="#cb25-735" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
+<span id="cb25-736"><a href="#cb25-736" aria-hidden="true" tabindex="-1"></a><span class="in">    emissions_avoided = first((miles / MPG) * </span></span>
+<span id="cb25-737"><a href="#cb25-737" aria-hidden="true" tabindex="-1"></a><span class="in">      co2_vol_mass |&gt; filter(co2_factors == "Finished Motor Gasoline") |&gt; pull(kg_co2))</span></span>
+<span id="cb25-738"><a href="#cb25-738" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
+<span id="cb25-739"><a href="#cb25-739" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(emissions_avoided, n = 1) # Select agency with highest emissions avoided per size</span></span>
+<span id="cb25-740"><a href="#cb25-740" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-741"><a href="#cb25-741" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute emissions avoided for all agencies, sorted</span></span>
+<span id="cb25-742"><a href="#cb25-742" aria-hidden="true" tabindex="-1"></a><span class="in">bubble_data &lt;- agency_modes |&gt;</span></span>
+<span id="cb25-743"><a href="#cb25-743" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;</span></span>
+<span id="cb25-744"><a href="#cb25-744" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
+<span id="cb25-745"><a href="#cb25-745" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
+<span id="cb25-746"><a href="#cb25-746" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
+<span id="cb25-747"><a href="#cb25-747" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
+<span id="cb25-748"><a href="#cb25-748" aria-hidden="true" tabindex="-1"></a><span class="in">    miles = first(miles),</span></span>
+<span id="cb25-749"><a href="#cb25-749" aria-hidden="true" tabindex="-1"></a><span class="in">    emissions_avoided = first((miles / MPG) * </span></span>
+<span id="cb25-750"><a href="#cb25-750" aria-hidden="true" tabindex="-1"></a><span class="in">      co2_vol_mass |&gt; filter(co2_factors == "Finished Motor Gasoline") |&gt; pull(kg_co2))</span></span>
+<span id="cb25-751"><a href="#cb25-751" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
+<span id="cb25-752"><a href="#cb25-752" aria-hidden="true" tabindex="-1"></a><span class="in">  arrange(desc(emissions_avoided))</span></span>
+<span id="cb25-753"><a href="#cb25-753" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-754"><a href="#cb25-754" aria-hidden="true" tabindex="-1"></a><span class="in"># Calculate median emissions avoided per size</span></span>
+<span id="cb25-755"><a href="#cb25-755" aria-hidden="true" tabindex="-1"></a><span class="in">median_emissions_avoided &lt;- bubble_data |&gt;</span></span>
+<span id="cb25-756"><a href="#cb25-756" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
+<span id="cb25-757"><a href="#cb25-757" aria-hidden="true" tabindex="-1"></a><span class="in">  summarize(median_emissions = median(emissions_avoided, na.rm = TRUE))</span></span>
+<span id="cb25-758"><a href="#cb25-758" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-759"><a href="#cb25-759" aria-hidden="true" tabindex="-1"></a><span class="in">emissions_avoided |&gt;</span></span>
+<span id="cb25-760"><a href="#cb25-760" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_emissions_avoided, join_by(size == size)) |&gt;</span></span>
+<span id="cb25-761"><a href="#cb25-761" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(`Agency` = agency,`Size` = size, `NTD ID` = ntd_id, `City` = city, `State` = state, `Emissions Avoided (kg CO2)` = emissions_avoided, `Median Emissions Avoided` = median_emissions) |&gt;</span></span>
+<span id="cb25-762"><a href="#cb25-762" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(`NTD ID` = as.character(`NTD ID`)) |&gt;</span></span>
+<span id="cb25-763"><a href="#cb25-763" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(digits = 2, format.args = list(big.mark = ","), caption = "Top Agencies by Emissions Avoided (kg CO2)")</span></span>
+<span id="cb25-764"><a href="#cb25-764" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-765"><a href="#cb25-765" aria-hidden="true" tabindex="-1"></a>The figure below presents the emissions avoided by different sized transit agencies.</span>
+<span id="cb25-766"><a href="#cb25-766" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r emissions-avoided-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-767"><a href="#cb25-767" aria-hidden="true" tabindex="-1"></a><span class="in"># Normalize sizes and colors within each size category</span></span>
+<span id="cb25-768"><a href="#cb25-768" aria-hidden="true" tabindex="-1"></a><span class="in">bubble_data &lt;- bubble_data |&gt;</span></span>
+<span id="cb25-769"><a href="#cb25-769" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
+<span id="cb25-770"><a href="#cb25-770" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-771"><a href="#cb25-771" aria-hidden="true" tabindex="-1"></a><span class="in">    size_scaled = scales::rescale(emissions_avoided, to = c(5, 20)),</span></span>
+<span id="cb25-772"><a href="#cb25-772" aria-hidden="true" tabindex="-1"></a><span class="in">    color_scaled = scales::rescale(emissions_avoided, to = c(0, 1))</span></span>
+<span id="cb25-773"><a href="#cb25-773" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-774"><a href="#cb25-774" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup() |&gt;</span></span>
+<span id="cb25-775"><a href="#cb25-775" aria-hidden="true" tabindex="-1"></a><span class="in">  arrange(emissions_avoided)</span></span>
 <span id="cb25-776"><a href="#cb25-776" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-777"><a href="#cb25-777" aria-hidden="true" tabindex="-1"></a>The table below shows agencies with highest state-to-agency emissions ratio. The higher the ratio, the better the agency's performance.</span>
-<span id="cb25-778"><a href="#cb25-778" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r green-giant, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-779"><a href="#cb25-779" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute state emissions per capita and ratio to agency emissions</span></span>
-<span id="cb25-780"><a href="#cb25-780" aria-hidden="true" tabindex="-1"></a><span class="in">statal_scores &lt;- agency_modes |&gt; </span></span>
-<span id="cb25-781"><a href="#cb25-781" aria-hidden="true" tabindex="-1"></a><span class="in">  inner_join(NST_EST_POP, join_by(state == state)) |&gt;</span></span>
-<span id="cb25-782"><a href="#cb25-782" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-783"><a href="#cb25-783" aria-hidden="true" tabindex="-1"></a><span class="in">    state_emissions_per_capita = (co2_mwh * generation_MWh) / population,</span></span>
-<span id="cb25-784"><a href="#cb25-784" aria-hidden="true" tabindex="-1"></a><span class="in">    ratio_in_k = state_emissions_per_capita / (agency_emissions_per_capita * 10^3)</span></span>
-<span id="cb25-785"><a href="#cb25-785" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
-<span id="cb25-786"><a href="#cb25-786" aria-hidden="true" tabindex="-1"></a><span class="in">  distinct(ntd_id, .keep_all = TRUE)</span></span>
-<span id="cb25-787"><a href="#cb25-787" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-788"><a href="#cb25-788" aria-hidden="true" tabindex="-1"></a><span class="in"># Get the top agency with the highest ratio per size category</span></span>
-<span id="cb25-789"><a href="#cb25-789" aria-hidden="true" tabindex="-1"></a><span class="in">top_statal &lt;- statal_scores |&gt; </span></span>
-<span id="cb25-790"><a href="#cb25-790" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt; </span></span>
-<span id="cb25-791"><a href="#cb25-791" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(ratio_in_k, n = 1, with_ties = FALSE) |&gt;  </span></span>
-<span id="cb25-792"><a href="#cb25-792" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
-<span id="cb25-793"><a href="#cb25-793" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-794"><a href="#cb25-794" aria-hidden="true" tabindex="-1"></a><span class="in"># Get the top 5 agencies per size category</span></span>
-<span id="cb25-795"><a href="#cb25-795" aria-hidden="true" tabindex="-1"></a><span class="in">top_5 &lt;- statal_scores |&gt; </span></span>
-<span id="cb25-796"><a href="#cb25-796" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt; </span></span>
-<span id="cb25-797"><a href="#cb25-797" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(ratio_in_k, n = 5) |&gt;  </span></span>
-<span id="cb25-798"><a href="#cb25-798" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-777"><a href="#cb25-777" aria-hidden="true" tabindex="-1"></a><span class="in"># Plot emissions avoided by transit agencies</span></span>
+<span id="cb25-778"><a href="#cb25-778" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(bubble_data, aes(x = size, y = emissions_avoided, size = size_scaled, color = color_scaled)) +</span></span>
+<span id="cb25-779"><a href="#cb25-779" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_quasirandom(alpha = 0.9, width = 0.3) +</span></span>
+<span id="cb25-780"><a href="#cb25-780" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_y_log10() +</span></span>
+<span id="cb25-781"><a href="#cb25-781" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_cartesian(ylim = c(min(bubble_data$emissions_avoided) * 0.8, max(bubble_data$emissions_avoided) * 5)) +</span></span>
+<span id="cb25-782"><a href="#cb25-782" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_size_continuous(range = c(5, 20)) +</span></span>
+<span id="cb25-783"><a href="#cb25-783" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_color_gradient(low = "gray75", high = MINTY) +</span></span>
+<span id="cb25-784"><a href="#cb25-784" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
+<span id="cb25-785"><a href="#cb25-785" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "Emissions Avoided by Transit Agencies",</span></span>
+<span id="cb25-786"><a href="#cb25-786" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "",</span></span>
+<span id="cb25-787"><a href="#cb25-787" aria-hidden="true" tabindex="-1"></a><span class="in">    y = "Emissions Avoided (kg CO2, Log Scale)",</span></span>
+<span id="cb25-788"><a href="#cb25-788" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP). Baseline MPG from National Highway Traffic Safety Administration (NHTSA).", width = 90)</span></span>
+<span id="cb25-789"><a href="#cb25-789" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-790"><a href="#cb25-790" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
+<span id="cb25-791"><a href="#cb25-791" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
+<span id="cb25-792"><a href="#cb25-792" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "none",</span></span>
+<span id="cb25-793"><a href="#cb25-793" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
+<span id="cb25-794"><a href="#cb25-794" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.title.x = element_blank(),</span></span>
+<span id="cb25-795"><a href="#cb25-795" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.text.x = element_blank()</span></span>
+<span id="cb25-796"><a href="#cb25-796" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-797"><a href="#cb25-797" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~ size, scales = "free_x", labeller = labeller(size = FACET_BY_SIZE_LABELS))</span></span>
+<span id="cb25-798"><a href="#cb25-798" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb25-799"><a href="#cb25-799" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-800"><a href="#cb25-800" aria-hidden="true" tabindex="-1"></a><span class="in"># Calculate the median ratio for each size category</span></span>
-<span id="cb25-801"><a href="#cb25-801" aria-hidden="true" tabindex="-1"></a><span class="in">median_ratios &lt;- top_5 |&gt; </span></span>
-<span id="cb25-802"><a href="#cb25-802" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt; </span></span>
-<span id="cb25-803"><a href="#cb25-803" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(median_ratio = median(ratio_in_k))  </span></span>
-<span id="cb25-804"><a href="#cb25-804" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-805"><a href="#cb25-805" aria-hidden="true" tabindex="-1"></a><span class="in"># Format agency names for better readability</span></span>
-<span id="cb25-806"><a href="#cb25-806" aria-hidden="true" tabindex="-1"></a><span class="in">top_5 &lt;- </span></span>
-<span id="cb25-807"><a href="#cb25-807" aria-hidden="true" tabindex="-1"></a><span class="in">  top_5 |&gt; </span></span>
-<span id="cb25-808"><a href="#cb25-808" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-809"><a href="#cb25-809" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
-<span id="cb25-810"><a href="#cb25-810" aria-hidden="true" tabindex="-1"></a><span class="in">      str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?&lt;=, dba: ).*"), width = 15),</span></span>
-<span id="cb25-811"><a href="#cb25-811" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ str_wrap(agency, width = 15)</span></span>
-<span id="cb25-812"><a href="#cb25-812" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
-<span id="cb25-813"><a href="#cb25-813" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-814"><a href="#cb25-814" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(agency) |&gt;</span></span>
-<span id="cb25-815"><a href="#cb25-815" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-816"><a href="#cb25-816" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
-<span id="cb25-817"><a href="#cb25-817" aria-hidden="true" tabindex="-1"></a><span class="in">      n() &gt; 1 ~ str_wrap(paste0(agency, " (", city, ")"), width = 15),</span></span>
-<span id="cb25-818"><a href="#cb25-818" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ agency</span></span>
-<span id="cb25-819"><a href="#cb25-819" aria-hidden="true" tabindex="-1"></a><span class="in">      )</span></span>
-<span id="cb25-820"><a href="#cb25-820" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
-<span id="cb25-821"><a href="#cb25-821" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
-<span id="cb25-822"><a href="#cb25-822" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-823"><a href="#cb25-823" aria-hidden="true" tabindex="-1"></a><span class="in"># table of agencies with highest state to agency emissions ratio. </span></span>
-<span id="cb25-824"><a href="#cb25-824" aria-hidden="true" tabindex="-1"></a><span class="in">top_statal |&gt; </span></span>
-<span id="cb25-825"><a href="#cb25-825" aria-hidden="true" tabindex="-1"></a><span class="in">  select(size, agency,city,state,ratio_in_k) |&gt;</span></span>
-<span id="cb25-826"><a href="#cb25-826" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_ratios, join_by(size==size)) |&gt;</span></span>
-<span id="cb25-827"><a href="#cb25-827" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-828"><a href="#cb25-828" aria-hidden="true" tabindex="-1"></a><span class="in">    `State-to-Agency Ratio` = ratio_in_k * (10^3),</span></span>
-<span id="cb25-829"><a href="#cb25-829" aria-hidden="true" tabindex="-1"></a><span class="in">    `Median State-to-Agency Ratio` = median_ratio * 10^3</span></span>
-<span id="cb25-830"><a href="#cb25-830" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
-<span id="cb25-831"><a href="#cb25-831" aria-hidden="true" tabindex="-1"></a><span class="in">  select(-c(ratio_in_k, median_ratio)) |&gt;</span></span>
-<span id="cb25-832"><a href="#cb25-832" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
-<span id="cb25-833"><a href="#cb25-833" aria-hidden="true" tabindex="-1"></a><span class="in">    `Size` = size,</span></span>
-<span id="cb25-834"><a href="#cb25-834" aria-hidden="true" tabindex="-1"></a><span class="in">    `Agency` = agency, </span></span>
-<span id="cb25-835"><a href="#cb25-835" aria-hidden="true" tabindex="-1"></a><span class="in">    `City` = city, </span></span>
-<span id="cb25-836"><a href="#cb25-836" aria-hidden="true" tabindex="-1"></a><span class="in">    `State` = state, </span></span>
-<span id="cb25-837"><a href="#cb25-837" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
-<span id="cb25-838"><a href="#cb25-838" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(caption = "Agencies with the Highest State-to-Agency Emissions Ratio")</span></span>
-<span id="cb25-839"><a href="#cb25-839" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-840"><a href="#cb25-840" aria-hidden="true" tabindex="-1"></a><span class="in">top_statal &lt;- </span></span>
-<span id="cb25-841"><a href="#cb25-841" aria-hidden="true" tabindex="-1"></a><span class="in">  top_statal |&gt; </span></span>
-<span id="cb25-842"><a href="#cb25-842" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-843"><a href="#cb25-843" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
-<span id="cb25-844"><a href="#cb25-844" aria-hidden="true" tabindex="-1"></a><span class="in">      str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?&lt;=, dba: ).*"), width = 15),</span></span>
-<span id="cb25-845"><a href="#cb25-845" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ str_wrap(agency, width = 15)</span></span>
-<span id="cb25-846"><a href="#cb25-846" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
-<span id="cb25-847"><a href="#cb25-847" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
-<span id="cb25-848"><a href="#cb25-848" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
-<span id="cb25-849"><a href="#cb25-849" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-850"><a href="#cb25-850" aria-hidden="true" tabindex="-1"></a>The plot below presents the top 5 agencies outperforming their states in emissions per capita.</span>
-<span id="cb25-851"><a href="#cb25-851" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r green-giant-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-852"><a href="#cb25-852" aria-hidden="true" tabindex="-1"></a><span class="in"># Create the lollipop plot</span></span>
-<span id="cb25-853"><a href="#cb25-853" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(top_5, aes(x = reorder(agency, ratio_in_k), y = ratio_in_k)) +</span></span>
-<span id="cb25-854"><a href="#cb25-854" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_segment(aes(xend = agency, y = 0, yend = ratio_in_k), color = "gray70") +</span></span>
-<span id="cb25-855"><a href="#cb25-855" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_point(color = "gray50", size = 3) +</span></span>
-<span id="cb25-856"><a href="#cb25-856" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_point(data = top_statal, aes(y = ratio_in_k), color = MINTY, size = 5) + </span></span>
-<span id="cb25-857"><a href="#cb25-857" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_hline(data = median_ratios, aes(yintercept = median_ratio, linetype = "Median"),</span></span>
-<span id="cb25-858"><a href="#cb25-858" aria-hidden="true" tabindex="-1"></a><span class="in">             color = MINTY, linewidth = 1) +</span></span>
-<span id="cb25-859"><a href="#cb25-859" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_flip() +</span></span>
-<span id="cb25-860"><a href="#cb25-860" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~size, scales = "free", labeller = labeller(size = FACET_BY_SIZE_LABELS)) +</span></span>
-<span id="cb25-861"><a href="#cb25-861" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_y_continuous(expand = expansion(mult = 0.15)) +</span></span>
-<span id="cb25-862"><a href="#cb25-862" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_linetype_manual(name = NULL, values = c("Median" = "dashed")) +</span></span>
-<span id="cb25-863"><a href="#cb25-863" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
-<span id="cb25-864"><a href="#cb25-864" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "Top 5 Agencies: State vs. Agency Emissions Per Capita",</span></span>
-<span id="cb25-865"><a href="#cb25-865" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "Agency",</span></span>
-<span id="cb25-866"><a href="#cb25-866" aria-hidden="true" tabindex="-1"></a><span class="in">    y = "State-to-Agency Emissions Ratio, in Thousands",</span></span>
-<span id="cb25-867"><a href="#cb25-867" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP), and 2020 U.S. Census Population Estimates.")</span></span>
-<span id="cb25-868"><a href="#cb25-868" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-869"><a href="#cb25-869" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
-<span id="cb25-870"><a href="#cb25-870" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
-<span id="cb25-871"><a href="#cb25-871" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
-<span id="cb25-872"><a href="#cb25-872" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
-<span id="cb25-873"><a href="#cb25-873" aria-hidden="true" tabindex="-1"></a><span class="in">  )</span></span>
-<span id="cb25-874"><a href="#cb25-874" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-875"><a href="#cb25-875" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-876"><a href="#cb25-876" aria-hidden="true" tabindex="-1"></a><span class="fu">### Noxious Rating</span></span>
-<span id="cb25-877"><a href="#cb25-877" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-878"><a href="#cb25-878" aria-hidden="true" tabindex="-1"></a>Since natural gas was the "dirtiest" fuel type in this data set, GTA IV identified agencies deserving of the Noxious Rating as those with the highest percentage of their total emissions coming from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest proportion of emissions from natural gas.</span>
-<span id="cb25-879"><a href="#cb25-879" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r noxious, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-880"><a href="#cb25-880" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute percentage of emissions from natural gas per agency</span></span>
-<span id="cb25-881"><a href="#cb25-881" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_scores &lt;- agency_modes |&gt; </span></span>
-<span id="cb25-882"><a href="#cb25-882" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;  </span></span>
-<span id="cb25-883"><a href="#cb25-883" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
-<span id="cb25-884"><a href="#cb25-884" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
-<span id="cb25-885"><a href="#cb25-885" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
-<span id="cb25-886"><a href="#cb25-886" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
-<span id="cb25-887"><a href="#cb25-887" aria-hidden="true" tabindex="-1"></a><span class="in">    total_natural_gas_of_agency = sum(cnaturalgas_emissions + liqnatgas_emissions, na.rm = TRUE),</span></span>
-<span id="cb25-888"><a href="#cb25-888" aria-hidden="true" tabindex="-1"></a><span class="in">    percent_of_total_emissions = (total_natural_gas_of_agency * 100) / first(total_emissions_of_agency),</span></span>
-<span id="cb25-889"><a href="#cb25-889" aria-hidden="true" tabindex="-1"></a><span class="in">    .groups = "drop"</span></span>
-<span id="cb25-890"><a href="#cb25-890" aria-hidden="true" tabindex="-1"></a><span class="in">  )</span></span>
-<span id="cb25-891"><a href="#cb25-891" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-892"><a href="#cb25-892" aria-hidden="true" tabindex="-1"></a><span class="in"># Find the agency with the highest % of emissions from natural gas in each size category</span></span>
-<span id="cb25-893"><a href="#cb25-893" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_winners &lt;- </span></span>
-<span id="cb25-894"><a href="#cb25-894" aria-hidden="true" tabindex="-1"></a><span class="in">  noxious_scores |&gt;</span></span>
-<span id="cb25-895"><a href="#cb25-895" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
-<span id="cb25-896"><a href="#cb25-896" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(percent_of_total_emissions, n = 1, with_ties = FALSE)</span></span>
-<span id="cb25-897"><a href="#cb25-897" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-898"><a href="#cb25-898" aria-hidden="true" tabindex="-1"></a><span class="in"># table of winning agencies</span></span>
-<span id="cb25-899"><a href="#cb25-899" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_winners |&gt;</span></span>
-<span id="cb25-900"><a href="#cb25-900" aria-hidden="true" tabindex="-1"></a><span class="in">  select(-total_natural_gas_of_agency,ntd_id) |&gt;</span></span>
-<span id="cb25-901"><a href="#cb25-901" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
-<span id="cb25-902"><a href="#cb25-902" aria-hidden="true" tabindex="-1"></a><span class="in">    `Size` = size,</span></span>
-<span id="cb25-903"><a href="#cb25-903" aria-hidden="true" tabindex="-1"></a><span class="in">    `NTD ID` = ntd_id,</span></span>
-<span id="cb25-904"><a href="#cb25-904" aria-hidden="true" tabindex="-1"></a><span class="in">    `Agency` = agency, </span></span>
-<span id="cb25-905"><a href="#cb25-905" aria-hidden="true" tabindex="-1"></a><span class="in">    `City` = city, </span></span>
-<span id="cb25-906"><a href="#cb25-906" aria-hidden="true" tabindex="-1"></a><span class="in">    `State` = state, </span></span>
-<span id="cb25-907"><a href="#cb25-907" aria-hidden="true" tabindex="-1"></a><span class="in">    `Natural Gas Emissions (%)` = percent_of_total_emissions</span></span>
-<span id="cb25-908"><a href="#cb25-908" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
-<span id="cb25-909"><a href="#cb25-909" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(digits = 5, caption = "Agencies with the Highest Natural Gas Emissions Percentage")</span></span>
-<span id="cb25-910"><a href="#cb25-910" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-911"><a href="#cb25-911" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute average emissions proportion per fuel type</span></span>
-<span id="cb25-912"><a href="#cb25-912" aria-hidden="true" tabindex="-1"></a><span class="in">mean_emissions_by_size &lt;- agency_modes |&gt;</span></span>
-<span id="cb25-913"><a href="#cb25-913" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(ntd_id, size) |&gt;  </span></span>
+<span id="cb25-800"><a href="#cb25-800" aria-hidden="true" tabindex="-1"></a><span class="fu">### Green Giant</span></span>
+<span id="cb25-801"><a href="#cb25-801" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-802"><a href="#cb25-802" aria-hidden="true" tabindex="-1"></a>GTA IV identified the Statal Eco-Leader using the following metric: </span>
+<span id="cb25-803"><a href="#cb25-803" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-804"><a href="#cb25-804" aria-hidden="true" tabindex="-1"></a>$$\text{State Factor} = \frac{\text{State’s Emissions per Capita}}{\text{Agency’s Emissions per Capita}}$$</span>
+<span id="cb25-805"><a href="#cb25-805" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-806"><a href="#cb25-806" aria-hidden="true" tabindex="-1"></a>This metric highlights agencies that achieve greater environmental efficiency compared to the average emissions per capita in their respective states.</span>
+<span id="cb25-807"><a href="#cb25-807" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-808"><a href="#cb25-808" aria-hidden="true" tabindex="-1"></a>The table below shows agencies with highest state-to-agency emissions ratio. The higher the ratio, the better the agency's performance.</span>
+<span id="cb25-809"><a href="#cb25-809" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r green-giant, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-810"><a href="#cb25-810" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute state emissions per capita and ratio to agency emissions</span></span>
+<span id="cb25-811"><a href="#cb25-811" aria-hidden="true" tabindex="-1"></a><span class="in">statal_scores &lt;- agency_modes |&gt; </span></span>
+<span id="cb25-812"><a href="#cb25-812" aria-hidden="true" tabindex="-1"></a><span class="in">  inner_join(NST_EST_POP, join_by(state == state)) |&gt;</span></span>
+<span id="cb25-813"><a href="#cb25-813" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-814"><a href="#cb25-814" aria-hidden="true" tabindex="-1"></a><span class="in">    state_emissions_per_capita = (co2_mwh * generation_MWh) / population,</span></span>
+<span id="cb25-815"><a href="#cb25-815" aria-hidden="true" tabindex="-1"></a><span class="in">    ratio_in_k = state_emissions_per_capita / (agency_emissions_per_capita * 10^3)</span></span>
+<span id="cb25-816"><a href="#cb25-816" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
+<span id="cb25-817"><a href="#cb25-817" aria-hidden="true" tabindex="-1"></a><span class="in">  distinct(ntd_id, .keep_all = TRUE)</span></span>
+<span id="cb25-818"><a href="#cb25-818" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-819"><a href="#cb25-819" aria-hidden="true" tabindex="-1"></a><span class="in"># Get the top agency with the highest ratio per size category</span></span>
+<span id="cb25-820"><a href="#cb25-820" aria-hidden="true" tabindex="-1"></a><span class="in">top_statal &lt;- statal_scores |&gt; </span></span>
+<span id="cb25-821"><a href="#cb25-821" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt; </span></span>
+<span id="cb25-822"><a href="#cb25-822" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(ratio_in_k, n = 1, with_ties = FALSE) |&gt;  </span></span>
+<span id="cb25-823"><a href="#cb25-823" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-824"><a href="#cb25-824" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-825"><a href="#cb25-825" aria-hidden="true" tabindex="-1"></a><span class="in"># Get the top 5 agencies per size category</span></span>
+<span id="cb25-826"><a href="#cb25-826" aria-hidden="true" tabindex="-1"></a><span class="in">top_5 &lt;- statal_scores |&gt; </span></span>
+<span id="cb25-827"><a href="#cb25-827" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt; </span></span>
+<span id="cb25-828"><a href="#cb25-828" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(ratio_in_k, n = 5) |&gt;  </span></span>
+<span id="cb25-829"><a href="#cb25-829" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-830"><a href="#cb25-830" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-831"><a href="#cb25-831" aria-hidden="true" tabindex="-1"></a><span class="in"># Calculate the median ratio for each size category</span></span>
+<span id="cb25-832"><a href="#cb25-832" aria-hidden="true" tabindex="-1"></a><span class="in">median_ratios &lt;- top_5 |&gt; </span></span>
+<span id="cb25-833"><a href="#cb25-833" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt; </span></span>
+<span id="cb25-834"><a href="#cb25-834" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(median_ratio = median(ratio_in_k))  </span></span>
+<span id="cb25-835"><a href="#cb25-835" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-836"><a href="#cb25-836" aria-hidden="true" tabindex="-1"></a><span class="in"># Format agency names for better readability</span></span>
+<span id="cb25-837"><a href="#cb25-837" aria-hidden="true" tabindex="-1"></a><span class="in">top_5 &lt;- </span></span>
+<span id="cb25-838"><a href="#cb25-838" aria-hidden="true" tabindex="-1"></a><span class="in">  top_5 |&gt; </span></span>
+<span id="cb25-839"><a href="#cb25-839" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-840"><a href="#cb25-840" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
+<span id="cb25-841"><a href="#cb25-841" aria-hidden="true" tabindex="-1"></a><span class="in">      str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?&lt;=, dba: ).*"), width = 15),</span></span>
+<span id="cb25-842"><a href="#cb25-842" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ str_wrap(agency, width = 15)</span></span>
+<span id="cb25-843"><a href="#cb25-843" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb25-844"><a href="#cb25-844" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-845"><a href="#cb25-845" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(agency) |&gt;</span></span>
+<span id="cb25-846"><a href="#cb25-846" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-847"><a href="#cb25-847" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
+<span id="cb25-848"><a href="#cb25-848" aria-hidden="true" tabindex="-1"></a><span class="in">      n() &gt; 1 ~ str_wrap(paste0(agency, " (", city, ")"), width = 15),</span></span>
+<span id="cb25-849"><a href="#cb25-849" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ agency</span></span>
+<span id="cb25-850"><a href="#cb25-850" aria-hidden="true" tabindex="-1"></a><span class="in">      )</span></span>
+<span id="cb25-851"><a href="#cb25-851" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
+<span id="cb25-852"><a href="#cb25-852" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-853"><a href="#cb25-853" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-854"><a href="#cb25-854" aria-hidden="true" tabindex="-1"></a><span class="in"># table of agencies with highest state to agency emissions ratio. </span></span>
+<span id="cb25-855"><a href="#cb25-855" aria-hidden="true" tabindex="-1"></a><span class="in">top_statal |&gt; </span></span>
+<span id="cb25-856"><a href="#cb25-856" aria-hidden="true" tabindex="-1"></a><span class="in">  select(size, agency,city,state,ratio_in_k) |&gt;</span></span>
+<span id="cb25-857"><a href="#cb25-857" aria-hidden="true" tabindex="-1"></a><span class="in">  left_join(median_ratios, join_by(size==size)) |&gt;</span></span>
+<span id="cb25-858"><a href="#cb25-858" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-859"><a href="#cb25-859" aria-hidden="true" tabindex="-1"></a><span class="in">    `State-to-Agency Ratio` = ratio_in_k * (10^3),</span></span>
+<span id="cb25-860"><a href="#cb25-860" aria-hidden="true" tabindex="-1"></a><span class="in">    `Median State-to-Agency Ratio` = median_ratio * 10^3</span></span>
+<span id="cb25-861"><a href="#cb25-861" aria-hidden="true" tabindex="-1"></a><span class="in">    ) |&gt;</span></span>
+<span id="cb25-862"><a href="#cb25-862" aria-hidden="true" tabindex="-1"></a><span class="in">  select(-c(ratio_in_k, median_ratio)) |&gt;</span></span>
+<span id="cb25-863"><a href="#cb25-863" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
+<span id="cb25-864"><a href="#cb25-864" aria-hidden="true" tabindex="-1"></a><span class="in">    `Size` = size,</span></span>
+<span id="cb25-865"><a href="#cb25-865" aria-hidden="true" tabindex="-1"></a><span class="in">    `Agency` = agency, </span></span>
+<span id="cb25-866"><a href="#cb25-866" aria-hidden="true" tabindex="-1"></a><span class="in">    `City` = city, </span></span>
+<span id="cb25-867"><a href="#cb25-867" aria-hidden="true" tabindex="-1"></a><span class="in">    `State` = state, </span></span>
+<span id="cb25-868"><a href="#cb25-868" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
+<span id="cb25-869"><a href="#cb25-869" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(caption = "Agencies with the Highest State-to-Agency Emissions Ratio")</span></span>
+<span id="cb25-870"><a href="#cb25-870" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-871"><a href="#cb25-871" aria-hidden="true" tabindex="-1"></a><span class="in">top_statal &lt;- </span></span>
+<span id="cb25-872"><a href="#cb25-872" aria-hidden="true" tabindex="-1"></a><span class="in">  top_statal |&gt; </span></span>
+<span id="cb25-873"><a href="#cb25-873" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-874"><a href="#cb25-874" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = case_when(</span></span>
+<span id="cb25-875"><a href="#cb25-875" aria-hidden="true" tabindex="-1"></a><span class="in">      str_detect(agency, ", dba:") == TRUE ~ str_wrap(str_extract(agency, "(?&lt;=, dba: ).*"), width = 15),</span></span>
+<span id="cb25-876"><a href="#cb25-876" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ str_wrap(agency, width = 15)</span></span>
+<span id="cb25-877"><a href="#cb25-877" aria-hidden="true" tabindex="-1"></a><span class="in">    )</span></span>
+<span id="cb25-878"><a href="#cb25-878" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;</span></span>
+<span id="cb25-879"><a href="#cb25-879" aria-hidden="true" tabindex="-1"></a><span class="in">  ungroup()</span></span>
+<span id="cb25-880"><a href="#cb25-880" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-881"><a href="#cb25-881" aria-hidden="true" tabindex="-1"></a>The plot below presents the top 5 agencies outperforming their states in emissions per capita.</span>
+<span id="cb25-882"><a href="#cb25-882" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r green-giant-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-883"><a href="#cb25-883" aria-hidden="true" tabindex="-1"></a><span class="in"># Create the lollipop plot</span></span>
+<span id="cb25-884"><a href="#cb25-884" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(top_5, aes(x = reorder(agency, ratio_in_k), y = ratio_in_k)) +</span></span>
+<span id="cb25-885"><a href="#cb25-885" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_segment(aes(xend = agency, y = 0, yend = ratio_in_k), color = "gray70") +</span></span>
+<span id="cb25-886"><a href="#cb25-886" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_point(color = "gray50", size = 3) +</span></span>
+<span id="cb25-887"><a href="#cb25-887" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_point(data = top_statal, aes(y = ratio_in_k), color = MINTY, size = 5) + </span></span>
+<span id="cb25-888"><a href="#cb25-888" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_hline(data = median_ratios, aes(yintercept = median_ratio, linetype = "Median"),</span></span>
+<span id="cb25-889"><a href="#cb25-889" aria-hidden="true" tabindex="-1"></a><span class="in">             color = MINTY, linewidth = 1) +</span></span>
+<span id="cb25-890"><a href="#cb25-890" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_flip() +</span></span>
+<span id="cb25-891"><a href="#cb25-891" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~size, scales = "free", labeller = labeller(size = FACET_BY_SIZE_LABELS)) +</span></span>
+<span id="cb25-892"><a href="#cb25-892" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_y_continuous(expand = expansion(mult = 0.15)) +</span></span>
+<span id="cb25-893"><a href="#cb25-893" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_linetype_manual(name = NULL, values = c("Median" = "dashed")) +</span></span>
+<span id="cb25-894"><a href="#cb25-894" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
+<span id="cb25-895"><a href="#cb25-895" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "Top 5 Agencies: State vs. Agency Emissions Per Capita",</span></span>
+<span id="cb25-896"><a href="#cb25-896" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "Agency",</span></span>
+<span id="cb25-897"><a href="#cb25-897" aria-hidden="true" tabindex="-1"></a><span class="in">    y = "State-to-Agency Emissions Ratio, in Thousands",</span></span>
+<span id="cb25-898"><a href="#cb25-898" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP), and 2020 U.S. Census Population Estimates.")</span></span>
+<span id="cb25-899"><a href="#cb25-899" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-900"><a href="#cb25-900" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
+<span id="cb25-901"><a href="#cb25-901" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
+<span id="cb25-902"><a href="#cb25-902" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
+<span id="cb25-903"><a href="#cb25-903" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
+<span id="cb25-904"><a href="#cb25-904" aria-hidden="true" tabindex="-1"></a><span class="in">  )</span></span>
+<span id="cb25-905"><a href="#cb25-905" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-906"><a href="#cb25-906" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-907"><a href="#cb25-907" aria-hidden="true" tabindex="-1"></a><span class="fu">### Noxious Rating</span></span>
+<span id="cb25-908"><a href="#cb25-908" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-909"><a href="#cb25-909" aria-hidden="true" tabindex="-1"></a>Since natural gas was the "dirtiest" fuel type in this data set, GTA IV identified agencies deserving of the Noxious Rating as those with the highest percentage of their total emissions coming from natural gas. The table below presents the small-, medium-, and large-sized agencies with the highest proportion of emissions from natural gas.</span>
+<span id="cb25-910"><a href="#cb25-910" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r noxious, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-911"><a href="#cb25-911" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute percentage of emissions from natural gas per agency</span></span>
+<span id="cb25-912"><a href="#cb25-912" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_scores &lt;- agency_modes |&gt; </span></span>
+<span id="cb25-913"><a href="#cb25-913" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size, ntd_id) |&gt;  </span></span>
 <span id="cb25-914"><a href="#cb25-914" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
-<span id="cb25-915"><a href="#cb25-915" aria-hidden="true" tabindex="-1"></a><span class="in">    total_te = sum(total_emissions_of_mode, na.rm = TRUE),  </span></span>
-<span id="cb25-916"><a href="#cb25-916" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_bd = sum(biodiesel_emissions, na.rm = TRUE) / total_te,</span></span>
-<span id="cb25-917"><a href="#cb25-917" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_ng = (sum(cnaturalgas_emissions, na.rm = TRUE) + sum(liqnatgas_emissions, na.rm = TRUE)) / total_te,</span></span>
-<span id="cb25-918"><a href="#cb25-918" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_diesel = sum(diesel_emissions, na.rm = TRUE) / total_te,</span></span>
-<span id="cb25-919"><a href="#cb25-919" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_gas = sum(gasoline_emissions, na.rm = TRUE) / total_te,</span></span>
-<span id="cb25-920"><a href="#cb25-920" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_lpg = sum(liqpetgas_emissions, na.rm = TRUE) / total_te,</span></span>
-<span id="cb25-921"><a href="#cb25-921" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_battery = (sum(electricbattery_emissions, na.rm = TRUE) + sum(electricprop_emissions, na.rm = TRUE)) / total_te,</span></span>
-<span id="cb25-922"><a href="#cb25-922" aria-hidden="true" tabindex="-1"></a><span class="in">    .groups = "drop"</span></span>
-<span id="cb25-923"><a href="#cb25-923" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
-<span id="cb25-924"><a href="#cb25-924" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;  </span></span>
-<span id="cb25-925"><a href="#cb25-925" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(across(everything(), mean, na.rm = TRUE))</span></span>
-<span id="cb25-926"><a href="#cb25-926" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-927"><a href="#cb25-927" aria-hidden="true" tabindex="-1"></a><span class="in"># Identify the most "noxious" agency (highest natural gas emissions %)</span></span>
-<span id="cb25-928"><a href="#cb25-928" aria-hidden="true" tabindex="-1"></a><span class="in">most_noxious_agency &lt;- noxious_scores |&gt;</span></span>
-<span id="cb25-929"><a href="#cb25-929" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(percent_of_total_emissions, n = 1, with_ties = FALSE) |&gt;  </span></span>
-<span id="cb25-930"><a href="#cb25-930" aria-hidden="true" tabindex="-1"></a><span class="in">  pull(ntd_id)</span></span>
-<span id="cb25-931"><a href="#cb25-931" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-932"><a href="#cb25-932" aria-hidden="true" tabindex="-1"></a>The table below presents the average distribution of emissions at small-, medium-, and large-sized agencies. </span>
-<span id="cb25-933"><a href="#cb25-933" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r avg-emissions-pie-table, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-934"><a href="#cb25-934" aria-hidden="true" tabindex="-1"></a><span class="in"># Table of percentage of total emissions by fuel Type Across Transit Agency Sizes.</span></span>
-<span id="cb25-935"><a href="#cb25-935" aria-hidden="true" tabindex="-1"></a><span class="in">mean_emissions_by_size |&gt; </span></span>
-<span id="cb25-936"><a href="#cb25-936" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_longer(-c(size, ntd_id), names_to = "fuel_type", values_to = "pct_of_emissions") |&gt;</span></span>
-<span id="cb25-937"><a href="#cb25-937" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
-<span id="cb25-938"><a href="#cb25-938" aria-hidden="true" tabindex="-1"></a><span class="in">    pct_of_emissions = round(pct_of_emissions * 100, 5),</span></span>
-<span id="cb25-939"><a href="#cb25-939" aria-hidden="true" tabindex="-1"></a><span class="in">    fuel_type = case_when(</span></span>
-<span id="cb25-940"><a href="#cb25-940" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_bd" ~ "Bio-Diesel",</span></span>
-<span id="cb25-941"><a href="#cb25-941" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_diesel" ~ "Diesel",</span></span>
-<span id="cb25-942"><a href="#cb25-942" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_ng" ~ "C Natural Gas and Liquified Natural Gas",</span></span>
-<span id="cb25-943"><a href="#cb25-943" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_gas" ~ "Gasoline",</span></span>
-<span id="cb25-944"><a href="#cb25-944" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_battery" ~ "Electric (Propulsion and Battery)",</span></span>
-<span id="cb25-945"><a href="#cb25-945" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_hydrogen" ~ "Hydrogen",</span></span>
-<span id="cb25-946"><a href="#cb25-946" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_lpg" ~ "Liquified Petroleum Gas",</span></span>
-<span id="cb25-947"><a href="#cb25-947" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ fuel_type  # Keep other names unchanged</span></span>
-<span id="cb25-948"><a href="#cb25-948" aria-hidden="true" tabindex="-1"></a><span class="in">    )) |&gt;</span></span>
-<span id="cb25-949"><a href="#cb25-949" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(fuel_type != "total_te") |&gt; </span></span>
-<span id="cb25-950"><a href="#cb25-950" aria-hidden="true" tabindex="-1"></a><span class="in">  select(-ntd_id) |&gt; </span></span>
-<span id="cb25-951"><a href="#cb25-951" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_wider(</span></span>
-<span id="cb25-952"><a href="#cb25-952" aria-hidden="true" tabindex="-1"></a><span class="in">    names_from = size,</span></span>
-<span id="cb25-953"><a href="#cb25-953" aria-hidden="true" tabindex="-1"></a><span class="in">    values_from = pct_of_emissions,</span></span>
-<span id="cb25-954"><a href="#cb25-954" aria-hidden="true" tabindex="-1"></a><span class="in">    names_prefix = "Emissions (%) - "</span></span>
-<span id="cb25-955"><a href="#cb25-955" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
-<span id="cb25-956"><a href="#cb25-956" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(`Fuel Type` = fuel_type) |&gt;</span></span>
-<span id="cb25-957"><a href="#cb25-957" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(caption = "Percentage of Total Emissions by Fuel Type Across Transit Agency Sizes.")</span></span>
-<span id="cb25-958"><a href="#cb25-958" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-959"><a href="#cb25-959" aria-hidden="true" tabindex="-1"></a>The figure below compares the average emissions distribution of medium-sized agencies to that of the medium-sized agency with the highest proportion of natural gas emissions in the data set.</span>
-<span id="cb25-960"><a href="#cb25-960" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r noxious-emissions-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
-<span id="cb25-961"><a href="#cb25-961" aria-hidden="true" tabindex="-1"></a><span class="in"># Get emissions breakdown for the most noxious agency</span></span>
-<span id="cb25-962"><a href="#cb25-962" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_emissions_pie &lt;- </span></span>
-<span id="cb25-963"><a href="#cb25-963" aria-hidden="true" tabindex="-1"></a><span class="in">  agency_modes |&gt;</span></span>
-<span id="cb25-964"><a href="#cb25-964" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(ntd_id == most_noxious_agency) |&gt;</span></span>
-<span id="cb25-965"><a href="#cb25-965" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
-<span id="cb25-966"><a href="#cb25-966" aria-hidden="true" tabindex="-1"></a><span class="in">    total_me = sum(total_emissions_of_mode, na.rm = TRUE),</span></span>
-<span id="cb25-967"><a href="#cb25-967" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_ng = (sum(cnaturalgas_emissions, na.rm = TRUE) + sum(liqnatgas_emissions, na.rm = TRUE)) / total_me,</span></span>
-<span id="cb25-968"><a href="#cb25-968" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_diesel = sum(diesel_emissions, na.rm = TRUE) / total_me,</span></span>
-<span id="cb25-969"><a href="#cb25-969" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_gas = sum(gasoline_emissions, na.rm = TRUE) / total_me,</span></span>
-<span id="cb25-970"><a href="#cb25-970" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_lpg = sum(liqpetgas_emissions, na.rm = TRUE) / total_me,</span></span>
-<span id="cb25-971"><a href="#cb25-971" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_battery = (sum(electricbattery_emissions, na.rm = TRUE) + sum(electricprop_emissions, na.rm = TRUE)) / total_me</span></span>
-<span id="cb25-972"><a href="#cb25-972" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
-<span id="cb25-973"><a href="#cb25-973" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_longer(cols = everything(), names_to = "fuel_type", values_to = "pct_of_emissions") |&gt;  </span></span>
-<span id="cb25-974"><a href="#cb25-974" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(type = "Most Noxious Agency")</span></span>
-<span id="cb25-975"><a href="#cb25-975" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-976"><a href="#cb25-976" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute the **average** agency emissions breakdown</span></span>
-<span id="cb25-977"><a href="#cb25-977" aria-hidden="true" tabindex="-1"></a><span class="in">avg_emissions_pie &lt;- </span></span>
-<span id="cb25-978"><a href="#cb25-978" aria-hidden="true" tabindex="-1"></a><span class="in">  mean_emissions_by_size |&gt; </span></span>
-<span id="cb25-979"><a href="#cb25-979" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_longer(-c(size,ntd_id), names_to = "fuel_type", values_to = "pct_of_emissions") |&gt;</span></span>
-<span id="cb25-980"><a href="#cb25-980" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(size == unique(agency_modes |&gt;</span></span>
-<span id="cb25-981"><a href="#cb25-981" aria-hidden="true" tabindex="-1"></a><span class="in">                    filter(ntd_id == most_noxious_agency) |&gt;</span></span>
-<span id="cb25-982"><a href="#cb25-982" aria-hidden="true" tabindex="-1"></a><span class="in">                    pull(size))</span></span>
-<span id="cb25-983"><a href="#cb25-983" aria-hidden="true" tabindex="-1"></a><span class="in">         ) |&gt;</span></span>
-<span id="cb25-984"><a href="#cb25-984" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(type = "Average Transit Agency")</span></span>
-<span id="cb25-985"><a href="#cb25-985" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-986"><a href="#cb25-986" aria-hidden="true" tabindex="-1"></a><span class="in"># Combine both data sets for visualization</span></span>
-<span id="cb25-987"><a href="#cb25-987" aria-hidden="true" tabindex="-1"></a><span class="in">combined_pie_data &lt;- bind_rows(avg_emissions_pie, noxious_emissions_pie) |&gt;  </span></span>
-<span id="cb25-988"><a href="#cb25-988" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(fuel_type = recode(fuel_type,</span></span>
-<span id="cb25-989"><a href="#cb25-989" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_bd" = "Bio-Diesel",</span></span>
-<span id="cb25-990"><a href="#cb25-990" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_ng" = "Natural Gas (CNG &amp; LNG)",</span></span>
-<span id="cb25-991"><a href="#cb25-991" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_diesel" = "Diesel",</span></span>
-<span id="cb25-992"><a href="#cb25-992" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_gas" = "Gasoline",</span></span>
-<span id="cb25-993"><a href="#cb25-993" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_lpg" = "Liquefied Petroleum Gas",</span></span>
-<span id="cb25-994"><a href="#cb25-994" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_battery" = "Electric (Battery &amp; Propulsion)"</span></span>
-<span id="cb25-995"><a href="#cb25-995" aria-hidden="true" tabindex="-1"></a><span class="in">  )) |&gt;</span></span>
-<span id="cb25-996"><a href="#cb25-996" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(pct_of_emissions &lt; 2)</span></span>
-<span id="cb25-997"><a href="#cb25-997" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-998"><a href="#cb25-998" aria-hidden="true" tabindex="-1"></a><span class="in"># Create pie chart</span></span>
-<span id="cb25-999"><a href="#cb25-999" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(combined_pie_data, aes(x = "", y = pct_of_emissions, fill = fuel_type)) +</span></span>
-<span id="cb25-1000"><a href="#cb25-1000" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_col(width = 1, color = "white") +</span></span>
-<span id="cb25-1001"><a href="#cb25-1001" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_polar(theta = "y") +</span></span>
-<span id="cb25-1002"><a href="#cb25-1002" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_fill_brewer(palette = "Set2") +</span></span>
-<span id="cb25-1003"><a href="#cb25-1003" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
-<span id="cb25-1004"><a href="#cb25-1004" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "", y = "", fill = "Fuel Type",</span></span>
-<span id="cb25-1005"><a href="#cb25-1005" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "Transit Agency Emissions Breakdown",</span></span>
-<span id="cb25-1006"><a href="#cb25-1006" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP).")</span></span>
-<span id="cb25-1007"><a href="#cb25-1007" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-1008"><a href="#cb25-1008" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
-<span id="cb25-1009"><a href="#cb25-1009" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
-<span id="cb25-1010"><a href="#cb25-1010" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.text.x = element_blank(),</span></span>
-<span id="cb25-1011"><a href="#cb25-1011" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.ticks = element_blank(),</span></span>
-<span id="cb25-1012"><a href="#cb25-1012" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
-<span id="cb25-1013"><a href="#cb25-1013" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
-<span id="cb25-1014"><a href="#cb25-1014" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
-<span id="cb25-1015"><a href="#cb25-1015" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~ type)</span></span>
-<span id="cb25-1016"><a href="#cb25-1016" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb25-1017"><a href="#cb25-1017" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-1018"><a href="#cb25-1018" aria-hidden="true" tabindex="-1"></a>----</span>
-<span id="cb25-1019"><a href="#cb25-1019" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb25-1020"><a href="#cb25-1020" aria-hidden="true" tabindex="-1"></a>**Disclaimer**: *This press release is a fictional piece created for educational purposes. Any quotes, statements, or references to individuals, agencies, or organizations are entirely fictional and should not be interpreted as actual endorsements or statements made by real persons or entities.*</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<span id="cb25-915"><a href="#cb25-915" aria-hidden="true" tabindex="-1"></a><span class="in">    agency = first(agency),</span></span>
+<span id="cb25-916"><a href="#cb25-916" aria-hidden="true" tabindex="-1"></a><span class="in">    state = first(state),</span></span>
+<span id="cb25-917"><a href="#cb25-917" aria-hidden="true" tabindex="-1"></a><span class="in">    city = first(city),</span></span>
+<span id="cb25-918"><a href="#cb25-918" aria-hidden="true" tabindex="-1"></a><span class="in">    total_natural_gas_of_agency = sum(cnaturalgas_emissions + liqnatgas_emissions, na.rm = TRUE),</span></span>
+<span id="cb25-919"><a href="#cb25-919" aria-hidden="true" tabindex="-1"></a><span class="in">    percent_of_total_emissions = (total_natural_gas_of_agency * 100) / first(total_emissions_of_agency),</span></span>
+<span id="cb25-920"><a href="#cb25-920" aria-hidden="true" tabindex="-1"></a><span class="in">    .groups = "drop"</span></span>
+<span id="cb25-921"><a href="#cb25-921" aria-hidden="true" tabindex="-1"></a><span class="in">  )</span></span>
+<span id="cb25-922"><a href="#cb25-922" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-923"><a href="#cb25-923" aria-hidden="true" tabindex="-1"></a><span class="in"># Find the agency with the highest % of emissions from natural gas in each size category</span></span>
+<span id="cb25-924"><a href="#cb25-924" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_winners &lt;- </span></span>
+<span id="cb25-925"><a href="#cb25-925" aria-hidden="true" tabindex="-1"></a><span class="in">  noxious_scores |&gt;</span></span>
+<span id="cb25-926"><a href="#cb25-926" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;</span></span>
+<span id="cb25-927"><a href="#cb25-927" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(percent_of_total_emissions, n = 1, with_ties = FALSE)</span></span>
+<span id="cb25-928"><a href="#cb25-928" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-929"><a href="#cb25-929" aria-hidden="true" tabindex="-1"></a><span class="in"># table of winning agencies</span></span>
+<span id="cb25-930"><a href="#cb25-930" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_winners |&gt;</span></span>
+<span id="cb25-931"><a href="#cb25-931" aria-hidden="true" tabindex="-1"></a><span class="in">  select(-total_natural_gas_of_agency,ntd_id) |&gt;</span></span>
+<span id="cb25-932"><a href="#cb25-932" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(</span></span>
+<span id="cb25-933"><a href="#cb25-933" aria-hidden="true" tabindex="-1"></a><span class="in">    `Size` = size,</span></span>
+<span id="cb25-934"><a href="#cb25-934" aria-hidden="true" tabindex="-1"></a><span class="in">    `NTD ID` = ntd_id,</span></span>
+<span id="cb25-935"><a href="#cb25-935" aria-hidden="true" tabindex="-1"></a><span class="in">    `Agency` = agency, </span></span>
+<span id="cb25-936"><a href="#cb25-936" aria-hidden="true" tabindex="-1"></a><span class="in">    `City` = city, </span></span>
+<span id="cb25-937"><a href="#cb25-937" aria-hidden="true" tabindex="-1"></a><span class="in">    `State` = state, </span></span>
+<span id="cb25-938"><a href="#cb25-938" aria-hidden="true" tabindex="-1"></a><span class="in">    `Natural Gas Emissions (%)` = percent_of_total_emissions</span></span>
+<span id="cb25-939"><a href="#cb25-939" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
+<span id="cb25-940"><a href="#cb25-940" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(digits = 5, caption = "Agencies with the Highest Natural Gas Emissions Percentage")</span></span>
+<span id="cb25-941"><a href="#cb25-941" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-942"><a href="#cb25-942" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute average emissions proportion per fuel type</span></span>
+<span id="cb25-943"><a href="#cb25-943" aria-hidden="true" tabindex="-1"></a><span class="in">mean_emissions_by_size &lt;- agency_modes |&gt;</span></span>
+<span id="cb25-944"><a href="#cb25-944" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(ntd_id, size) |&gt;  </span></span>
+<span id="cb25-945"><a href="#cb25-945" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
+<span id="cb25-946"><a href="#cb25-946" aria-hidden="true" tabindex="-1"></a><span class="in">    total_te = sum(total_emissions_of_mode, na.rm = TRUE),  </span></span>
+<span id="cb25-947"><a href="#cb25-947" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_bd = sum(biodiesel_emissions, na.rm = TRUE) / total_te,</span></span>
+<span id="cb25-948"><a href="#cb25-948" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_ng = (sum(cnaturalgas_emissions, na.rm = TRUE) + sum(liqnatgas_emissions, na.rm = TRUE)) / total_te,</span></span>
+<span id="cb25-949"><a href="#cb25-949" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_diesel = sum(diesel_emissions, na.rm = TRUE) / total_te,</span></span>
+<span id="cb25-950"><a href="#cb25-950" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_gas = sum(gasoline_emissions, na.rm = TRUE) / total_te,</span></span>
+<span id="cb25-951"><a href="#cb25-951" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_lpg = sum(liqpetgas_emissions, na.rm = TRUE) / total_te,</span></span>
+<span id="cb25-952"><a href="#cb25-952" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_battery = (sum(electricbattery_emissions, na.rm = TRUE) + sum(electricprop_emissions, na.rm = TRUE)) / total_te,</span></span>
+<span id="cb25-953"><a href="#cb25-953" aria-hidden="true" tabindex="-1"></a><span class="in">    .groups = "drop"</span></span>
+<span id="cb25-954"><a href="#cb25-954" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
+<span id="cb25-955"><a href="#cb25-955" aria-hidden="true" tabindex="-1"></a><span class="in">  group_by(size) |&gt;  </span></span>
+<span id="cb25-956"><a href="#cb25-956" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(across(everything(), mean, na.rm = TRUE))</span></span>
+<span id="cb25-957"><a href="#cb25-957" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-958"><a href="#cb25-958" aria-hidden="true" tabindex="-1"></a><span class="in"># Identify the most "noxious" agency (highest natural gas emissions %)</span></span>
+<span id="cb25-959"><a href="#cb25-959" aria-hidden="true" tabindex="-1"></a><span class="in">most_noxious_agency &lt;- noxious_scores |&gt;</span></span>
+<span id="cb25-960"><a href="#cb25-960" aria-hidden="true" tabindex="-1"></a><span class="in">  slice_max(percent_of_total_emissions, n = 1, with_ties = FALSE) |&gt;  </span></span>
+<span id="cb25-961"><a href="#cb25-961" aria-hidden="true" tabindex="-1"></a><span class="in">  pull(ntd_id)</span></span>
+<span id="cb25-962"><a href="#cb25-962" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-963"><a href="#cb25-963" aria-hidden="true" tabindex="-1"></a>The table below presents the average distribution of emissions at small-, medium-, and large-sized agencies. </span>
+<span id="cb25-964"><a href="#cb25-964" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r avg-emissions-pie-table, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-965"><a href="#cb25-965" aria-hidden="true" tabindex="-1"></a><span class="in"># Table of percentage of total emissions by fuel Type Across Transit Agency Sizes.</span></span>
+<span id="cb25-966"><a href="#cb25-966" aria-hidden="true" tabindex="-1"></a><span class="in">mean_emissions_by_size |&gt; </span></span>
+<span id="cb25-967"><a href="#cb25-967" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_longer(-c(size, ntd_id), names_to = "fuel_type", values_to = "pct_of_emissions") |&gt;</span></span>
+<span id="cb25-968"><a href="#cb25-968" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(</span></span>
+<span id="cb25-969"><a href="#cb25-969" aria-hidden="true" tabindex="-1"></a><span class="in">    pct_of_emissions = round(pct_of_emissions * 100, 5),</span></span>
+<span id="cb25-970"><a href="#cb25-970" aria-hidden="true" tabindex="-1"></a><span class="in">    fuel_type = case_when(</span></span>
+<span id="cb25-971"><a href="#cb25-971" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_bd" ~ "Bio-Diesel",</span></span>
+<span id="cb25-972"><a href="#cb25-972" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_diesel" ~ "Diesel",</span></span>
+<span id="cb25-973"><a href="#cb25-973" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_ng" ~ "C Natural Gas and Liquified Natural Gas",</span></span>
+<span id="cb25-974"><a href="#cb25-974" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_gas" ~ "Gasoline",</span></span>
+<span id="cb25-975"><a href="#cb25-975" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_battery" ~ "Electric (Propulsion and Battery)",</span></span>
+<span id="cb25-976"><a href="#cb25-976" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_hydrogen" ~ "Hydrogen",</span></span>
+<span id="cb25-977"><a href="#cb25-977" aria-hidden="true" tabindex="-1"></a><span class="in">      fuel_type == "mean_lpg" ~ "Liquified Petroleum Gas",</span></span>
+<span id="cb25-978"><a href="#cb25-978" aria-hidden="true" tabindex="-1"></a><span class="in">      TRUE ~ fuel_type  # Keep other names unchanged</span></span>
+<span id="cb25-979"><a href="#cb25-979" aria-hidden="true" tabindex="-1"></a><span class="in">    )) |&gt;</span></span>
+<span id="cb25-980"><a href="#cb25-980" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(fuel_type != "total_te") |&gt; </span></span>
+<span id="cb25-981"><a href="#cb25-981" aria-hidden="true" tabindex="-1"></a><span class="in">  select(-ntd_id) |&gt; </span></span>
+<span id="cb25-982"><a href="#cb25-982" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_wider(</span></span>
+<span id="cb25-983"><a href="#cb25-983" aria-hidden="true" tabindex="-1"></a><span class="in">    names_from = size,</span></span>
+<span id="cb25-984"><a href="#cb25-984" aria-hidden="true" tabindex="-1"></a><span class="in">    values_from = pct_of_emissions,</span></span>
+<span id="cb25-985"><a href="#cb25-985" aria-hidden="true" tabindex="-1"></a><span class="in">    names_prefix = "Emissions (%) - "</span></span>
+<span id="cb25-986"><a href="#cb25-986" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt; </span></span>
+<span id="cb25-987"><a href="#cb25-987" aria-hidden="true" tabindex="-1"></a><span class="in">  rename(`Fuel Type` = fuel_type) |&gt;</span></span>
+<span id="cb25-988"><a href="#cb25-988" aria-hidden="true" tabindex="-1"></a><span class="in">  kable(caption = "Percentage of Total Emissions by Fuel Type Across Transit Agency Sizes.")</span></span>
+<span id="cb25-989"><a href="#cb25-989" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-990"><a href="#cb25-990" aria-hidden="true" tabindex="-1"></a>The figure below compares the average emissions distribution of medium-sized agencies to that of the medium-sized agency with the highest proportion of natural gas emissions in the data set.</span>
+<span id="cb25-991"><a href="#cb25-991" aria-hidden="true" tabindex="-1"></a><span class="in">``` {r noxious-emissions-plot, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}</span></span>
+<span id="cb25-992"><a href="#cb25-992" aria-hidden="true" tabindex="-1"></a><span class="in"># Get emissions breakdown for the most noxious agency</span></span>
+<span id="cb25-993"><a href="#cb25-993" aria-hidden="true" tabindex="-1"></a><span class="in">noxious_emissions_pie &lt;- </span></span>
+<span id="cb25-994"><a href="#cb25-994" aria-hidden="true" tabindex="-1"></a><span class="in">  agency_modes |&gt;</span></span>
+<span id="cb25-995"><a href="#cb25-995" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(ntd_id == most_noxious_agency) |&gt;</span></span>
+<span id="cb25-996"><a href="#cb25-996" aria-hidden="true" tabindex="-1"></a><span class="in">  summarise(</span></span>
+<span id="cb25-997"><a href="#cb25-997" aria-hidden="true" tabindex="-1"></a><span class="in">    total_me = sum(total_emissions_of_mode, na.rm = TRUE),</span></span>
+<span id="cb25-998"><a href="#cb25-998" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_ng = (sum(cnaturalgas_emissions, na.rm = TRUE) + sum(liqnatgas_emissions, na.rm = TRUE)) / total_me,</span></span>
+<span id="cb25-999"><a href="#cb25-999" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_diesel = sum(diesel_emissions, na.rm = TRUE) / total_me,</span></span>
+<span id="cb25-1000"><a href="#cb25-1000" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_gas = sum(gasoline_emissions, na.rm = TRUE) / total_me,</span></span>
+<span id="cb25-1001"><a href="#cb25-1001" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_lpg = sum(liqpetgas_emissions, na.rm = TRUE) / total_me,</span></span>
+<span id="cb25-1002"><a href="#cb25-1002" aria-hidden="true" tabindex="-1"></a><span class="in">    mean_battery = (sum(electricbattery_emissions, na.rm = TRUE) + sum(electricprop_emissions, na.rm = TRUE)) / total_me</span></span>
+<span id="cb25-1003"><a href="#cb25-1003" aria-hidden="true" tabindex="-1"></a><span class="in">  ) |&gt;  </span></span>
+<span id="cb25-1004"><a href="#cb25-1004" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_longer(cols = everything(), names_to = "fuel_type", values_to = "pct_of_emissions") |&gt;  </span></span>
+<span id="cb25-1005"><a href="#cb25-1005" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(type = "Most Noxious Agency")</span></span>
+<span id="cb25-1006"><a href="#cb25-1006" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-1007"><a href="#cb25-1007" aria-hidden="true" tabindex="-1"></a><span class="in"># Compute the **average** agency emissions breakdown</span></span>
+<span id="cb25-1008"><a href="#cb25-1008" aria-hidden="true" tabindex="-1"></a><span class="in">avg_emissions_pie &lt;- </span></span>
+<span id="cb25-1009"><a href="#cb25-1009" aria-hidden="true" tabindex="-1"></a><span class="in">  mean_emissions_by_size |&gt; </span></span>
+<span id="cb25-1010"><a href="#cb25-1010" aria-hidden="true" tabindex="-1"></a><span class="in">  pivot_longer(-c(size,ntd_id), names_to = "fuel_type", values_to = "pct_of_emissions") |&gt;</span></span>
+<span id="cb25-1011"><a href="#cb25-1011" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(size == unique(agency_modes |&gt;</span></span>
+<span id="cb25-1012"><a href="#cb25-1012" aria-hidden="true" tabindex="-1"></a><span class="in">                    filter(ntd_id == most_noxious_agency) |&gt;</span></span>
+<span id="cb25-1013"><a href="#cb25-1013" aria-hidden="true" tabindex="-1"></a><span class="in">                    pull(size))</span></span>
+<span id="cb25-1014"><a href="#cb25-1014" aria-hidden="true" tabindex="-1"></a><span class="in">         ) |&gt;</span></span>
+<span id="cb25-1015"><a href="#cb25-1015" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(type = "Average Transit Agency")</span></span>
+<span id="cb25-1016"><a href="#cb25-1016" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-1017"><a href="#cb25-1017" aria-hidden="true" tabindex="-1"></a><span class="in"># Combine both data sets for visualization</span></span>
+<span id="cb25-1018"><a href="#cb25-1018" aria-hidden="true" tabindex="-1"></a><span class="in">combined_pie_data &lt;- bind_rows(avg_emissions_pie, noxious_emissions_pie) |&gt;  </span></span>
+<span id="cb25-1019"><a href="#cb25-1019" aria-hidden="true" tabindex="-1"></a><span class="in">  mutate(fuel_type = recode(fuel_type,</span></span>
+<span id="cb25-1020"><a href="#cb25-1020" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_bd" = "Bio-Diesel",</span></span>
+<span id="cb25-1021"><a href="#cb25-1021" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_ng" = "Natural Gas (CNG &amp; LNG)",</span></span>
+<span id="cb25-1022"><a href="#cb25-1022" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_diesel" = "Diesel",</span></span>
+<span id="cb25-1023"><a href="#cb25-1023" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_gas" = "Gasoline",</span></span>
+<span id="cb25-1024"><a href="#cb25-1024" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_lpg" = "Liquefied Petroleum Gas",</span></span>
+<span id="cb25-1025"><a href="#cb25-1025" aria-hidden="true" tabindex="-1"></a><span class="in">                            "mean_battery" = "Electric (Battery &amp; Propulsion)"</span></span>
+<span id="cb25-1026"><a href="#cb25-1026" aria-hidden="true" tabindex="-1"></a><span class="in">  )) |&gt;</span></span>
+<span id="cb25-1027"><a href="#cb25-1027" aria-hidden="true" tabindex="-1"></a><span class="in">  filter(pct_of_emissions &lt; 2)</span></span>
+<span id="cb25-1028"><a href="#cb25-1028" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-1029"><a href="#cb25-1029" aria-hidden="true" tabindex="-1"></a><span class="in"># Create pie chart</span></span>
+<span id="cb25-1030"><a href="#cb25-1030" aria-hidden="true" tabindex="-1"></a><span class="in">ggplot(combined_pie_data, aes(x = "", y = pct_of_emissions, fill = fuel_type)) +</span></span>
+<span id="cb25-1031"><a href="#cb25-1031" aria-hidden="true" tabindex="-1"></a><span class="in">  geom_col(width = 1, color = "white") +</span></span>
+<span id="cb25-1032"><a href="#cb25-1032" aria-hidden="true" tabindex="-1"></a><span class="in">  coord_polar(theta = "y") +</span></span>
+<span id="cb25-1033"><a href="#cb25-1033" aria-hidden="true" tabindex="-1"></a><span class="in">  scale_fill_brewer(palette = "Set2") +</span></span>
+<span id="cb25-1034"><a href="#cb25-1034" aria-hidden="true" tabindex="-1"></a><span class="in">  labs(</span></span>
+<span id="cb25-1035"><a href="#cb25-1035" aria-hidden="true" tabindex="-1"></a><span class="in">    x = "", y = "", fill = "Fuel Type",</span></span>
+<span id="cb25-1036"><a href="#cb25-1036" aria-hidden="true" tabindex="-1"></a><span class="in">    title = "Transit Agency Emissions Breakdown",</span></span>
+<span id="cb25-1037"><a href="#cb25-1037" aria-hidden="true" tabindex="-1"></a><span class="in">    caption = str_wrap("Data sources: National Transit Database (NTD) Service and Energy Use datasets, and the U.S. Energy Information Administration (EIA) State Energy Profiles (SEP).")</span></span>
+<span id="cb25-1038"><a href="#cb25-1038" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-1039"><a href="#cb25-1039" aria-hidden="true" tabindex="-1"></a><span class="in">  theme_minimal() +</span></span>
+<span id="cb25-1040"><a href="#cb25-1040" aria-hidden="true" tabindex="-1"></a><span class="in">  theme(</span></span>
+<span id="cb25-1041"><a href="#cb25-1041" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.text.x = element_blank(),</span></span>
+<span id="cb25-1042"><a href="#cb25-1042" aria-hidden="true" tabindex="-1"></a><span class="in">    axis.ticks = element_blank(),</span></span>
+<span id="cb25-1043"><a href="#cb25-1043" aria-hidden="true" tabindex="-1"></a><span class="in">    panel.grid = element_blank(),</span></span>
+<span id="cb25-1044"><a href="#cb25-1044" aria-hidden="true" tabindex="-1"></a><span class="in">    legend.position = "bottom"</span></span>
+<span id="cb25-1045"><a href="#cb25-1045" aria-hidden="true" tabindex="-1"></a><span class="in">  ) +</span></span>
+<span id="cb25-1046"><a href="#cb25-1046" aria-hidden="true" tabindex="-1"></a><span class="in">  facet_wrap(~ type)</span></span>
+<span id="cb25-1047"><a href="#cb25-1047" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb25-1048"><a href="#cb25-1048" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-1049"><a href="#cb25-1049" aria-hidden="true" tabindex="-1"></a>----</span>
+<span id="cb25-1050"><a href="#cb25-1050" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb25-1051"><a href="#cb25-1051" aria-hidden="true" tabindex="-1"></a>**Disclaimer**: *This press release is a fictional piece created for educational purposes. Any quotes, statements, or references to individuals, agencies, or organizations are entirely fictional and should not be interpreted as actual endorsements or statements made by real persons or entities.*</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

@@ -582,7 +582,38 @@ agency_modes <-
     )
     ) |>
   ungroup()
-
+```
+The table below presents the agency with the lowest emissions per capita. 
+``` {r}
+# agency with lowest emissions per capita.
+agency_modes |>
+  select(ntd_id, agency, city, state, agency_emissions_per_capita) |>
+  mutate(agency_emissions_per_capita = round(agency_emissions_per_capita, 5)) |>
+  slice_min(order_by = agency_emissions_per_capita, n = 1, with_ties = FALSE) |>
+  rename(
+    "NTD ID" = ntd_id,
+    "Agency Name" = agency,
+    "City" = city,
+    "State" = state,
+    "Agency Emissions Per Capita" = agency_emissions_per_capita
+  ) |>
+  kable()
+```
+The table below presents the agency with the lowest emissions per transit mile. 
+``` {r}
+# agency with lowest emissions per capita.
+agency_modes |>
+  select(ntd_id, agency, city, state, emissions_per_transit) |>
+  mutate(emissions_per_transit = round(emissions_per_transit, 5)) |>
+  slice_min(order_by = emissions_per_transit, n = 1, with_ties = FALSE) |>
+  rename(
+    "NTD ID" = ntd_id,
+    "Agency Name" = agency,
+    "City" = city,
+    "State" = state,
+    "Agency Emissions Per Mile" = emissions_per_transit
+  ) |>
+  kable()
 ```
 
 ## Calculation Methodologies
