@@ -21,6 +21,8 @@ website:
         href: mp01.html
       - text: GTA IV 2025 Greenies
         href: mp02.html
+      - text: The Ultimate Playlist
+        href: mp03.html
     
 format:
   html:

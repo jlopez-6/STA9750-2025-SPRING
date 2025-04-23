@@ -16,6 +16,11 @@ execute:
 bibliography: mp03_ref.bib
 csl: apa.csl
 ---
+
+![Playlist cover art[^1].]("docs/playlist_cover.jpeg")
+
+[^1]: This image was generated with Google Gemini [@google-gemini].
+
 ``` {r the_bare_necessities, echo=FALSE, eval=TRUE}
 library(tidyverse)
 library(ggplot2)
@@ -320,10 +325,30 @@ for (slot in available_slots) {
 playlist <- playlist |> mutate(position = row_number())
 
 # Reshape for plotting
-playlist_long <- playlist |> pivot_longer(cols = all_of(metrics), names_to = "metric", values_to = "value")
+playlist_long <- playlist |>
+  pivot_longer(cols = all_of(metrics), names_to = "Metric", values_to = "value") |>
+  mutate(Metric = str_to_title(Metric))
 ```
+# Nomination
 
-# Playlist Contents
+I hereby nominate this playlist for the Internet’s Best Playlist award. Valence Synth Wave was intentionally crafted to optimize an emotional flow by ordering the songs so that their valence (a measure of musical positivity) follows a cosine wave--rising and falling in a deliberate rhythm. This approach was algorithmically driven to create an emotional arc that feels both natural and dynamic.
+
+The figure below visualizes how various song characteristics evolve across the playlist. There is a clear fluctuation accross the different characteristics--guaranteeing an emotionally diverse listening experience.
+```{r eval=TRUE}
+# Plot how each metric changes across the playlist
+ggplot(playlist_long, aes(x = position, y = value, group = Metric, color = Metric)) +
+  geom_line(size = 1) +
+  geom_point() +
+  facet_wrap(~Metric, scales = "free_y") +
+  scale_x_continuous(breaks = seq(0, 12, by = 1)) +  # <--- this line controls the x-axis ticks
+  labs(
+    title = "Evolution of Song Metrics Across Playlist",
+    x = "Playlist Order", y = "Metric Value"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+## Tracklist
 
 ``` {r playlist-table, eval=TRUE}
 # Display final playlist table
@@ -341,9 +366,9 @@ playlist |>
 
 ## Description
 
-This playlist is a nod to the range of sentimentality that only the 80s could deliver—a time when synthesizers carried both dreams and dread. The opening song, "Forever Young" by Alphaville, sets a somber mood, with lead singer Marian Gold reflecting on the looming threat of nuclear annihilation haunting his generation, “Hoping for the best, but expecting the worst / Are you gonna drop the bomb or not?” This existential dread gives way to something more personal in a-ha's "The Blue Sky," where we find ourselves at a coffee shop mourning a lost love. A sensitive and forlorn Morten Harket laments, "It doesn't seem like this / Blue sky's here for me."
+This playlist is a nod to the range of sentimentality that only the 80s could deliver—a time when synthesizers carried both dreams and dread. The opening song, "Forever Young" by Alphaville, sets a somber mood, with lead singer Marian Gold reflecting on the looming threat of nuclear annihilation haunting his generation, *“Hoping for the best, but expecting the worst / Are you gonna drop the bomb or not?”* This existential dread gives way to something more personal in a-ha's "The Blue Sky," where we find ourselves at a coffee shop mourning a lost love. A sensitive and forlorn Morten Harket laments, *"It doesn't seem like this / Blue sky's here for me."*
 
-We pivot into something more energetic with "Whip It" by DEVO, a nonsensical but peppy call to arms for personal empowerment. "Love Plus One" by Haircut 100 delves deeper into playful absurdity, hinting at the sun-soaked tropics with bongos and xylophone-like percussion. This is followed by John Mellencamp’s "Lonely Ol’ Night," a gritty rock ballad about seeking fleeting comfort in the face of isolation. "It's a lonely ol' night / Can I put my arms around you?" Mellencamp pleads. Meanwhile, INXS’s "What You Need" snaps us out of the melancholy with swagger and urgency—driven by a thumping bassline and slashes of saxophone, like a confident friend grabbing your hand and pulling you back onto the dance floor.
+We pivot into something more energetic with "Whip It" by DEVO, a nonsensical but peppy call to arms for personal empowerment. "Love Plus One" by Haircut 100 delves deeper into playful absurdity, hinting at the sun-soaked tropics with bongos and xylophone-like percussion. This is followed by John Mellencamp’s "Lonely Ol’ Night," a gritty rock ballad about seeking fleeting comfort in the face of isolation. *"It's a lonely ol' night / Can I put my arms around you?"* Mellencamp pleads. Meanwhile, INXS’s "What You Need" snaps us out of the melancholy with swagger and urgency—driven by a thumping bassline and slashes of saxophone, like a confident friend grabbing your hand and pulling you back onto the dance floor.
 
 The mood darkens with George Thorogood & The Destroyers' "I Drink Alone"—an edgy, blues-soaked anthem of solitude that doubles as a cry for help. Thorogood delivers each line with such boozy conviction, you can practically smell the whiskey on his breath. George Strait’s "I Need Someone Like Me" shifts that loneliness to a country register.
 
@@ -352,24 +377,6 @@ The mood darkens with George Thorogood & The Destroyers' "I Drink Alone"—an ed
 Click play to start an emotionally engineered ride through the 1980s!
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?si=Cp3x_n4KvIDKwNQv&amp;list=PLhqZr66B_GQ5XB6rDFYx6AyFXQHtce5kC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-## Internet's Best Playlist
-
-I nominate this playlist for the internet’s best playlist because I put a lot of thought into its design. I intentionally crafted the emotional flow by ordering the songs so that their valence (a measure of musical positivity) follows a cosine wave--rising and falling in a deliberate rhythm. This approach was algorithmically driven to create an emotional arc that feels both natural and dynamic.
-
-The figure below visualizes how various song characteristics evolve across the playlist.
-```{r eval=TRUE}
-# Plot how each metric changes across the playlist
-ggplot(playlist_long, aes(x = position, y = value, group = metric, color = metric)) +
-  geom_line(size = 1) +
-  geom_point() +
-  facet_wrap(~metric, scales = "free_y") +
-  labs(
-    title = "Evolution of Song Metrics Across Playlist",
-    x = "Playlist Order", y = "Metric Value"
-  ) +
-  theme_minimal()
-```
 
 # Appendix
 
@@ -807,13 +814,14 @@ if (exists(SPOTIFY_MILLIONS) & exists(songs)){
 }
 ```
 ## Analysis
-A brief analysis of the playlist data set is included below. The figure below presents the relationship between that characteristic popularity and playlist appearances.
+
+A brief analysis of the playlist data set is included below. To explore whether more popular songs tend to appear in more playlists, a linear regression was performed using popularity as the predictor and the log-transformed count of playlist appearances as the outcome. The figure below illustrates this relationship. The model shows a fairly strong positive association, with a regression equation of $y = -1.25 + 0.10x$, a correlation of $r = 0.77$, and a coefficient of determination $R^2 = 0.59$. This suggests that popularity is a reasonably good predictor of how often a song shows up in playlists.
 ``` {r echo=TRUE, eval=TRUE}
 # Is the popularity column correlated with the number of playlist appearances? If so, to what degree?
 # Prep the data
 data <- spotify_millions_songs |>
-  distinct(track_id, .keep_all = TRUE) |>
   add_count(track_id, name = "playlist_appearances") |>
+  distinct(track_id, .keep_all = TRUE) |>
   mutate(log_appearances = log1p(playlist_appearances))
 
 # Fit the model
@@ -827,7 +835,7 @@ correlation <- cor(data$popularity, data$log_appearances, use = "complete.obs")
 # Build the equation text
 eq_text <- paste0(
   "y = ", round(model_eq$estimate[1], 2), " + ",
-  round(model_eq$estimate[2], 2), "x\n",
+  round(model_eq$estimate[2], 3), "x\n",
   "r = ", round(correlation, 2), 
   " | R² = ", round(r_squared, 2)
 )
@@ -835,6 +843,7 @@ eq_text <- paste0(
 # Plot
 ggplot(data, aes(x = popularity, y = log_appearances)) +
   geom_jitter(alpha = 0.1, width = 0.3, height = 0.1, color = MINTY) +
+  geom_point(alpha = 0.1, width = 0.3, height = 0.1, color = MINTY) +
   geom_smooth(method = "lm", se = FALSE, color = "black") +
   annotate("text", x = 12.75, y = -1,
            label = eq_text, hjust = 0, size = 4, fontface = "italic") +
@@ -847,7 +856,7 @@ ggplot(data, aes(x = popularity, y = log_appearances)) +
   theme_minimal()
 ```
 
-Median track popularity by year is presented in the figure below. Notably, 2017 stands out as the year with the highest median song popularity.
+Median track popularity by year is presented in the figure below. The general trend is that track popularity is higher with release year. Notably, 2017 stands out as the year with the highest median song popularity.
 ``` {r echo=TRUE, eval=TRUE}
 # In what year were the most popular songs released?
 spotify_millions_songs |>
@@ -1036,7 +1045,7 @@ ggplot(data, aes(x = popularity, y = danceability)) +
   ) +
   theme_minimal()
 ```
-To understand which songs are most frequently chosen to open a playlist, I examined tracks appearing in the first position across playlists. The bar chart below displays the top 5 most common opening songs, revealing listener and curator preferences for kickstarting a playlist. Unsurprisingly, many of these tracks are high-energy or popular designed to grab attention from the very start.
+To understand which songs are most frequently chosen to open a playlist, I examined tracks appearing in the first position across playlists. The bar chart below displays the top 5 most common opening songs, revealing listener and curator preferences for kickstarting a playlist. Not surprisingly, many of these opening tracks are high-energy or popular.
 ```{r echo=TRUE, eval=TRUE}
 # What are the top 5 most common opening playlist songs?
 spotify_millions_songs |>
@@ -1083,7 +1092,7 @@ To determine compatibility with the anchor songs, I applied the following heuris
 
 1.  Co-occurrence: Songs that frequently appear on playlists alongside the anchor songs.
 
-2.  Musical similarity: Songs in the same key and with a tempo within $\pm$5 BPM of the anchor.
+2.  Musical similarity: Songs in the same key and with a tempo within $\pm5$ BPM of the anchor.
 
 3.  Artist match: Songs by the same artist(s) as the anchor tracks.
 
