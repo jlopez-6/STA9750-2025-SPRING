@@ -17,7 +17,7 @@ bibliography: mp03_ref.bib
 csl: apa.csl
 ---
 
-![Playlist cover art[^1].]("playlist_cover.jpeg")
+![Playlist cover art[^1].](playlist_cover.jpeg)
 
 [^1]: This image was generated with Google Gemini [@google-gemini].
 
@@ -331,9 +331,9 @@ playlist_long <- playlist |>
 ```
 # Nomination
 
-I hereby nominate this playlist for the Internet’s Best Playlist award. Valence Synth Wave was intentionally crafted to optimize an emotional flow by ordering the songs so that their valence (a measure of musical positivity) follows a cosine wave--rising and falling in a deliberate rhythm. This approach was algorithmically driven to create an emotional arc that feels both natural and dynamic.
+I hereby nominate this playlist for the Internet’s Best Playlist award. Valence Synth Wave was intentionally crafted to optimize an emotional build-up and release by ordering the songs so that their valence (a measure of musical positivity) follows a cosine wave. This approach was algorithmically driven to create an emotional arc that feels both natural and dynamic.
 
-The figure below visualizes how various song characteristics evolve across the playlist. There is a clear fluctuation accross the different characteristics--guaranteeing an emotionally diverse listening experience.
+The figure below visualizes how various song characteristics evolve across the playlist. There is a clear fluctuation across the different characteristics--guaranteeing an emotionally diverse listening experience.
 ```{r eval=TRUE}
 # Plot how each metric changes across the playlist
 ggplot(playlist_long, aes(x = position, y = value, group = Metric, color = Metric)) +
@@ -368,7 +368,7 @@ playlist |>
 
 This playlist is a nod to the range of sentimentality that only the 80s could deliver—a time when synthesizers carried both dreams and dread. The opening song, "Forever Young" by Alphaville, sets a somber mood, with lead singer Marian Gold reflecting on the looming threat of nuclear annihilation haunting his generation, *“Hoping for the best, but expecting the worst / Are you gonna drop the bomb or not?”* This existential dread gives way to something more personal in a-ha's "The Blue Sky," where we find ourselves at a coffee shop mourning a lost love. A sensitive and forlorn Morten Harket laments, *"It doesn't seem like this / Blue sky's here for me."*
 
-We pivot into something more energetic with "Whip It" by DEVO, a nonsensical but peppy call to arms for personal empowerment. "Love Plus One" by Haircut 100 delves deeper into playful absurdity, hinting at the sun-soaked tropics with bongos and xylophone-like percussion. This is followed by John Mellencamp’s "Lonely Ol’ Night," a gritty rock ballad about seeking fleeting comfort in the face of isolation. *"It's a lonely ol' night / Can I put my arms around you?"* Mellencamp pleads. Meanwhile, INXS’s "What You Need" snaps us out of the melancholy with swagger and urgency—driven by a thumping bassline and slashes of saxophone, like a confident friend grabbing your hand and pulling you back onto the dance floor.
+We pivot into something more energetic with "Whip It" by DEVO, a nonsensical but peppy call to arms for personal empowerment. "Love Plus One" by Haircut 100 delves deeper into playful absurdity, hinting at the sun-soaked tropics with bongos and xylophone-like percussion. This is followed by John Mellencamp’s "Lonely Ol’ Night," a gritty rock ballad about seeking fleeting comfort in the face of isolation. *"It's a lonely ol' night / Can I put my arms around you?"* Mellencamp pleads. Meanwhile, INXS’s "What You Need" snaps us out of the melancholy with swagger and urgency—driven by a thumping bass-line and slashes of saxophone, like a confident friend grabbing your hand and pulling you back onto the dance floor.
 
 The mood darkens with George Thorogood & The Destroyers' "I Drink Alone"—an edgy, blues-soaked anthem of solitude that doubles as a cry for help. Thorogood delivers each line with such boozy conviction, you can practically smell the whiskey on his breath. George Strait’s "I Need Someone Like Me" shifts that loneliness to a country register.
 
@@ -380,9 +380,11 @@ Click play to start an emotionally engineered ride through the 1980s!
 
 # Appendix
 
-This data analysis was performed using R, leveraging packages including dplyr, ggplot2, readr, stringr, forcats, DT, and knitr [@R-core; @dplyr; @ggplot2; @readr; @stringr; @lubridate2023; @forcats2023; @DT; @knitr].
+This data analysis was performed using R, leveraging packages including dplyr, ggplot2, readr, stringr, forcats, DT, and knitr [@R-core; @dplyr; @ggplot2; @readr; @stringr; @forcats2023; @DT; @knitr].
 
-## Song Characteristics Dataset
+## Data Import
+
+### Song Characteristics Dataset
 
 The song characteristics data set was downloaded from [this URL](https://raw.githubusercontent.com/gabminamedez/spotify-data/refs/heads/master/data.csv), using the code below:
 
@@ -448,7 +450,7 @@ songs <-
   select(-artists)
 ```
 
-## Playlists Dataset
+### Playlists Dataset
 The playlists data set was downloaded from [this URL](https://raw.githubusercontent.com/DevinOgrady/spotify_million_playlist_dataset/main/data1/), using the code outlined below:
 ``` {r echo=TRUE}
 #' Load Spotify playlist data
@@ -966,7 +968,7 @@ ggplot(data, aes(x = key_label, y = key_frequency, fill = key_label)) +
   )
 
 ```
-As can be seen in the figure below, there does not appear to be a preference for any length of tracks, with all three categories appearing equally as frequently. Size categories are defined by tercile values. Here, a short song is less than 199.08 ($33^{\text{rd}}$ percentile) seconds long. A medium song is between 199.08 seconds and 253.4 seconds ($66^{\text{th}}$ percentile). Long songs are over 253.4 seconds long. 
+As shown in the figure below, there does not appear to be a strong preference for any particular track length, with short, medium, and long songs appearing at roughly equal frequencies. Length categories are defined by terciles: short songs are under 199.08 seconds ($33^{rd}$ percentile), medium songs fall between 199.08 and 253.4 seconds ($33^{rd}$–$66^{th}$ percentile), and long songs exceed 253.4 seconds.
 ``` {r echo=TRUE, eval=TRUE}
 # What are the most popular track lengths? (Are short tracks, long tracks, or something in between most commonly included in user playlists?)
 
@@ -1045,7 +1047,7 @@ ggplot(data, aes(x = popularity, y = danceability)) +
   ) +
   theme_minimal()
 ```
-To understand which songs are most frequently chosen to open a playlist, I examined tracks appearing in the first position across playlists. The bar chart below displays the top 5 most common opening songs, revealing listener and curator preferences for kickstarting a playlist. Not surprisingly, many of these opening tracks are high-energy or popular.
+To understand which songs are most frequently chosen to open a playlist, I examined tracks appearing in the first position across playlists. The bar chart below displays the top 5 most common opening songs, revealing listener and curator preferences for kick-starting a playlist. Not surprisingly, many of these opening tracks are high-energy or popular.
 ```{r echo=TRUE, eval=TRUE}
 # What are the top 5 most common opening playlist songs?
 spotify_millions_songs |>
