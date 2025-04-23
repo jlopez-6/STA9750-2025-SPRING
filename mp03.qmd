@@ -17,7 +17,7 @@ bibliography: mp03_ref.bib
 csl: apa.csl
 ---
 
-![Playlist cover art[^1].]("docs/playlist_cover.jpeg")
+![Playlist cover art[^1].]("playlist_cover.jpeg")
 
 [^1]: This image was generated with Google Gemini [@google-gemini].
 
