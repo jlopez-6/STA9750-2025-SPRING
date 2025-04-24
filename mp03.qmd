@@ -1302,7 +1302,7 @@ combined_heuristics |>
   datatable(
     caption = htmltools::tags$caption(
       style = 'caption-side: top; text-align: left;',
-      'Table: ', htmltools::em('Songs Matching At Least 4 Compatibility Heuristics')
+      'Table: ', htmltools::em('Songs Matching At Least 2 Compatibility Heuristics')
     ),
     options = list(
       pageLength = 25,
