@@ -15,7 +15,7 @@ website:
     background: primary
     search: false
     left:
-      - text: About Me
+      - text: Home
         href: index.html
       - text: CATS Payroll Report
         href: mp01.html
@@ -23,6 +23,8 @@ website:
         href: mp02.html
       - text: The Ultimate Playlist
         href: mp03.html
+      - text: About Me
+        href: about.html
     
 format:
   html:
