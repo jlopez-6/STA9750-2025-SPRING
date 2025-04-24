@@ -649,7 +649,7 @@ num_distinct |>
   kable(caption = "Table 1: Count of Distinct Tracks and Artists in the Playlist Dataset")
 ```
 Next, I identify the 5 most popular tracks in the playlist data.
-``` {r most-popular-tracks}
+``` {r most-popular-tracks, echo=TRUE, eval=TRUE}
 # What are the 5 most popular tracks in the playlist data?
 fname <- "data/mp03/most_pop_tracks.csv"
 if (!file.exists(fname)){
@@ -680,7 +680,7 @@ most_pop_tracks |>
   kable(caption = "Table 2: Top 5 Most Popular Tracks in the Playlist Data")
 ```
 Subsequently, I determine the most popular track in the playlist data that does not have a corresponding entry in the song characteristics data set. 
-``` {r most-popular-no-char}
+``` {r most-popular-no-char, echo=TRUE, eval=TRUE}
 # What is the most popular track in the playlist data that does not have a corresponding entry in the 
 # song characteristics data?
 
@@ -713,7 +713,7 @@ most_pop_not_songs |>
 Song Characteristics Data")
 ```
 I now look at the most danceable track in the playlist data, and count the number of times it appears in a playlist.
-``` {r most-danceable}
+``` {r most-danceable, echo=TRUE, eval=TRUE}
 # According to the song characteristics data, what is the most “danceable” track?
 # How often does it appear in a playlist?
 
@@ -750,7 +750,7 @@ most_danceable |>
   kable(caption = "Table 4: Most Danceable Song and Its Playlist Appearances")
 ```
 Then, I locate the playlist with the longest average track length. 
-``` {r longest-avg-track-length}
+``` {r longest-avg-track-length, echo=TRUE, eval=TRUE}
 # Which playlist has the longest average track length?
 fname <- "data/mp03/longest_avg_track_length.csv"
 
@@ -783,7 +783,7 @@ longest_avg_track_length |>
   kable(caption = "Table 5: Playlist with the Longest Average Track Length")
 ```
 Finally, I identify the most popular playlist in the playlist data set. 
-``` {r most-popular-playlist}
+``` {r most-popular-playlist, echo=TRUE, eval=TRUE}
 # What is the most popular playlist on Spotify?
 fname <- "data/mp03/most_pop_playlist.csv"
 if (!file.exists(fname)){
@@ -826,7 +826,7 @@ if (exists(SPOTIFY_MILLIONS) & exists(songs)){
   rm(SPOTIFY_MILLIONS, songs)
 }
 ```
-#### Analysis
+#### Further Data Exploration
 
 A brief, instructor-led analysis of the playlist data set is included below. To explore whether more popular songs tend to appear in more playlists, a linear regression was performed using popularity as the predictor and the log-transformed count of playlist appearances as the outcome. The figure below illustrates this relationship. The model shows a fairly strong positive association, with a regression equation of $y = -1.25 + 0.10x$, a correlation of $r = 0.77$, and a coefficient of determination $R^2 = 0.59$. This suggests that popularity is a reasonably good predictor of how often a song shows up in playlists.
 ``` {r echo=TRUE, eval=TRUE}
