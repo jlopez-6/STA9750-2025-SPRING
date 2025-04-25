@@ -1,5 +1,5 @@
 ---
-title: "Welcome!"
+title: "Welcome to STA9750 - Spring 2025"
 execute:
   eval: true   
   echo: false  
@@ -8,7 +8,7 @@ format:
     toc: true            
     toc-location: right   
     number-sections: true
-    toc-depth: 3        
+    toc-depth: 3
 ---
 
-Welcome to the course submissions page for the 2015 Spring Semester of STA9750!
+Welcome to the course submissions page for the 2025 Spring Semester of STA9750!
