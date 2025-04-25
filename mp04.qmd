@@ -1,0 +1,20 @@
+---
+title: "Mini Project 04"
+author: Jocely Lopez Luna
+format: 
+  html: 
+    code-tools: true
+    code-fold: true
+    toc: true
+    toc-location: right
+    number-sections: false
+    toc-depth: 3
+execute:
+  eval: false
+  message: false
+  warning: false
+bibliography: mp04_ref.bib
+csl: apa.csl
+---
+
+Under construction!

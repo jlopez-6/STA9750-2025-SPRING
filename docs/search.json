@@ -23,9 +23,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Welcome!",
+    "title": "Welcome to STA9750 - Spring 2025",
     "section": "",
-    "text": "Welcome to the course submissions page for the 2015 Spring Semester of STA9750!"
+    "text": "Welcome to the course submissions page for the 2025 Spring Semester of STA9750!\n\n\n\nMini Project 01\n\n\nWelcome to the Commission to Analyze Taxpayer Spending (CATS)\n\n\n\n\n Mini Project 02\n\n\nIdentifying Environmentally Responsible US Public Transit Systems\n\n\n\n\nMini Project 03\n\n\nCreating the Ultimate Playlist\n\n\n\n\nMini Project 04\n\n\nExploring Recent US Political Shifts"
   },
   {
     "objectID": "mp01.html",
@@ -495,5 +495,26 @@
     "title": "About Me",
     "section": "",
     "text": "Hi, I’m Jocely Lopez Luna, a researcher with a B.A. in environmental science (Columbia University, ’20) and 5 years of work experience in seismology at Lamont-Doherty Earth Observatory. I’ve worked extensively with seismic data, programming, and quantitative research, and I’m currently expanding my expertise through an MS in Statistics at Baruch College.\nAt Lamont, I work on modernizing analog seismic data and investigating atmospheric and underground nuclear explosions. You can find my publications on ORCID.\nAs a Catholic, my faith guides my approach to learning, discovery, and service. I strive to bring truth, integrity, and purpose to everything I do.\nHere’s my resume. Explore my work, and let’s connect!\n\nLast updated: Thursday April 24, 2025 at 11:02 AM"
+  },
+  {
+    "objectID": "test.html",
+    "href": "test.html",
+    "title": "Test Page",
+    "section": "",
+    "text": "Test Cards\n\n\n&lt;div class=\"col\"&gt;\n  &lt;div class=\"card h-100\"&gt;\n    &lt;div class=\"card-body\"&gt;\n      &lt;h5 class=\"card-title\"&gt;Card 1&lt;/h5&gt;\n      &lt;p class=\"card-text\"&gt;This is a test.&lt;/p&gt;\n      &lt;a href=\"#\" class=\"btn btn-primary\"&gt;Go&lt;/a&gt;\n    &lt;/div&gt;\n  &lt;/div&gt;\n&lt;/div&gt;\n\n&lt;div class=\"col\"&gt;\n  &lt;div class=\"card h-100\"&gt;\n    &lt;div class=\"card-body\"&gt;\n      &lt;h5 class=\"card-title\"&gt;Card 2&lt;/h5&gt;\n      &lt;p class=\"card-text\"&gt;Another one.&lt;/p&gt;\n      &lt;a href=\"#\" class=\"btn btn-primary\"&gt;Go&lt;/a&gt;\n    &lt;/div&gt;\n  &lt;/div&gt;\n&lt;/div&gt;"
+  },
+  {
+    "objectID": "index.html#explore-my-mini-projects",
+    "href": "index.html#explore-my-mini-projects",
+    "title": "Welcome to STA9750 - Spring 2025",
+    "section": "1 Explore My Mini Projects",
+    "text": "1 Explore My Mini Projects\n\n\n\nMini Project 01\n\n\nWelcome to the Commission to Analyze Taxpayer Spending (CATS)\n\n\n\n\n🏙️ Mini Project 02\n\n\nNYC Real Estate: Pricing, location insights, and remote work.\n\n\n\n\n🎶 Mini Project 03\n\n\nSpotify Data: Curating the Echoes of Euphoria playlist."
+  },
+  {
+    "objectID": "mp04.html",
+    "href": "mp04.html",
+    "title": "Mini Project 04",
+    "section": "",
+    "text": "Under construction!"
   }
 ]

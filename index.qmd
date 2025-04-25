@@ -12,3 +12,27 @@ format:
 ---
 
 Welcome to the course submissions page for the 2025 Spring Semester of STA9750!
+
+<div style="display: flex; flex-wrap: wrap; gap: 30px; margin-top: 30px; justify-content: flex-start;">
+
+<div style="flex: 1 1 250px; background-color: #78c2ad; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px #78c2ad;">
+<h3><a href="mp01.html" style="color: #fffefe; text-decoration: none;">Mini Project 01</a></h3>
+<p>Welcome to the Commission to Analyze Taxpayer Spending (CATS)</p>
+</div>
+
+<div style="flex: 1 1 250px; background-color: #78c2ad; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px #78c2ad;">
+<h3><a href="mp02.html" style="color: #fffefe; text-decoration: none;"> Mini Project 02</a></h3>
+<p>Identifying Environmentally Responsible US Public Transit Systems</p>
+</div>
+
+<div style="flex: 1 1 250px; background-color: #78c2ad; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px #78c2ad;">
+<h3><a href="mp03.html" style="color: #fffefe; text-decoration: none;">Mini Project 03</a></h3>
+<p>Creating the Ultimate Playlist</p>
+</div>
+
+<div style="flex: 1 1 250px; background-color: #78c2ad; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px #78c2ad;">
+<h3><a href="mp04.html" style="color: #fffefe; text-decoration: none;">Mini Project 04</a></h3>
+<p>Exploring Recent US Political Shifts</p>
+</div>
+
+</div>
