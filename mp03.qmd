@@ -17,9 +17,6 @@ bibliography: mp03_ref.bib
 csl: apa.csl
 ---
 
-![Playlist cover art[^1].](playlist_cover.jpeg)
-
-[^1]: This image was generated with Google Gemini [@google-gemini].
 
 ``` {r the_bare_necessities, echo=FALSE, eval=TRUE}
 library(tidyverse)
@@ -372,11 +369,13 @@ We pivot into something more energetic with "Whip It" by DEVO, a nonsensical but
 
 The mood darkens with George Thorogood & The Destroyers' "I Drink Alone"—an edgy, bluesy anthem of solitude that doubles as a cry for help. Thorogood delivers each line with such boozy conviction, that you can practically smell the whiskey on his breath. Then George Strait’s "I Need Someone Like Me" shifts that loneliness to a country register.
 
-Then "Music For A Found Harmonium" by Penguin Cafe Orchestra plunges us into a simmering tension that gently unravels into a disarmingly playful, jig-like melody. With a flash-bang, Queen’s "Flash" brings bold, bombastic, and camp energy. "I Love You Babe" by Babyface follows with warmth and sincerity, an earnest slow jam that finally says what it means. We close on a high note with Sheena Easton’s "Strut," a fiercely confident song that dares anyone to look away.
+We are then plunged into a simmering tension that gently unravels into a disarmingly playful, jig-like melody in Penguin Cafe Orchestra's "Music For A Found Harmonium." A flash-bang startles us out of that folksy daydream and straight into a comic book panel during Queen’s "Flash". "I Love You Babe" by Babyface follows with warmth and sincerity, an earnest slow jam that finally says what it means. We close on a high note with Sheena Easton’s "Strut," a fiercely confident song that dares anyone to look away.
 
 Click play to start an emotionally engineered ride through the 1980s!
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?si=Cp3x_n4KvIDKwNQv&amp;list=PLhqZr66B_GQ5XB6rDFYx6AyFXQHtce5kC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<div style="display: flex; flex-wrap: wrap; gap: 30px; margin-top: 30px; justify-content: center;"> <div style="flex: 1 1 560px; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px #78c2ad; background-image: url('playlist_cover.jpeg'); background-size: cover; background-position: center;"> <h3 style="text-align: center;"> <a href="https://www.youtube.com/playlist?list=PLhqZr66B_GQ5XB6rDFYx6AyFXQHtce5kC" style="color: #fffefe; text-decoration: none; font-size: 60px; font-weight: bold;" target="_blank"> Valence Synth Wave </a> </h3> <div style="display: flex; justify-content: center;"> <iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLhqZr66B_GQ5XB6rDFYx6AyFXQHtce5kC" title="YouTube playlist player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen> </iframe> </div> </div> </div>[^1]
+
+[^1]: This image was generated with Google Gemini [@google-gemini].
 
 # Appendix
 
@@ -1058,7 +1057,7 @@ ggplot(data, aes(x = popularity, y = danceability)) +
   ) +
   theme_minimal()
 ```
-To understand which songs are most frequently chosen to open a playlist, I examined tracks appearing in the first position across playlists. The bar chart below displays the top 5 most common opening songs, revealing listener and curator preferences for kick-starting a playlist. Not surprisingly, many of these opening tracks are high-energy or popular.
+To understand which songs are most frequently chosen to open a playlist, I examined tracks appearing in the first position across playlists. The bar chart below displays the top 5 most common opening songs. Not surprisingly, many of these opening tracks are  high-energy and/or popular.
 ```{r echo=TRUE, eval=TRUE}
 # What are the top 5 most common opening playlist songs?
 spotify_millions_songs |>
