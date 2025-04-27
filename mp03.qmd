@@ -17,7 +17,6 @@ bibliography: mp03_ref.bib
 csl: apa.csl
 ---
 
-
 ``` {r the_bare_necessities, echo=FALSE, eval=TRUE}
 library(tidyverse)
 library(ggplot2)
@@ -25,6 +24,7 @@ library(DT)
 library(dplyr)
 library(knitr)
 library(scales)
+library(gganimate)
 MINTY <- "#78c2ad"
 
 
@@ -395,6 +395,7 @@ library(DT)
 library(dplyr)
 library(knitr)
 library(scales)
+library(gganimate)
 # constants
 MINTY <- "#78c2ad"
 
@@ -913,7 +914,11 @@ spotify_millions_songs |>
     title = "Median Track Danceability by Year",
     caption = "Data sources: Spotify Millions Playlist data set and Spotify Song Characteristics data set."
   ) +
-  theme_minimal()
+  theme_minimal() +
+  transition_reveal(year) +
+  ease_aes('linear') -> animated_plot
+
+animate(animated_plot)
 ```
 The most represented decade on user playlists is the 2010s. The bar chart below presents the distribution of tracks belonging to a particular decade.
 ```{r echo=TRUE, eval=TRUE}
