@@ -1,5 +1,5 @@
 ---
-title: "Mini Project 04"
+title: "How Counties Changed: 2020 vs. 2024 Elections"
 author: Jocely Lopez Luna
 format: 
   html: 
@@ -13,8 +13,1146 @@ execute:
   eval: false
   message: false
   warning: false
+  echo: true
 bibliography: mp04_ref.bib
 csl: apa.csl
 ---
 
-Under construction!
+``` {r bare-necessities, echo=FALSE, eval=TRUE, out.width='100%', fig.width=14, fig.height=8}
+# import libraries
+library(dplyr)
+library(stringr)
+library(sf)
+library(tigris)
+library(ggplot2)
+library(rvest)
+library(jsonlite)
+library(plotly)
+
+# define constants
+ARROW_ANGLE <- pi / 6
+ARROWHEAD_ANGLE <- pi / 6
+SCALE_FACTOR <- 10000
+LINEWIDTH <- 0.3
+DEM_BLUE <- "#0015bc"
+REP_RED <- "#E81B23"
+
+#' Download and Process US County Shapefile
+#'
+#' Downloads, extracts, and processes the 2023 US county shapefile from the U.S. Census Bureau if not already present locally.
+#'
+#' This function checks whether the shapefile exists in the specified local directory (`data/mp04/`). If it does not exist,
+#' the function downloads the ZIP file containing the shapefile, extracts its contents, and deletes the ZIP file to save space.
+#' It then reads the shapefile using `read_sf()`, shifts geometries (typically to reposition Alaska and Hawaii), casts geometries
+#' to `MULTIPOLYGON`, and computes centroids for each county polygon.
+#'
+#' @return A `sf` object representing the US counties with geometry and centroid columns.
+#' @importFrom sf read_sf st_cast st_centroid
+#' @importFrom dplyr mutate
+#' @importFrom tigris shift_geometry
+#' @export
+download_shp <- function(){
+  directory <- "data/mp04/"
+  fname <- "cb_2023_us_county_20m"
+  zip_fpath <- paste0(directory, fname, ".zip")
+  shp_fpath <- paste0(directory, fname, ".shp")
+  
+  # Create directory if it doesn't exist
+  if (!dir.exists(directory)) {
+    dir.create(directory, recursive = TRUE)
+  }
+
+  files_matching_pattern <- list.files(directory, pattern = "cb_2023_us_county_20m", full.names = TRUE)
+  if (length(files_matching_pattern) == 0){
+    source_root_url <- "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_20m.zip"
+    download.file(
+      url = source_root_url,
+      destfile = zip_fpath,
+      method = "auto",
+      quiet = TRUE
+    )
+  }
+  # check if zip exists
+  if (file.exists(zip_fpath)){
+    # if true, unzip the shp file, then delete the zip to save a measly amount of memory.
+    unzip(zip_fpath, exdir=directory)  
+    file.remove(zip_fpath)
+  } 
+  # check if shp exists
+  if (file.exists(shp_fpath)){
+    # if true, read in shp file
+    shpfile <- read_sf(shp_fpath) |>
+      shift_geometry(position = "below", preserve_area = FALSE) |>
+      mutate(
+        geometry = st_cast(geometry, "MULTIPOLYGON"),
+        centroid = st_centroid(geometry)
+      )
+    return(shpfile)
+  }
+}
+
+us_counties <- download_shp()
+
+#' Load or Download County-Level U.S. Presidential Election Results from Wikipedia
+#'
+#' Retrieves, cleans, and processes county-level (or equivalent) U.S. presidential election results
+#' for a given state and election year (2020 or 2024). If the data is not available locally, it is
+#' scraped from the corresponding Wikipedia page and cached to disk for future use.
+#'
+#' Handles special cases such as Connecticut (town or planning region level),
+#' the District of Columbia (ward level), and Washington (naming convention on Wikipedia).
+#' Also maps Connecticut towns to planning regions for 2024.
+#'
+#' @param state A character string with the full state name (e.g., "Connecticut", "Texas").
+#' @param year An integer (2020 or 2024). Other years are not supported.
+#'
+#' @return A data frame containing county-level election results for the specified state and year.
+#'         The columns include vote counts and percentages for major parties and others, with standardized
+#'         county identifiers. Also includes a `county_type` and `state` column.
+#'
+#' @importFrom rvest read_html html_elements html_table
+#' @importFrom dplyr mutate rename_with slice inner_join group_by summarize across
+#' @importFrom stringr str_to_lower str_replace_all str_remove_all str_remove str_replace
+#' @importFrom utils download.file write.csv read.csv
+#' @importFrom stats na.omit
+#' @export
+load_state_election_results <- function(state, year){
+  if (!(year %in% c(2020, 2024))) {
+    stop("Please enter year = 2020 or year = 2024")
+  }
+  year <- as.integer(year)
+  state_fname <- paste0(str_to_lower(state),".csv")
+  directory <- "data/mp04/"
+  subdirectory <- paste0(directory,year,'/')
+  state_fpath <- paste0(subdirectory,state_fname)
+  mapping_flag <- FALSE
+  
+  if (!dir.exists(subdirectory)) {
+    dir.create(subdirectory, recursive = TRUE)
+  }
+  
+  if (!file.exists(state_fpath)){
+    
+    regex_str <- "^(County(/City)?|Parish|Ward|State\\sHouse\\sDistrict)(\\[[0-9]+\\])?$"
+    
+    # no file found, therefore, i will download straight from wikipedia.
+    url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "#By_county")
+    if (state == "Washington"){
+      url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "_(state)#By_county")
+    }
+    if (state == "District of Columbia"){
+      url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_the_",str_replace_all(state, "\\s+", "_"),"#Results_by_ward")
+    }
+    if (state == "Connecticut"){
+      if (year == 2020){
+        mapping_flag <- TRUE
+        regex_str = "^Town$"
+        url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "#By_town")
+      }
+      if (year == 2024){
+        regex_str = "^Council\\sof\\sGovernment$"
+        url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "#By_Council_of_Government")
+      }
+    }
+    
+    county_counts <- tryCatch({
+      read_html(url) |>
+        html_elements(".wikitable") |>
+        html_table() |>
+        Filter(\(x)
+               any(grepl(regex_str, colnames(x))) &&
+                 any(grepl("Margin", colnames(x))),
+               x = _
+        )
+    }, error = function(e) {
+      print(url)
+      warning(paste("Failed to load data for state:", state))
+      return(NULL)
+    })
+    
+    if (length(county_counts) == 1){ county_counts <- county_counts[[1]] }
+    if (length(county_counts) == 0){ warning(paste("No data for", state)); return(NULL) }
+    if (is.list(county_counts) && length(county_counts) > 1 && inherits(county_counts[[1]], "data.frame")) {
+      county_counts <- county_counts[[1]]
+    }
+   
+    # first row hints at units--I want that info in the column names instead. 
+    first_row <- county_counts |> head(n=1)
+    county_counts <- county_counts |>
+      rename_with(
+        ~ paste0(., "_Count"),
+        .cols = which(grepl("^#|Votes$", first_row))
+      ) |>
+      rename_with(
+        ~ paste0(., "_Percentage"), 
+        .cols = which(first_row == "%")
+      )
+    
+    # delete useless first row of values.
+    county_counts <- county_counts |>
+      slice(-1)
+    
+    #cleaning up column names for easier referencing
+    colnames(county_counts) <- county_counts |> 
+      colnames() |> 
+      str_remove_all("Donald Trump|Kamala Harris|Various candidates|City|Joe Biden|Jo Jorgensen|Howie Hawkins") |> 
+      str_remove_all("[^a-zA-Z_]")
+    
+    first_col <- colnames(county_counts)[1]
+  
+    # saving cleaned up county type for later
+    county_counts <- 
+      county_counts |>
+      mutate(county_type = first_col)
+    # converting data types
+    county_counts <- county_counts |>
+      mutate(across(!any_of(c("County", "county_type", "Town", "Parish","Ward","StateHouseDistrict", "CouncilofGovernment")), ~ as.numeric(
+        str_remove_all(
+          str_replace_all(as.character(.x), "\u2212", "-"),
+          "[,%\u00A0]"
+        )
+      )))
+    
+    if (mapping_flag){
+      mapping_fdest <- paste0(directory,"ct-town-to-planning-region.csv")
+      if (!file.exists(mapping_fdest)){
+        download.file(
+          url = "https://raw.githubusercontent.com/CT-Data-Collaborative/ct-town-to-planning-region/refs/heads/main/ct-town-to-planning-region.csv",
+          destfile = mapping_fdest,
+          method = "auto"
+        )
+      }
+      ct_mapping <- as.data.frame(read.csv(mapping_fdest))
+    
+      county_counts <-
+        county_counts |> 
+          inner_join(
+            ct_mapping |>
+              select(town_name, ce_name_2022),
+            join_by(Town == town_name)) |> 
+          group_by(ce_name_2022) |>
+          summarize(
+            Democratic_Count = sum(Democratic_Count),
+            Republican_Count = sum(Republican_Count),
+            Libertarian_Count = sum(Libertarian_Count),
+            Green_Count = sum(Green_Count),
+            Otherparties_Count = sum(Otherparties_Count),
+            ) |>
+          mutate(
+            total_votes = rowSums(across(
+              .cols = c(Democratic_Count, Republican_Count, Libertarian_Count, Green_Count, Otherparties_Count),
+              .names = NULL
+            ), na.rm = TRUE),
+            Republican_Percentage = 100 * Republican_Count / total_votes,
+            Democratic_Percentage = 100 * Democratic_Count / total_votes,
+            Libertarian_Percentage = 100 * Libertarian_Count / total_votes,
+            Green_Percentage = 100 * Green_Count / total_votes,
+            Otherparties_Percentage = 100 * Otherparties_Count / total_votes,
+            county_type = "Planning Region",
+            ce_name_2022 = str_remove(ce_name_2022, " Planning Region")
+          ) |>
+          rename(county = ce_name_2022)
+    }
+    
+    # finish cleaning up column names 
+    colnames(county_counts) <- 
+      county_counts |> 
+      colnames() |> 
+      str_replace_all("Parish|Ward|StateHouseDistrict|CouncilofGovernment", "County") |>
+      str_to_lower()
+
+    if (state == "Connecticut" && year == 2024){
+      county_counts <-
+        county_counts |>
+        mutate(
+          county_type = "Planning Region",
+          county = str_remove(county, " Planning Region")
+          )
+    }
+    
+    # adding state name for easier merging later.
+    county_counts <- county_counts |>
+      mutate(state = state)
+    
+    write.csv(x = county_counts, file = state_fpath, row.names = FALSE)
+  } else{
+    county_counts <- read.csv(state_fpath)
+  }
+  return (county_counts)
+}
+
+#' Load or Compile U.S. Presidential Election Results for Multiple States
+#'
+#' Aggregates county-level (or equivalent) presidential election results for a list of U.S. states in a given election year.
+#' If a compiled CSV file already exists for the specified year, it is loaded. Otherwise, data is fetched (via
+#' \code{\link{load_state_election_results}}), cleaned, and saved for future use.
+#'
+#' Handles normalization of alternate party labels (e.g., Democratic–NPL, DFL), estimates missing values where necessary,
+#' and calculates total votes and percentages for Republican, Democratic, and other candidates.
+#'
+#' @param states A character vector of state names (e.g., \code{c("Texas", "Ohio", "Connecticut")}).
+#' @param year An integer representing the election year (only 2020 or 2024 are supported).
+#'
+#' @return A data frame with cleaned, harmonized election results by county, including vote counts and percentages for
+#' Republican, Democratic, and other parties, along with state and county identifiers.
+#'
+#' @importFrom dplyr bind_rows mutate case_when select any_of rowSums matches
+#' @importFrom tidyselect everything
+#' @importFrom stringr str_to_lower
+#' @importFrom utils read.csv write.csv
+#' @seealso \code{\link{load_state_election_results}}
+#' @export
+load_election_results <- function(states, year){
+  directory <- paste0("data/mp04/",year,"/")
+  dest_fpath <- paste0(directory, year,"_election_results.csv")
+  
+  if (!dir.exists(directory)) {
+    dir.create(directory, recursive = TRUE)
+  }
+  
+  if (!file.exists(dest_fpath)){
+    election_results <- data.frame()
+    for (state in states){
+      message(paste("Fetching State:", state))
+      state_results <- load_state_election_results(state,year)
+      if (!is.null(state_results)) {
+        election_results <- bind_rows(election_results, state_results)
+      }
+      else{
+          warning(paste("No data for state:", state))
+        }
+    }
+    
+    election_results <- 
+      election_results |>
+      mutate(
+        democratic_count = case_when(
+          is.na(democratic_count) & !is.na(democraticnpl_count) ~ democraticnpl_count,
+          is.na(democratic_count) & !is.na(dfl_count) ~ dfl_count,
+          TRUE ~ democratic_count
+        ),
+        democratic_percentage = case_when(
+          is.na(democratic_percentage) & !is.na(democraticnpl_percentage) ~ democraticnpl_percentage,
+          is.na(democratic_percentage) & !is.na(dfl_percentage) ~ dfl_percentage,
+          TRUE ~ democratic_percentage
+        ),
+        otherparties_count = case_when(
+          is.na(otherparties_count) & !is.na(variouscandidatesotherparties_count) ~ variouscandidatesotherparties_count,
+          TRUE ~ otherparties_count
+        ),
+        otherparties_percentage = case_when(
+          is.na(otherparties_percentage) & !is.na(variouscandidatesotherparties_percentage) ~ variouscandidatesotherparties_percentage,
+          TRUE ~ otherparties_percentage
+        )
+      ) |>
+      select(-any_of(c(
+        "variouscandidatesotherparties_count", "variouscandidatesotherparties_percentage",
+        "dfl_count", "dfl_percentage",
+        "democraticnpl_count", "democraticnpl_percentage"
+      )))
+    
+    if (year == 2020){
+      election_results <- 
+        election_results |>
+        select(-c(totalvotescast, totalvotes, registeredvoters, voterturnout, total)) |>
+        mutate(
+          other_count_components = rowSums(
+            pick(matches("_count$") & 
+                   !matches("republican_count") & 
+                   !matches("democratic_count") &
+                   !matches("otherparties_count")),
+            na.rm = TRUE
+          ),
+          otherparties_count = case_when(
+            is.na(otherparties_count) ~ other_count_components,
+            !is.na(otherparties_count) & other_count_components > 0 ~ otherparties_count + other_count_components,
+            TRUE ~ otherparties_count
+          )
+        ) |>
+        select(-other_count_components)
+    }
+    
+    election_results <- 
+      election_results |> 
+      mutate(
+        total_votes = rowSums(
+          pick(matches("_count$") & !matches("margin_count")),
+          na.rm = TRUE
+          ),
+        republican_percentage = 100 * republican_count / total_votes,
+        democratic_percentage = 100 * democratic_count / total_votes,
+        otherparties_percentage = 100 * otherparties_count / total_votes
+        ) |>
+      select(
+        county, republican_count, republican_percentage, democratic_count,
+        democratic_percentage, otherparties_count, otherparties_percentage,
+        county_type, state, total_votes
+        )
+        
+    write.csv(election_results, file = dest_fpath, row.names = FALSE)
+    }
+  else{
+    election_results <- read.csv(dest_fpath)
+  }
+  return(election_results)
+}
+
+us_states <- unique(us_counties |> select(STATE_NAME) |> st_drop_geometry())[[1]]
+election_results_2020 <- load_election_results(us_states, 2020)
+election_results_2024 <- load_election_results(us_states, 2024)
+
+election_results <- left_join(
+  election_results_2020,
+  election_results_2024,
+  join_by(county == county, state == state, county_type == county_type),
+  suffix = c("_2020", "_2024")
+  ) |>
+  right_join(us_counties, join_by(county == NAME, state == STATE_NAME)) |>
+  mutate(
+    democratic_count_change = democratic_count_2024 - democratic_count_2020,
+    democratic_percentage_change = democratic_percentage_2024 - democratic_percentage_2020,
+    republican_count_change = republican_count_2024 - republican_count_2020,
+    republican_percentage_change = republican_percentage_2024 - republican_percentage_2020,
+    otherparties_count_change = otherparties_count_2024 - otherparties_count_2020,
+    otherparties_percentage_change = otherparties_percentage_2024 - otherparties_percentage_2020,
+  )
+
+state_boundaries <- us_counties |>
+  group_by(STATE_NAME) |>
+  summarise(geometry = st_union(geometry), .groups = "drop") |>
+  mutate(geometry = st_cast(geometry, "MULTIPOLYGON"))
+
+plot_data <- st_as_sf(election_results) |>
+  mutate(geometry = st_cast(geometry, "MULTIPOLYGON")) |>
+  mutate(
+    centroid = st_centroid(geometry),
+    coords = st_coordinates(centroid),
+    x_start = coords[, 1],
+    y_start = coords[, 2],
+    x_end = x_start + (republican_percentage_change * SCALE_FACTOR) * cos(ARROW_ANGLE),
+    y_end = y_start + (abs(republican_percentage_change) * SCALE_FACTOR) * sin(ARROW_ANGLE),
+    shift_direction = ifelse(republican_percentage_change > 0, "Republican", "Democrat"),
+  )
+
+# Compute work around arrowhead segments
+arrowheads <- plot_data |> 
+  filter(!is.na(republican_percentage_change)) |>
+  rowwise() |> 
+  mutate(
+    theta = ifelse(republican_percentage_change >= 0, ARROW_ANGLE, -ARROW_ANGLE),  # direction of arrow
+    x_tip = x_end,
+    y_tip = y_end,
+    arrowhead_length = SCALE_FACTOR * 0.5 * republican_percentage_change,
+    x1 = x_tip - arrowhead_length * cos(theta + ARROWHEAD_ANGLE),
+    y1 = y_tip - arrowhead_length * sin(theta + ARROWHEAD_ANGLE),
+    x2 = x_tip - arrowhead_length * cos(theta - ARROWHEAD_ANGLE),
+    y2 = y_tip - arrowhead_length * sin(theta - ARROWHEAD_ANGLE)
+  ) 
+
+plot <- ggplot() +
+  geom_sf(
+    data = plot_data |> distinct(geometry, .keep_all = TRUE),
+    fill = "grey90",
+    color = "white",
+    linewidth = LINEWIDTH - 0.1
+  ) +
+  geom_sf(
+    data = state_boundaries,
+    fill = NA,
+    color = "gray40",
+    linewidth = LINEWIDTH - 0.1
+  ) +
+  geom_segment(
+    data = plot_data |> filter(!is.na(republican_percentage_change)),
+    aes(
+      x = x_start, y = y_start, xend = x_end, yend = y_end,
+      color = shift_direction,
+      text = paste0(county, " ", county_type, ", ", state, "\nShift: ", round(abs(republican_percentage_change), digits = 2), "% more ", shift_direction, " in 2024")
+    ),
+    arrow = arrow(length = unit(0.1, "inches")),
+    linewidth = LINEWIDTH
+  ) +
+  geom_segment(
+    data = arrowheads,
+    aes(x = x_tip, y = y_tip, xend = x1, yend = y1, color = shift_direction),
+    linewidth = LINEWIDTH
+  ) +
+  geom_segment(
+    data = arrowheads,
+    aes(x = x_tip, y = y_tip, xend = x2, yend = y2, color = shift_direction),
+    linewidth = LINEWIDTH
+  ) +
+  scale_color_manual(values = c("Democrat" = DEM_BLUE, "Republican" = REP_RED), na.translate = FALSE) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.margin = margin(0, 0, 0, 0),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "bottom",
+  ) +
+  labs(color = "Shift")
+
+# Convert to plotly
+ggplotly(plot, tooltip = "text") |>
+  layout(
+  margin = list(l = 0, r = 0, t = 0, b = 1), 
+  showlegend = TRUE,
+  legend = list(
+    orientation = "h",
+    x = 0.5,
+    xanchor = "center",
+    y = 0.2,
+    yanchor = "top"
+  )
+)
+
+```
+
+# Appendix
+
+This appendix briefly summarizes the steps taken to recreate the New York Times inspired [political shift plot](https://www.nytimes.com/interactive/2024/11/06/us/politics/presidential-election-2024-red-shift.html). This data analysis was performed using R, using packages including dplyr, ggplot2, stringr, tigris, sf, jsonlite, plotly, rvest, and knitr [@R-core; @dplyr; @ggplot2; @stringr; @tigris; @sf; @jsonlite; @plotly; @rvest; @knitr]. The code chunk below lists the R libraries used in this analysis, as well as any constants defined in the analysis.
+``` {r library-imports-constants}
+# import libraries
+library(dplyr)
+library(stringr)
+library(sf)
+library(tigris)
+library(ggplot2)
+library(rvest)
+library(jsonlite)
+library(plotly)
+
+# define constants
+ARROW_ANGLE <- pi / 6
+ARROWHEAD_ANGLE <- pi / 6
+SCALE_FACTOR <- 10000
+LINEWIDTH <- 0.3
+DEM_BLUE <- "#0015bc"
+REP_RED <- "#E81B23"
+```
+
+## Importing Data
+
+### US County Shapes
+
+To visualize election results geographically, I imported U.S. county boundary shapefiles at a 1:20,000,000 scale from the [US Census Bureau](https://www.census.gov/geographies/mapping-files/2023/geo/carto-boundary-file.html)[@]. The code used to import and preprocess these shapefiles is shown below.
+```{r dl-census-counties}
+#' Download and Process US County Shapefile
+#'
+#' Downloads, extracts, and processes the 2023 US county shapefile from the U.S. Census Bureau if not already present locally.
+#'
+#' This function checks whether the shapefile exists in the specified local directory (`data/mp04/`). If it does not exist,
+#' the function downloads the ZIP file containing the shapefile, extracts its contents, and deletes the ZIP file to save space.
+#' It then reads the shapefile using `read_sf()`, shifts geometries (typically to reposition Alaska and Hawaii), casts geometries
+#' to `MULTIPOLYGON`, and computes centroids for each county polygon.
+#'
+#' @return A `sf` object representing the US counties with geometry and centroid columns.
+#' @importFrom sf read_sf st_cast st_centroid
+#' @importFrom dplyr mutate
+#' @importFrom tigris shift_geometry
+#' @export
+download_shp <- function(){
+  directory <- "data/mp04/"
+  fname <- "cb_2023_us_county_20m"
+  zip_fpath <- paste0(directory, fname, ".zip")
+  shp_fpath <- paste0(directory, fname, ".shp")
+  
+  # Create directory if it doesn't exist
+  if (!dir.exists(directory)) {
+    dir.create(directory, recursive = TRUE)
+  }
+
+  files_matching_pattern <- list.files(directory, pattern = "cb_2023_us_county_20m", full.names = TRUE)
+  if (length(files_matching_pattern) == 0){
+    source_root_url <- "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_20m.zip"
+    download.file(
+      url = source_root_url,
+      destfile = zip_fpath,
+      method = "auto",
+      quiet = TRUE
+    )
+  }
+  # check if zip exists
+  if (file.exists(zip_fpath)){
+    # if true, unzip the shp file, then delete the zip to save a measly amount of memory.
+    unzip(zip_fpath, exdir=directory)  
+    file.remove(zip_fpath)
+  } 
+  # check if shp exists
+  if (file.exists(shp_fpath)){
+    # if true, read in shp file
+    shpfile <- read_sf(shp_fpath) |>
+      shift_geometry(position = "below", preserve_area = FALSE) |>
+      mutate(
+        geometry = st_cast(geometry, "MULTIPOLYGON"),
+        centroid = st_centroid(geometry)
+      )
+    return(shpfile)
+  }
+}
+
+us_counties <- download_shp()
+```
+### 2020 and 2024 US Presidential Election Results
+
+To analyze county-level results in the U.S. presidential elections from 2020 to 2024, I scraped state-level election data from Wikipedia [@wk_2024_election_results_georgia; @wk_2024_election_results_nebraska; @wk_2024_election_results_virginia; @wk_2024_election_results_wyoming; @wk_2024_election_results_kansas; @wk_2024_election_results_minnesota; @wk_2024_election_results_mississippi; @wk_2024_election_results_pennsylvania; @wk_2024_election_results_texas; @wk_2024_election_results_missouri; @wk_2024_election_results_tennessee; @wk_2024_election_results_michigan; @wk_2024_election_results_colorado; @wk_2024_election_results_louisiana; @wk_2024_election_results_indiana; @wk_2024_election_results_kentucky; @wk_2024_election_results_wisconsin; @wk_2024_election_results_oregon; @wk_2024_election_results_iowa; @wk_2024_election_results_ohio; @wk_2024_election_results_alabama; @wk_2024_election_results_north_carolina; @wk_2024_election_results_south_dakota; @wk_2024_election_results_west_virginia; @wk_2024_election_results_arizona; @wk_2024_election_results_illinois; @wk_2024_election_results_oklahoma; @wk_2024_election_results_new_york; @wk_2024_election_results_idaho; @wk_2024_election_results_south_carolina; @wk_2024_election_results_north_dakota; @wk_2024_election_results_arkansas; @wk_2024_election_results_maine; @wk_2024_election_results_florida; @wk_2024_election_results_new_mexico; @wk_2024_election_results_massachusetts; @wk_2024_election_results_rhode_island; @wk_2024_election_results_washington; @wk_2024_election_results_nevada; @wk_2024_election_results_california; @wk_2024_election_results_new_jersey; @wk_2024_election_results_utah; @wk_2024_election_results_district_of_columbia; @wk_2024_election_results_new_hampshire; @wk_2024_election_results_connecticut; @wk_2024_election_results_maryland; @wk_2024_election_results_montana; @wk_2024_election_results_delaware; @wk_2024_election_results_vermont; @wk_2024_election_results_alaska; @wk_2024_election_results_hawaii; @wk_2024_election_results_district_of_columbia] using a custom `load_state_election_results` function (defined below). However, scraping from Wikipedia was challenging, particularly due to inconsistencies in how political subdivisions are defined and reported across states.
+
+For most states, election results are reported by county, with several exceptions. Louisiana, for example, reports results by parish rather than county. In other states, such as the District of Columbia, results are organized by wards. These nonstandard units complicated efforts to make a consistent cross-state comparison.
+
+The most difficult case was Connecticut. In 2020, results were reported by county, but by 2024, the state had transitioned to using "planning regions"--a new administrative unit that does not align cleanly with previous county boundaries. To reconcile this, I downloaded 2020 election results at the town level, then mapped them to the appropriate  planning regions based on [this data set](https://github.com/CT-Data-Collaborative/ct-town-to-planning-region/blob/main/ct-town-to-planning-region.csv) [@ct_town_to_region_2023]. This workaround ensured comparability across years for the state.
+``` {r dl-election-results-state}
+#' Load or Download County-Level U.S. Presidential Election Results from Wikipedia
+#'
+#' Retrieves, cleans, and processes county-level (or equivalent) U.S. presidential election results
+#' for a given state and election year (2020 or 2024). If the data is not available locally, it is
+#' scraped from the corresponding Wikipedia page and cached to disk for future use.
+#'
+#' Handles special cases such as Connecticut (town or planning region level),
+#' the District of Columbia (ward level), and Washington (naming convention on Wikipedia).
+#' Also maps Connecticut towns to planning regions for 2024.
+#'
+#' @param state A character string with the full state name (e.g., "Connecticut", "Texas").
+#' @param year An integer (2020 or 2024). Other years are not supported.
+#'
+#' @return A data frame containing county-level election results for the specified state and year.
+#'         The columns include vote counts and percentages for major parties and others, with standardized
+#'         county identifiers. Also includes a `county_type` and `state` column.
+#'
+#' @importFrom rvest read_html html_elements html_table
+#' @importFrom dplyr mutate rename_with slice inner_join group_by summarize across
+#' @importFrom stringr str_to_lower str_replace_all str_remove_all str_remove str_replace
+#' @importFrom utils download.file write.csv read.csv
+#' @importFrom stats na.omit
+#' @export
+load_state_election_results <- function(state, year){
+  if (!(year %in% c(2020, 2024))) {
+    stop("Please enter year = 2020 or year = 2024")
+  }
+  year <- as.integer(year)
+  state_fname <- paste0(str_to_lower(state),".csv")
+  directory <- "data/mp04/"
+  subdirectory <- paste0(directory,year,'/')
+  state_fpath <- paste0(subdirectory,state_fname)
+  mapping_flag <- FALSE
+  
+  if (!dir.exists(subdirectory)) {
+    dir.create(subdirectory, recursive = TRUE)
+  }
+  
+  if (!file.exists(state_fpath)){
+    
+    regex_str <- "^(County(/City)?|Parish|Ward|State\\sHouse\\sDistrict)(\\[[0-9]+\\])?$"
+    
+    # no file found, therefore, i will download straight from wikipedia.
+    url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "#By_county")
+    if (state == "Washington"){
+      # washington has an extra (state) in the url.
+      url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "_(state)#By_county")
+    }
+    if (state == "District of Columbia"){
+      # District of columbia url also has a unique url
+      url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_the_",str_replace_all(state, "\\s+", "_"),"#Results_by_ward")
+    }
+    if (state == "Connecticut"){
+      # connecticut changed from "counties" to "planning regions" in 2022. this code maps towns to the new planning regions
+      if (year == 2020){
+        mapping_flag <- TRUE
+        regex_str = "^Town$"
+        url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "#By_town")
+      }
+      if (year == 2024){
+        regex_str = "^Council\\sof\\sGovernment$"
+        url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_", str_replace_all(state, "\\s+", "_"), "#By_Council_of_Government")
+      }
+    }
+    
+    county_counts <- tryCatch({
+      read_html(url) |>
+        html_elements(".wikitable") |>
+        html_table() |>
+        Filter(\(x)
+               any(grepl(regex_str, colnames(x))) &&
+                 any(grepl("Margin", colnames(x))),
+               x = _
+        )
+    }, error = function(e) {
+      print(url)
+      warning(paste("Failed to load data for state:", state))
+      return(NULL)
+    })
+    
+    if (length(county_counts) == 1){ county_counts <- county_counts[[1]] }
+    if (length(county_counts) == 0){ warning(paste("No data for", state)); return(NULL) }
+    if (is.list(county_counts) && length(county_counts) > 1 && inherits(county_counts[[1]], "data.frame")) {
+      county_counts <- county_counts[[1]]
+    }
+   
+    # first row hints at units--I want that info in the column names instead. 
+    first_row <- county_counts |> head(n=1)
+    county_counts <- county_counts |>
+      rename_with(
+        ~ paste0(., "_Count"),
+        .cols = which(grepl("^#|Votes$", first_row))
+      ) |>
+      rename_with(
+        ~ paste0(., "_Percentage"), 
+        .cols = which(first_row == "%")
+      )
+    
+    
+    # delete useless first row of values.
+    county_counts <- county_counts |>
+      slice(-1)
+    
+    #cleaning up column names for easier referencing
+    colnames(county_counts) <- county_counts |> 
+      colnames() |> 
+      str_remove_all("Donald Trump|Kamala Harris|Various candidates|City|Joe Biden|Jo Jorgensen|Howie Hawkins") |> 
+      str_remove_all("[^a-zA-Z_]")
+  
+    
+    first_col <- colnames(county_counts)[1]
+  
+    # saving cleaned up county type for later
+    county_counts <- 
+      county_counts |>
+      mutate(county_type = first_col)
+    # converting data types
+    county_counts <- county_counts |>
+      mutate(across(!any_of(c("County", "county_type", "Town", "Parish","Ward","StateHouseDistrict", "CouncilofGovernment")), ~ as.numeric(
+        str_remove_all(
+          str_replace_all(as.character(.x), "\u2212", "-"),
+          "[,%\u00A0]"
+        )
+      )))
+    
+    if (mapping_flag){
+      mapping_fdest <- paste0(directory,"ct-town-to-planning-region.csv")
+      if (!file.exists(mapping_fdest)){
+        download.file(
+          url = "https://raw.githubusercontent.com/CT-Data-Collaborative/ct-town-to-planning-region/refs/heads/main/ct-town-to-planning-region.csv",
+          destfile = mapping_fdest,
+          method = "auto"
+        )
+      }
+      ct_mapping <- as.data.frame(read.csv(mapping_fdest))
+    
+      county_counts <-
+        county_counts |> 
+          inner_join(
+            ct_mapping |>
+              select(town_name, ce_name_2022),
+            join_by(Town == town_name)) |> 
+          group_by(ce_name_2022) |>
+          summarize(
+            Democratic_Count = sum(Democratic_Count),
+            Republican_Count = sum(Republican_Count),
+            Libertarian_Count = sum(Libertarian_Count),
+            Green_Count = sum(Green_Count),
+            Otherparties_Count = sum(Otherparties_Count),
+            ) |>
+          mutate(
+            total_votes = rowSums(across(
+              .cols = c(Democratic_Count, Republican_Count, Libertarian_Count, Green_Count, Otherparties_Count),
+              .names = NULL
+            ), na.rm = TRUE),
+            Republican_Percentage = 100 * Republican_Count / total_votes,
+            Democratic_Percentage = 100 * Democratic_Count / total_votes,
+            Libertarian_Percentage = 100 * Libertarian_Count / total_votes,
+            Green_Percentage = 100 * Green_Count / total_votes,
+            Otherparties_Percentage = 100 * Otherparties_Count / total_votes,
+            county_type = "Planning Region",
+            ce_name_2022 = str_remove(ce_name_2022, " Planning Region")
+          ) |>
+          rename(county = ce_name_2022)
+    }
+    
+    # finish cleaning up column names 
+    colnames(county_counts) <- 
+      county_counts |> 
+      colnames() |> 
+      str_replace_all("Parish|Ward|StateHouseDistrict|CouncilofGovernment", "County") |>
+      str_to_lower()
+
+    if (state == "Connecticut" && year == 2024){
+      county_counts <-
+        county_counts |>
+        mutate(
+          county_type = "Planning Region",
+          county = str_remove(county, " Planning Region")
+          )
+    }
+    
+    # adding state name for easier merging later.
+    county_counts <- county_counts |>
+      mutate(state = state)
+    
+    write.csv(x = county_counts, file = state_fpath, row.names = FALSE)
+  } else{
+    county_counts <- read.csv(state_fpath)
+  }
+  return (county_counts)
+}
+```
+After assigning `us_states` a list of US states, `us_states <- unique(us_counties |> select(STATE_NAME) |> st_drop_geometry())[[1]]`, `load_state_election_results` was called from within the following function:
+``` {r dl-election-results-year}
+#' Load or Compile U.S. Presidential Election Results for Multiple States
+#'
+#' Aggregates county-level (or equivalent) presidential election results for a list of U.S. states in a given election year.
+#' If a compiled CSV file already exists for the specified year, it is loaded. Otherwise, data is fetched (via
+#' \code{\link{load_state_election_results}}), cleaned, and saved for future use.
+#'
+#' Handles normalization of alternate party labels (e.g., Democratic–NPL, DFL), estimates missing values where necessary,
+#' and calculates total votes and percentages for Republican, Democratic, and other candidates.
+#'
+#' @param states A character vector of state names (e.g., \code{c("Texas", "Ohio", "Connecticut")}).
+#' @param year An integer representing the election year (only 2020 or 2024 are supported).
+#'
+#' @return A data frame with cleaned, harmonized election results by county, including vote counts and percentages for
+#' Republican, Democratic, and other parties, along with state and county identifiers.
+#'
+#' @importFrom dplyr bind_rows mutate case_when select any_of rowSums matches
+#' @importFrom tidyselect everything
+#' @importFrom stringr str_to_lower
+#' @importFrom utils read.csv write.csv
+#' @seealso \code{\link{load_state_election_results}}
+#' @export
+load_election_results <- function(states, year){
+  directory <- paste0("data/mp04/",year,"/")
+  dest_fpath <- paste0(directory, year,"_election_results.csv")
+  
+  if (!dir.exists(directory)) {
+    dir.create(directory, recursive = TRUE)
+  }
+  
+  if (!file.exists(dest_fpath)){
+    # download data 
+    election_results <- data.frame()
+    for (state in states){
+      message(paste("Fetching State:", state))
+      state_results <- load_state_election_results(state,year)
+      if (!is.null(state_results)) {
+        election_results <- bind_rows(election_results, state_results)
+      }
+      else{
+          warning(paste("No data for state:", state))
+        }
+    }
+    
+    # clean up full election results...
+    election_results <- 
+      election_results |>
+      mutate(
+        democratic_count = case_when(
+          is.na(democratic_count) & !is.na(democraticnpl_count) ~ democraticnpl_count,
+          is.na(democratic_count) & !is.na(dfl_count) ~ dfl_count,
+          TRUE ~ democratic_count
+        ),
+        democratic_percentage = case_when(
+          is.na(democratic_percentage) & !is.na(democraticnpl_percentage) ~ democraticnpl_percentage,
+          is.na(democratic_percentage) & !is.na(dfl_percentage) ~ dfl_percentage,
+          TRUE ~ democratic_percentage
+        ),
+        otherparties_count = case_when(
+          is.na(otherparties_count) & !is.na(variouscandidatesotherparties_count) ~ variouscandidatesotherparties_count,
+          TRUE ~ otherparties_count
+        ),
+        otherparties_percentage = case_when(
+          is.na(otherparties_percentage) & !is.na(variouscandidatesotherparties_percentage) ~ variouscandidatesotherparties_percentage,
+          TRUE ~ otherparties_percentage
+        )
+      ) |>
+      select(-any_of(c(
+        "variouscandidatesotherparties_count", "variouscandidatesotherparties_percentage",
+        "dfl_count", "dfl_percentage",
+        "democraticnpl_count", "democraticnpl_percentage"
+      )))
+    
+    if (year == 2020){
+      # consolidate misc parties vote counts into otherparties
+      election_results <- 
+        election_results |>
+        select(-c(totalvotescast, totalvotes, registeredvoters, voterturnout, total)) |>
+        mutate(
+          other_count_components = rowSums(
+            pick(matches("_count$") & 
+                   !matches("republican_count") & 
+                   !matches("democratic_count") &
+                   !matches("otherparties_count")),
+            na.rm = TRUE
+          ),
+          otherparties_count = case_when(
+            is.na(otherparties_count) ~ other_count_components,
+            !is.na(otherparties_count) & other_count_components > 0 ~ otherparties_count + other_count_components,
+            TRUE ~ otherparties_count
+          )
+        ) |>
+        select(-other_count_components)
+    }
+    # recalculate percentages just in case... and drop all the extra columns. 
+    election_results <- 
+      election_results |> 
+      mutate(
+        total_votes = rowSums(
+          pick(matches("_count$") & !matches("margin_count")),
+          na.rm = TRUE
+          ),
+        republican_percentage = 100 * republican_count / total_votes,
+        democratic_percentage = 100 * democratic_count / total_votes,
+        otherparties_percentage = 100 * otherparties_count / total_votes
+        ) |>
+      select(
+        county, republican_count, republican_percentage, democratic_count,
+        democratic_percentage, otherparties_count, otherparties_percentage,
+        county_type, state, total_votes
+        )
+        
+    write.csv(election_results, file = dest_fpath, row.names = FALSE)
+    }
+  else{
+    election_results <- read.csv(dest_fpath)
+  }
+  return(election_results)
+  }
+```
+In the function above, the quirks of scraping data from Wikipedia reappeared--particularly with the 2020 election tables. Many of these tables included an overwhelming number of columns, often listing minor party and independent candidates individually. To streamline the dataset, I consolidated all non-Democratic and non-Republican vote counts into a single “Other” category. This not only simplified the data structure but also made it easier to visualize and compare across states and years. Combined, these functions were designed to cleanly import the election results of all 50 states with just one line of code. 
+``` {r assign-election-variable}
+election_results_2020 <- load_election_results(us_states, 2020)
+election_results_2024 <- load_election_results(us_states, 2024)
+```
+
+## Initial Analysis
+
+As shown below, I merged the census and election results data into one `data.frame` object called `election_results`.
+``` {r merge-dataframes}
+election_results <- left_join(
+  election_results_2020,
+  election_results_2024,
+  join_by(county == county, state == state, county_type == county_type),
+  suffix = c("_2020", "_2024")
+  ) |>
+  right_join(us_counties, join_by(county == NAME, state == STATE_NAME)) |>
+  mutate(
+    democratic_count_change = democratic_count_2024 - democratic_count_2020,
+    democratic_percentage_change = democratic_percentage_2024 - democratic_percentage_2020,
+    republican_count_change = republican_count_2024 - republican_count_2020,
+    republican_percentage_change = republican_percentage_2024 - republican_percentage_2020,
+    otherparties_count_change = otherparties_count_2024 - otherparties_count_2020,
+    otherparties_percentage_change = otherparties_percentage_2024 - otherparties_percentage_2020,
+  )
+```
+
+First, I identify the county with the most votes cast for Trump in 2024.
+``` {r task-4-1}
+# Which county or counties cast the most votes for Trump (in absolute terms) in 2024?
+election_results |>
+  select(county, state, republican_count_2024) |>
+  filter(county != "Totals") |>
+  slice_max(republican_count_2024, n=1) |>
+  rename(
+    "County" = county,
+    "State" = state,
+    "Votes" = republican_count_2024) |>
+  kable(caption = "Table 1: County with the most votes cast for Trump in 2024.")
+```
+Next, I find the county that cast the highest percentage of votes for Biden in 2020.
+``` {r task-4-2}
+# Which county or counties cast the most votes for Biden (as a fraction of total votes cast) in 2020?
+election_results |>
+  select(county, state, democratic_percentage_2020) |>
+  filter(county != "Totals") |>
+  slice_max(democratic_percentage_2020, n=1) |>
+  rename(
+    "County" = county,
+    "State" = state,
+    "Percent of Votes" = democratic_percentage_2020) |>
+  kable(caption = "Table 2: County with the highest percentage of votes for Biden in 2020?")
+```
+Then, I determine the county with the largest shift in votes towards Trump in 2024.
+``` {r task-4-3}
+# Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?
+election_results |>
+  select(county, state, republican_count_change) |>
+  filter(county != "Totals") |>
+  slice_max(republican_count_change, n=1) |>
+  rename(
+    "County" = county,
+    "State" = state,
+    "Change in Votes" = republican_count_change
+  ) |>
+  kable(caption = "Table 3: County with the largest shift in votes towards Trump in 2024?")
+```
+Here, I locate the state the smallest shift toward Trump in 2024.
+``` {r task-4-4}
+# Which state had the largest shift towards Harris (or smallest shift towards Trump) in 2024? (Note that the total votes for a state can be obtained by summing all counties in that state.)
+election_results |>
+  select(county, state, republican_count_change) |>
+  filter(county == "Totals") |>
+  slice_min(republican_count_change, n=1) |>
+  select(!c(county)) |>
+  rename(
+    "State" = state,
+    "Change in Votes" = republican_count_change
+  ) |>
+  kable(caption = "Table 4: State with the smallest shift towards Trump in 2024")
+```
+Next, I ascertain the county with the largest total area (i.e. land and water area).
+``` {r task-4-5}
+# What is the largest county, by area, in this data set?
+election_results |>
+  select(county, state, ALAND, AWATER) |>
+  st_drop_geometry() |>
+  mutate(`Total Area` = ALAND + AWATER) |>
+  slice_max(`Total Area`, n=1) |>
+  rename(
+    "County" = county,
+    "State" = state,
+    "Land Area" = ALAND,
+    "Water Area" = AWATER,
+  ) |>
+  kable(caption = "Table 5: County with the largest area.")
+```
+Then, I discern which county boasted the highest voter density in 2020.
+``` {r task-4-6}
+# Which county has the highest voter density (voters per unit of area) in 2020?
+election_results |>
+  select(county, state, ALAND, AWATER, total_votes_2020) |>
+  st_drop_geometry() |>
+  mutate(
+    `Total Area` = ALAND + AWATER,
+    `Voter Density` = total_votes_2020 / `Total Area`
+         ) |>
+  slice_max(`Voter Density`, n=1) |>
+  select(county, state, `Voter Density`) |>
+  rename(
+    "County" = county,
+    "State" = state,
+  ) |>
+  kable(caption = "Table 6: County with the highest voter density.")
+```
+Finally, I deduce the county that had the largest increase in voter runout in the most recent election. 
+``` {r task-4-7}
+# Which county had the largest increase in voter turnout in 2024?
+election_results |> 
+  select(county, state, total_votes_2020, total_votes_2024) |>
+  filter(county != "Totals") |>
+  mutate(
+    change = total_votes_2024 - total_votes_2020
+      ) |>
+  slice_max(change, n = 1) |>
+  select(-c(total_votes_2020,total_votes_2024)) |>
+  rename(
+    "County" = county,
+    "State" = state,
+    "Change in Voter Turnout" = change
+  ) |>
+  kable(caption = "Table 7: County with the largest increase in voter turnout in 2024.")
+```
+
+## New York Times "Red Shift" Figure Reproduction
+
+I reproduced the image at [@nyt2024redshift] with the following code. I obtained geometry for the state boundaries by grouping the census data by `STATE_NAME`.
+``` {r fig-reproduction-1}
+state_boundaries <- us_counties |>
+  group_by(STATE_NAME) |>
+  summarise(geometry = st_union(geometry), .groups = "drop") |>
+  mutate(geometry = st_cast(geometry, "MULTIPOLYGON"))
+```
+I created coordinates for the arrow bodies corresponding to the magnitude and direction of the shift.
+``` {r fig-reproduction-2}
+# calculating centroids + arrow body coords
+plot_data <- st_as_sf(election_results) |>
+  mutate(
+    geometry = st_cast(geometry, "MULTIPOLYGON",
+    centroid = st_centroid(geometry),
+    coords = st_coordinates(centroid),
+    x_start = coords[, 1],
+    y_start = coords[, 2],
+    x_end = x_start + (republican_percentage_change * SCALE_FACTOR) * cos(ARROW_ANGLE),
+    y_end = y_start + (abs(republican_percentage_change) * SCALE_FACTOR) * sin(ARROW_ANGLE),
+    shift_direction = ifelse(republican_percentage_change > 0, "Republican", "Democrat"),
+  )
+```
+I wanted to make the plot interactive with `plotly`, but `plotly::ggplotly()` doesn’t natively support the arrow argument used in `geom_segment()`--which draws proper arrowheads in static `ggplot2` plots. As a result, the arrowheads simply didn’t render in the interactive version.
+
+To work around this, I manually constructed arrowheads by drawing two short line segments that converge at the endpoint of each arrow shaft. This required calculating offset angles from the direction of the main arrow to position the “wings” of the arrowhead.
+``` {r fig-reproduction-3}
+# Compute work around arrowhead segments
+arrowheads <- plot_data |> 
+  filter(!is.na(republican_percentage_change)) |>
+  rowwise() |> 
+  mutate(
+    theta = ifelse(republican_percentage_change >= 0, ARROW_ANGLE, -ARROW_ANGLE),
+    x_tip = x_end,
+    y_tip = y_end,
+    arrowhead_length = SCALE_FACTOR * 0.5 * republican_percentage_change,
+    x1 = x_tip - arrowhead_length * cos(theta + ARROWHEAD_ANGLE),
+    y1 = y_tip - arrowhead_length * sin(theta + ARROWHEAD_ANGLE),
+    x2 = x_tip - arrowhead_length * cos(theta - ARROWHEAD_ANGLE),
+    y2 = y_tip - arrowhead_length * sin(theta - ARROWHEAD_ANGLE)
+  )
+```
+Finally, I generated the plot using the code below. 
+``` {r fig-reproduction-4}
+plot <- ggplot() +
+  geom_sf(
+    data = plot_data |> distinct(geometry, .keep_all = TRUE),
+    fill = "grey90",
+    color = "white",
+    linewidth = LINEWIDTH - 0.1
+  ) +
+  geom_sf(
+    data = state_boundaries,
+    fill = NA,
+    color = "gray40",
+    linewidth = LINEWIDTH - 0.1
+  ) +
+  geom_segment(
+    data = plot_data |> filter(!is.na(republican_percentage_change)),
+    aes(
+      x = x_start, y = y_start, xend = x_end, yend = y_end,
+      color = shift_direction,
+      text = paste0(county, " ", county_type, ", ", state, "\nShift: ", round(abs(republican_percentage_change), digits = 2), "% more ", shift_direction, " in 2024")
+    ),
+    arrow = arrow(length = unit(0.1, "inches")),
+    linewidth = LINEWIDTH
+  ) +
+  geom_segment(
+    data = arrowheads,
+    aes(x = x_tip, y = y_tip, xend = x1, yend = y1, color = shift_direction),
+    linewidth = LINEWIDTH
+  ) +
+  geom_segment(
+    data = arrowheads,
+    aes(x = x_tip, y = y_tip, xend = x2, yend = y2, color = shift_direction),
+    linewidth = LINEWIDTH
+  ) +
+  scale_color_manual(values = c("Democrat" = DEM_BLUE, "Republican" = REP_RED), na.translate = FALSE) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.margin = margin(0, 0, 0, 0),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "bottom",
+  ) +
+  labs(color = "Shift")
+
+# Convert to plotly
+ggplotly(plot, tooltip = "text") |>
+  layout(
+  margin = list(l = 0, r = 0, t = 0, b = 1), 
+  showlegend = TRUE,
+  legend = list(
+    orientation = "h",
+    x = 0.5,
+    xanchor = "center",
+    y = 0.2,
+    yanchor = "top"
+  )
+)
+
+```
