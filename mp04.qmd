@@ -537,7 +537,7 @@ REP_RED <- "#E81B23"
 
 ### US County Shapes
 
-To visualize election results geographically, I imported U.S. county boundary shapefiles at a 1:20,000,000 scale from the [US Census Bureau](https://www.census.gov/geographies/mapping-files/2023/geo/carto-boundary-file.html)[@]. The code used to import and preprocess these shapefiles is shown below.
+To visualize election results geographically, I imported U.S. county boundary shapefiles at a 1:20,000,000 scale from the [US Census Bureau](https://www.census.gov/geographies/mapping-files/2023/geo/carto-boundary-file.html)[@census2023shapefile]. The code used to import and preprocess these shapefiles is shown below.
 ```{r dl-census-counties}
 #' Download and Process US County Shapefile
 #'
