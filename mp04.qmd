@@ -657,7 +657,7 @@ load_state_election_results <- function(state, year){
       url <- paste0("https://en.wikipedia.org/wiki/",year,"_United_States_presidential_election_in_the_",str_replace_all(state, "\\s+", "_"),"#Results_by_ward")
     }
     if (state == "Connecticut"){
-      # connecticut changed from "counties" to "planning regions" in 2022. this code maps towns to the new planning regions
+      # Connecticut changed from "counties" to "planning regions" in 2022. this code maps towns to the new planning regions
       if (year == 2020){
         mapping_flag <- TRUE
         regex_str = "^Town$"
@@ -872,7 +872,7 @@ load_election_results <- function(states, year){
       )))
     
     if (year == 2020){
-      # consolidate misc parties vote counts into otherparties
+      # consolidate misc parties vote counts into other parties
       election_results <- 
         election_results |>
         select(-c(totalvotescast, totalvotes, registeredvoters, voterturnout, total)) |>
@@ -918,7 +918,7 @@ load_election_results <- function(states, year){
   return(election_results)
   }
 ```
-In the function above, the quirks of scraping data from Wikipedia reappeared--particularly with the 2020 election tables. Many of these tables included an overwhelming number of columns, often listing minor party and independent candidates individually. To streamline the dataset, I consolidated all non-Democratic and non-Republican vote counts into a single “Other” category. This not only simplified the data structure but also made it easier to visualize and compare across states and years. Combined, these functions were designed to cleanly import the election results of all 50 states with just one line of code. 
+In the function above, the quirks of scraping data from Wikipedia reappeared--particularly with the 2020 election tables. Many of these tables included an overwhelming number of columns, often listing minor party and independent candidates individually. To streamline the data set, I consolidated all non-Democratic and non-Republican vote counts into a single “Other” category. This not only simplified the data structure but also made it easier to visualize and compare across states and years. Combined, these functions were designed to cleanly import the election results of all 50 states with just one line of code. 
 ``` {r assign-election-variable, eval=TRUE}
 election_results_2020 <- load_election_results(us_states, 2020)
 election_results_2024 <- load_election_results(us_states, 2024)
@@ -969,7 +969,7 @@ election_results |>
     "County" = county,
     "State" = state,
     "Percent of Votes" = democratic_percentage_2020) |>
-  kable(caption = "Table 2: County with the highest percentage of votes for Biden in 2020?")
+  kable(caption = "Table 2: County with the highest percentage of votes for Biden in 2020.")
 ```
 Then, I determine the county with the largest shift in votes towards Trump in 2024.
 ``` {r task-4-3, eval=TRUE}
@@ -983,21 +983,20 @@ election_results |>
     "State" = state,
     "Change in Votes" = republican_count_change
   ) |>
-  kable(caption = "Table 3: County with the largest shift in votes towards Trump in 2024?")
+  kable(caption = "Table 3: County with the largest shift in votes towards Trump in 2024.")
 ```
-Here, I locate the state the smallest shift toward Trump in 2024.
+Here, I locate the state with the smallest shift toward Trump in 2024.
 ``` {r task-4-4, eval=TRUE}
 # Which state had the largest shift towards Harris (or smallest shift towards Trump) in 2024? (Note that the total votes for a state can be obtained by summing all counties in that state.)
 election_results |>
-  select(county, state, republican_count_change) |>
-  filter(county == "Totals") |>
-  slice_min(republican_count_change, n=1) |>
-  select(!c(county)) |>
+  group_by(state) |> 
+  summarize(state_republican_count_change = sum(republican_count_change, na.rm = TRUE)) |>
+  slice_min(state_republican_count_change, n = 1) |>
   rename(
     "State" = state,
-    "Change in Votes" = republican_count_change
+    "Change in Votes" = state_republican_count_change
   ) |>
-  kable(caption = "Table 4: State with the smallest shift towards Trump in 2024")
+  kable(caption = "Table 4: State with the smallest shift towards Trump in 2024.")
 ```
 Next, I ascertain the county with the largest total area (i.e. land and water area).
 ``` {r task-4-5, eval=TRUE}
@@ -1033,7 +1032,7 @@ election_results |>
   ) |>
   kable(caption = "Table 6: County with the highest voter density.")
 ```
-Finally, I deduce the county that had the largest increase in voter runout in the most recent election. 
+Finally, I deduce the county that had the largest increase in voter turnout in the most recent election. 
 ``` {r task-4-7, eval=TRUE}
 # Which county had the largest increase in voter turnout in 2024?
 election_results |> 
