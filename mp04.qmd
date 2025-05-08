@@ -27,6 +27,7 @@ library(tigris)
 library(ggplot2)
 library(rvest)
 library(jsonlite)
+library(knitr)
 library(plotly)
 
 # define constants
@@ -918,7 +919,7 @@ load_election_results <- function(states, year){
   }
 ```
 In the function above, the quirks of scraping data from Wikipedia reappeared--particularly with the 2020 election tables. Many of these tables included an overwhelming number of columns, often listing minor party and independent candidates individually. To streamline the dataset, I consolidated all non-Democratic and non-Republican vote counts into a single “Other” category. This not only simplified the data structure but also made it easier to visualize and compare across states and years. Combined, these functions were designed to cleanly import the election results of all 50 states with just one line of code. 
-``` {r assign-election-variable}
+``` {r assign-election-variable, eval=TRUE}
 election_results_2020 <- load_election_results(us_states, 2020)
 election_results_2024 <- load_election_results(us_states, 2024)
 ```
@@ -926,7 +927,7 @@ election_results_2024 <- load_election_results(us_states, 2024)
 ## Initial Analysis
 
 As shown below, I merged the census and election results data into one `data.frame` object called `election_results`.
-``` {r merge-dataframes}
+``` {r merge-dataframes, eval=TRUE}
 election_results <- left_join(
   election_results_2020,
   election_results_2024,
@@ -945,7 +946,7 @@ election_results <- left_join(
 ```
 
 First, I identify the county with the most votes cast for Trump in 2024.
-``` {r task-4-1}
+``` {r task-4-1, eval=TRUE}
 # Which county or counties cast the most votes for Trump (in absolute terms) in 2024?
 election_results |>
   select(county, state, republican_count_2024) |>
@@ -958,7 +959,7 @@ election_results |>
   kable(caption = "Table 1: County with the most votes cast for Trump in 2024.")
 ```
 Next, I find the county that cast the highest percentage of votes for Biden in 2020.
-``` {r task-4-2}
+``` {r task-4-2, eval=TRUE}
 # Which county or counties cast the most votes for Biden (as a fraction of total votes cast) in 2020?
 election_results |>
   select(county, state, democratic_percentage_2020) |>
@@ -971,7 +972,7 @@ election_results |>
   kable(caption = "Table 2: County with the highest percentage of votes for Biden in 2020?")
 ```
 Then, I determine the county with the largest shift in votes towards Trump in 2024.
-``` {r task-4-3}
+``` {r task-4-3, eval=TRUE}
 # Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?
 election_results |>
   select(county, state, republican_count_change) |>
@@ -985,7 +986,7 @@ election_results |>
   kable(caption = "Table 3: County with the largest shift in votes towards Trump in 2024?")
 ```
 Here, I locate the state the smallest shift toward Trump in 2024.
-``` {r task-4-4}
+``` {r task-4-4, eval=TRUE}
 # Which state had the largest shift towards Harris (or smallest shift towards Trump) in 2024? (Note that the total votes for a state can be obtained by summing all counties in that state.)
 election_results |>
   select(county, state, republican_count_change) |>
@@ -999,7 +1000,7 @@ election_results |>
   kable(caption = "Table 4: State with the smallest shift towards Trump in 2024")
 ```
 Next, I ascertain the county with the largest total area (i.e. land and water area).
-``` {r task-4-5}
+``` {r task-4-5, eval=TRUE}
 # What is the largest county, by area, in this data set?
 election_results |>
   select(county, state, ALAND, AWATER) |>
@@ -1015,7 +1016,7 @@ election_results |>
   kable(caption = "Table 5: County with the largest area.")
 ```
 Then, I discern which county boasted the highest voter density in 2020.
-``` {r task-4-6}
+``` {r task-4-6, eval=TRUE}
 # Which county has the highest voter density (voters per unit of area) in 2020?
 election_results |>
   select(county, state, ALAND, AWATER, total_votes_2020) |>
@@ -1033,7 +1034,7 @@ election_results |>
   kable(caption = "Table 6: County with the highest voter density.")
 ```
 Finally, I deduce the county that had the largest increase in voter runout in the most recent election. 
-``` {r task-4-7}
+``` {r task-4-7, eval=TRUE}
 # Which county had the largest increase in voter turnout in 2024?
 election_results |> 
   select(county, state, total_votes_2020, total_votes_2024) |>
