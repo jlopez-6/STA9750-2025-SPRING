@@ -1,0 +1,2475 @@
+---
+title: "Money Talks: Connecticut's Real Estate Market"
+subtitle: "Exploring the Economic Drivers of Housing Prices Using Machine Learning"
+format: 
+  html: 
+    code-tools: true
+    code-fold: true
+    toc: true
+    toc-location: right
+    number-sections: false
+    toc-depth: 3
+execute:
+  eval: false
+  echo: true
+  message: false
+  warning: false
+bibliography: individual_report_ref.bib
+csl: apa.csl
+---
+
+# Introduction
+
+This work is part of a final course project, where my teammates, [Craig](https://allcr.github.io/STA9750-2025-SPRING/about.html), and  [Hong](https://hongzhuang1.github.io/STA9750-2025-SPRING/), and I explored what factors drive real estate prices in Connecticut. To narrow down such a broad question, we split it into three subquestions, each focused on a key meta-factor: the local economy, [education quality](), and [public transit accessibility](). I was randomly assigned the question: How strongly does Connecticut's real estate market correlate with economic growth? To answer it, I built a random forest model that predicts the median sale price of a home in Connecticut using county-level economic indicators. This page documents the technical details of the analysis, including data acquisition, cleaning, exploratory data analysis, and the modeling process. It provides reproducible code snippets and explanations to illustrate how the random forest model was developed and evaluated using county-level economic data.
+
+The analysis in this project was completed with R and selected packages^[@baseR; @readr; @dplyr; @stringr; @rvest; @httr; @jsonlite; @lubridate; @tidyr; @janitor; @purrr; @tidyverse; @car; @randomForest; @scales], and with Python and selected packages^[@python; @pandas; @requests; @beautifulsoup4; @pathlib].
+
+
+# Data Acquisition
+
+The data acquisition part of this project gave me a chance to put into practice the responsible data intake skills we covered in class and applied in Mini-Projects [03](https://jlopez-6.github.io/STA9750-2025-SPRING/mp03.html) and [04](https://jlopez-6.github.io/STA9750-2025-SPRING/mp04.html). As usual, the process began with loading the necessary packages and setting some global constants. To make the setup cleaner, I wrote a helper function, `load_if_needed()` that installs and loads the R packages used in this analysis.
+
+```{r}
+#' Load a package, installing it if necessary.
+#'
+#' @param pkg A character string naming the package to load.
+#' @return Invisibly returns TRUE if the package is successfully loaded.
+#' @examples
+#' load_if_needed("dplyr")
+load_if_needed <- function(pkg) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg)
+  }
+  suppressPackageStartupMessages(library(pkg, character.only = TRUE))
+}
+
+PACKAGES <- c("readr", "dplyr", "stringr", "rvest", "httr", "jsonlite",
+              "lubridate", "tidyr", "janitor", "purrr", "tidyverse", "car",
+              "randomForest", "scales")
+
+lapply(PACKAGES, load_if_needed)
+
+SEED <- 1747187262 
+CORR_THRESHOLD <- 0.8
+```
+
+## Connecticut Town-to-County Mapping
+
+While downloading and cleaning up the various datasets, I noticed that many of the town-level sources didn’t include the county each town belonged to. To fix this, I pulled in the [Connecticut State Library’s](https://portal.ct.gov/csl?language=en_US) online list of Connecticut Towns & Counties^[@cttowns2025]. This dataset includes all 169 towns, their corresponding counties, year of incorporation, and parent town. I used the code below to download it and merge the county information into the relevant datasets.
+
+```{r}
+#' Load or download Connecticut town-to-county mapping.
+#'
+#' Downloads a table mapping Connecticut towns to counties from the Connecticut State Library
+#' website if it doesn't already exist locally. Saves the table as a CSV for reuse.
+#'
+#' @return A data frame with town and county mappings.
+#' @examples
+#' ct_towns <- load_ct_town_mapping()
+load_ct_town_mapping <- function() {
+  target_dir <- "data/individual_report"
+  f_name <- "ct_towns.csv"
+  file_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  if (!file.exists(file_path)) {
+    # Download CT Town <- County mapping
+    url <- "https://libguides.ctstatelibrary.org/cttowns"
+    webpage <- read_html(url)
+    
+    tables <- html_table(webpage, fill = TRUE)
+    ct_towns_counties <- as.data.frame(tables[[1]])
+    
+    # Set first row as column names and remove it from data
+    colnames(ct_towns_counties) <- ct_towns_counties[1, ]
+    ct_towns_counties <- ct_towns_counties[-1, ]
+    row.names(ct_towns_counties) <- NULL
+    
+    write_csv(ct_towns_counties, file_path)
+  } else {
+    message("Reading existing data from CSV...")
+    ct_towns_counties <- read_csv(file_path, show_col_types = FALSE)
+  }
+  return(ct_towns_counties)
+}
+```
+
+## Connecticut Real Estate Sales 
+
+The Connecticut Real Estate Sales data set contained sales information about all real estate transactions greater than $2,000 between October 1, 2001 and September 30, 2022. This comprehensive data set was compiled and published by [Connecticut's Office of Policy and Management](https://portal.ct.gov/opm) (CT OPM)^[@ctrealesales2025]. 
+With over 1.09 million records and 20 attributes per transaction, the dats set includes information on the sale amount, the sales ratio, and the property's assessed value for each transaction. This data set is valuable for researchers looking to explore the spatio-temporal dynamics of Connecticut's real estate market. The code used to download this data set is included below.
+
+``` {r}
+#' Load and clean Connecticut real estate sales data.
+#'
+#' Downloads, processes, and saves Connecticut real estate sales data from the CT Open Data portal.
+#' If a cleaned version already exists locally, it is loaded directly. Otherwise, the function:
+#' - Downloads raw data (if not already downloaded)
+#' - Cleans and filters the dataset (e.g., removes duplicates, fixes town names, parses dates)
+#' - Merges with town-to-county mapping
+#' - Saves the cleaned data for future use
+#'
+#' @return A cleaned data frame of real estate sales in Connecticut from 2001–2022.
+#' @examples
+#' ct_sales <- load_ct_sales()
+load_ct_sales <- function() {
+  target_dir <- "/Users/jocelylopez/CT-HousingLens/data/individual_report"
+  raw_file <- file.path(target_dir, "CT_SALES_raw.csv")
+  clean_file <- file.path(target_dir, "Real_Estate_Sales_2001-2022_GL.csv")
+  
+  if (!dir.exists(target_dir)){dir.create(target_dir, recursive = TRUE)}
+  
+  if (!file.exists(clean_file)) {
+    # Download raw data if needed
+    if (!file.exists(raw_file)) {
+      base_url <- "https://data.ct.gov/resource/5mzw-sjtu.json"
+      
+      # Since there is a request limit on the API, I will find the count of data
+      # points so I can override the default limit. 
+      query <- "SELECT COUNT(*)"
+      encoded_query <- URLencode(query, reserved = TRUE)
+      count_query <- paste0(base_url, "?$query=", encoded_query)
+      response <- GET(count_query)
+      count_data <- fromJSON(content(response, as = "text"))
+      total_count <- as.integer(count_data$COUNT[1])
+      
+      base_url <- paste0(base_url,"?$limit=", total_count)
+      response <- GET(base_url)
+      CT_SALES <- fromJSON(content(response, as = "text")) |> select(-geo_coordinates) #removing geo_coordinates because it's nested...
+      write_csv(as.data.frame(CT_SALES), raw_file)
+      
+    } else {
+      CT_SALES <- read_csv(raw_file, show_col_types = FALSE)
+    }
+    
+    # Clean data
+    ct_sales <- CT_SALES |>
+      rename(
+        serial_number = serialnumber,
+        list_year = listyear,
+        date_recorded = daterecorded,
+        address = address,
+        assessed_value = assessedvalue,
+        sale_amount = saleamount,
+        sales_ratio = salesratio,
+        property_type = propertytype,
+        residential_type = residentialtype,
+        non_use_code = nonusecode,
+        assessor_remarks = remarks,
+        opm_remarks = opm_remarks
+      ) |>
+      filter(!is.na(date_recorded), sale_amount >= 2000) |>
+      mutate(
+        town = if_else(town == "***Unknown***", "East Hampton", town),
+        address = str_to_title(address),
+        year_recorded = year(date_recorded),
+        month_recorded = month(date_recorded),
+        day_recorded = day(date_recorded)
+      ) |>
+      mutate(across(where(~ is.character(.) && all(!is.na(suppressWarnings(as.numeric(.))))), as.numeric)) |>
+      filter(year_recorded >= 2001)
+    
+    # Join town-county mapping
+    ct_towns_counties <- load_ct_town_mapping()
+    ct_sales <- ct_sales |>
+      left_join(select(ct_towns_counties, "Town name", County), by = c("town" = "Town name")) |>
+      rename(county = County)
+    
+    # Filter out problematic or non-residential records
+    is_concerning <- function(text) {
+      str_detect(text, regex("duplicate|incorrect|wrong|error|missing|gas station", ignore_case = TRUE))
+    }
+    
+    to_remove <- ct_sales |> filter(is_concerning(opm_remarks))
+    ct_sales <- ct_sales |> anti_join(to_remove, by = c("serial_number", "address"))
+    ct_sales <- ct_sales |> filter(!non_use_code %in% c("20 - Cemetery"), sale_amount > 0)
+    
+    # Add unique ID
+    ct_sales <- ct_sales |> mutate(id = paste(address, town, property_type))
+    write_csv(as.data.frame(ct_sales), clean_file)
+    # Optional: file.remove(raw_file)
+  } else {
+    message("Reading existing data from CSV...")
+    ct_sales <- read_csv(clean_file, show_col_types = FALSE)
+  }
+  
+  return(ct_sales)
+}
+
+CT_SALES <- load_ct_sales()
+```
+
+## GDP by County
+
+The [U.S. Bureau of Economic Analysis (BEA)](https://bea.gov) publishes annual county-level GDP estimates by industry for every state^[@beagdp2023]. The Connecticut file covers all 8 counties from 2001 to 2023. When paired with the real estate sales data, this dataset makes it possible to explore how local GDP relates to housing prices. I downloaded it using the code below.
+
+``` {r}
+#' Load and process BEA County-level GDP data (CAGDP2) for Connecticut (2001–2023).
+#'
+#' Downloads and processes GDP data if not already saved locally. 
+#' Cleans and reshapes the dataset into tidy format.
+#'
+#' @return A cleaned tibble with columns: county, industry_class, industry_desc, year, and gdp.
+load_CAGDP2_data <- function() {
+  target_dir <- "data/individual_report/CAGDP2"
+  f_name <- "CAGDP2_CT_2001_2023.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  if (!file.exists(f_path)) {
+    zip_url <- "https://apps.bea.gov/regional/zip/CAGDP2.zip"
+    zip_f_name <- basename(zip_url)
+    zip_f_path <- file.path(target_dir, zip_f_name)
+    
+    # Download zip if not already there
+    if (!file.exists(zip_f_path)) {
+      download.file(zip_url, zip_f_path)
+    }
+    
+    # Unzip contents
+    unzip(zip_f_path, exdir = target_dir)
+    
+    # Keep only relevant files
+    keep_files <- file.path(target_dir, c(
+      "CAGDP2_CT_2001_2023.csv",
+      "CAGDP2__Footnotes.html",
+      "CAGDP2__definition.xml"
+    ))
+    all_files <- list.files(target_dir, recursive = TRUE, full.names = TRUE)
+    file.remove(setdiff(all_files, keep_files))
+    
+    # Read and clean data
+    CAGDP2 <- read_csv(f_path, show_col_types = FALSE) |>
+      select(-c(TableName, GeoFIPS, Region, LineCode)) |>
+      rename(unit = Unit, industry_desc = Description) |>
+      mutate(county = str_split(GeoName, ", ", simplify = TRUE)[, 1]) |>
+      pivot_longer(
+        -c(GeoName, IndustryClassification, industry_desc, unit, county),
+        names_to = "year",
+        values_to = "gdp"
+      ) |>
+      mutate(
+        year = as.numeric(str_remove(year, "^X")),
+        gdp = as.numeric(gdp) * 1000
+      ) |>
+      filter(!is.na(gdp)) |>
+      select(-GeoName, -unit) |>
+      rename(industry_class = IndustryClassification)
+    
+    write_csv(CAGDP2, f_path)
+  } else {
+    message("Reading existing data from CSV...")
+    CAGDP2 <- read_csv(f_path, show_col_types = FALSE)
+  }
+  
+  return(CAGDP2)
+}
+
+CAGDP2 <- load_CAGDP2_data()
+```
+
+## Income by County
+
+In addition to GDP, the BEA publishes various data sets containing information on personal income^[@bea_personal_income_2023]. For this project, I used four of them: CAINC1, CAINC4, CAINC30, and CAINC91. Respectively, these files provide annual county-level data on total personal income, income and employment by major component, economic profiles, and gross earnings flows. Including these in the analysis brings in a fuller picture of personal income as a factor that could shape Connecticut’s real estate market. The code I used to download them is below.
+
+```{r}
+#' Load and process BEA County-level Income Data (CAINC1) for Connecticut (2001–2023).
+#'
+#' Downloads and processes personal income data if not already saved locally. 
+#' Cleans, reshapes, and standardizes the dataset into a tidy format with one row per county-year.
+#'
+#' @return A cleaned tibble with columns: county, year, personal_income, population, per_capita_income.
+load_CAINC1_data <- function() {
+  target_dir <- "data/individual_report/CAINC1"
+  f_name <- "CAINC1_CT_2001_2023.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  if (!file.exists(f_path)) {
+    zip_url <- "https://apps.bea.gov/regional/zip/CAINC1.zip"
+    zip_f_name <- basename(zip_url)
+    zip_f_path <- file.path(target_dir, zip_f_name)
+    
+    if (!file.exists(zip_f_path)) {
+      download.file(zip_url, zip_f_path)
+    }
+    
+    unzip(zip_f_path, exdir = target_dir)
+    
+    keep_files <- file.path(target_dir, c(
+      "CAINC1_CT_1969_2023.csv",
+      "CAINC1__Footnotes.html",
+      "CAINC1__definition.xml"
+    ))
+    extracted_files <- list.files(target_dir, recursive = TRUE, full.names = TRUE)
+    file.remove(setdiff(extracted_files, keep_files))
+    
+    CAINC1 <- read_csv(file.path(target_dir, "CAINC1_CT_1969_2023.csv"), show_col_types = FALSE) |>
+      select(-c(TableName, GeoFIPS, Region, LineCode, IndustryClassification)) |>
+      rename(unit = Unit, metric_desc = Description) |>
+      mutate(county = str_split(GeoName, ", ", simplify = TRUE)[, 1]) |>
+      pivot_longer(
+        -c(GeoName, metric_desc, unit, county),
+        names_to = "year",
+        values_to = "metric_value"
+      ) |>
+      mutate(
+        year = as.numeric(str_remove(year, "^X")),
+        metric_value = as.numeric(metric_value)
+      ) |>
+      filter(!is.na(metric_value)) |>
+      mutate(
+        metric_value = case_when(
+          metric_desc == "Personal income (thousands of dollars)" ~ metric_value * 1000,
+          TRUE ~ metric_value
+        ),
+        metric_desc = case_when(
+          metric_desc == "Personal income (thousands of dollars)" ~ "Personal income",
+          metric_desc == "Population (persons) 1/" ~ "Population",
+          metric_desc == "Per capita personal income (dollars) 2/" ~ "Per capita personal income",
+          TRUE ~ metric_desc
+        )
+      ) |>
+      filter(year >= 2001) |>
+      pivot_wider(
+        -unit,
+        names_from = metric_desc,
+        values_from = metric_value
+      ) |> 
+      clean_names() |>
+      select(county, year, personal_income, population, per_capita_personal_income)
+    
+    write_csv(CAINC1, f_path)
+    file.remove(file.path(target_dir, "CAINC1_CT_1969_2023.csv"))
+  } else {
+    message("Reading existing data from CSV...")
+    CAINC1 <- read_csv(f_path, show_col_types = FALSE)
+  }
+  
+  return(CAINC1)
+}
+
+CAINC1 <- load_CAINC1_data()
+
+#' Load and process BEA County-level Detailed Income Data (CAINC4) for Connecticut (2001–2023).
+#'
+#' Downloads and processes detailed personal income data if not already saved locally.
+#' Cleans, reshapes, and standardizes the dataset into a tidy format with one row per county-year.
+#'
+#' @return A cleaned tibble with county-level income and earnings components from 2001–2023.
+load_CAINC4_data <- function() {
+  target_dir <- "data/individual_report/CAINC4"
+  f_name <- "CAINC4_CT_2001_2023.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  if (!file.exists(f_path)) {
+    zip_url <- "https://apps.bea.gov/regional/zip/CAINC4.zip"
+    zip_f_name <- basename(zip_url)
+    zip_f_path <- file.path(target_dir, zip_f_name)
+    
+    if (!file.exists(zip_f_path)) {
+      download.file(zip_url, zip_f_path)
+    }
+    
+    unzip(zip_f_path, exdir = target_dir)
+    
+    keep_files <- file.path(target_dir, c(
+      "CAINC4_CT_1969_2023.csv",
+      "CAINC4__Footnotes.html",
+      "CAINC4__definition.xml"
+    ))
+    
+    extracted_files <- list.files(target_dir, recursive = TRUE, full.names = TRUE)
+    file.remove(setdiff(extracted_files, keep_files))
+    
+    CAINC4 <- read_csv(file.path(target_dir, "CAINC4_CT_1969_2023.csv"), show_col_types = FALSE) |>
+      select(-c(TableName, GeoFIPS, Region, LineCode, IndustryClassification)) |>
+      rename(unit = Unit, amount_type = Description) |>
+      mutate(county = str_split(GeoName, ", ", simplify = TRUE)[, 1]) |>
+      pivot_longer(
+        -c(GeoName, amount_type, unit, county),
+        names_to = "year",
+        values_to = "amount"
+      ) |>
+      mutate(
+        year = as.numeric(str_remove(year, "^X")),
+        amount = as.numeric(amount)
+      ) |>
+      filter(!is.na(amount), year >= 2001) |>
+      select(-GeoName) |>
+      mutate(amount = if_else(unit == "Thousands of dollars", amount * 1000, amount)) |>
+      pivot_wider(
+        id_cols = -unit,
+        names_from = amount_type,
+        values_from = amount
+      ) |> 
+      clean_names() |>
+      rename_with(~ . |> 
+                    str_remove_all("_[0-9]+") |> 
+                    str_remove_all("_thousands_of_dollars") |>
+                    str_remove_all("_dollars") |>
+                    str_remove_all("_persons")) |>
+      mutate(across(where(is.list), ~ sapply(., `[`, 1))) |>
+      mutate(across(-county, as.double))
+    
+    write_csv(CAINC4, f_path)
+    file.remove(file.path(target_dir, "CAINC4_CT_1969_2023.csv"))
+  } else {
+    message("Reading existing data from CSV...")
+    CAINC4 <- read_csv(f_path, show_col_types = FALSE)
+  }
+  
+  return(CAINC4)
+}
+
+CAINC4 <- load_CAINC4_data()
+
+#' Load and process BEA CAINC30 data for Connecticut counties (2001–2023)
+#'
+#' Downloads, processes, and returns the CAINC30 dataset from the U.S. Bureau of Economic Analysis.
+#' If the processed file is already present locally, it reads from that instead.
+#'
+#' @return A cleaned tibble containing annual income and population data by county.
+#' @examples
+#' df <- load_CAINC30_data()
+load_CAINC30_data <- function() {
+  target_dir <- "data/individual_report/CAINC30"
+  f_name <- "CAINC30_CT_2001_2023.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) dir.create(target_dir, recursive = TRUE)
+  
+  if (!file.exists(f_path)) {
+    zip_url <- "https://apps.bea.gov/regional/zip/CAINC30.zip"
+    zip_f_name <- basename(zip_url)
+    zip_f_path <- file.path(target_dir, zip_f_name)
+    
+    if (!file.exists(zip_f_path)) {
+      download.file(zip_url, zip_f_path)
+    }
+    
+    unzip(zip_f_path, exdir = target_dir)
+    
+    keep_files <- file.path(target_dir, c(
+      "CAINC30_CT_1969_2023.csv",
+      "CAINC30__Footnotes.html",
+      "CAINC30__definition.xml"
+    ))
+    
+    extracted_files <- list.files(target_dir, recursive = TRUE, full.names = TRUE)
+    file.remove(setdiff(extracted_files, keep_files))
+    
+    CAINC30 <- read_csv(file.path(target_dir, "CAINC30_CT_1969_2023.csv"), show_col_types = FALSE) |>
+      select(-TableName, -GeoFIPS, -Region, -LineCode, -IndustryClassification) |>
+      rename(unit = Unit, amount_type = Description) |>
+      mutate(county = str_split(GeoName, ", ", simplify = TRUE)[, 1]) |>
+      pivot_longer(-c(GeoName, amount_type, unit, county), names_to = "year", values_to = "amount") |>
+      mutate(
+        year = as.numeric(str_remove(year, "^X")),
+        amount = as.numeric(amount)
+      ) |>
+      filter(!is.na(amount), year >= 2001) |>
+      select(-GeoName) |>
+      mutate(amount = if_else(unit == "Thousands of dollars", amount * 1000, amount)) |>
+      pivot_wider(id_cols = -unit, names_from = amount_type, values_from = amount) |>
+      clean_names() |>
+      rename_with(~ . |>
+                    str_remove_all("_[0-9]+") |>
+                    str_remove_all("_thousands_of_dollars") |>
+                    str_remove_all("_dollars") |>
+                    str_remove_all("_persons"))
+    
+    write_csv(CAINC30, f_path)
+    file.remove(file.path(target_dir, "CAINC30_CT_1969_2023.csv"))
+  } else {
+    message("Reading existing data from CSV...")
+    CAINC30 <- read_csv(f_path, show_col_types = FALSE)
+  }
+  return(CAINC30)
+}
+
+CAINC30 <- load_CAINC30_data()
+
+#' Load and process BEA CAINC91 data for Connecticut counties (2001–2023)
+#'
+#' Downloads, processes, and returns the CAINC91 dataset from the U.S. Bureau of Economic Analysis.
+#' If the processed file is already saved locally, it loads it directly from disk.
+#'
+#' @return A cleaned tibble with income flow adjustments by county and year.
+#' @examples
+#' df <- load_CAINC91_data()
+load_CAINC91_data <- function() {
+  target_dir <- "data/individual_report/CAINC91"
+  f_name <- "CAINC91_CT_2001_2023.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) dir.create(target_dir, recursive = TRUE)
+  
+  if (!file.exists(f_path)) {
+    zip_url <- "https://apps.bea.gov/regional/zip/CAINC91.zip"
+    zip_f_name <- basename(zip_url)
+    zip_f_path <- file.path(target_dir, zip_f_name)
+    
+    if (!file.exists(zip_f_path)) {
+      download.file(zip_url, zip_f_path)
+    }
+    
+    unzip(zip_f_path, exdir = target_dir)
+    
+    keep_files <- file.path(target_dir, c(
+      "CAINC91_CT_1990_2023.csv",
+      "CAINC91__Footnotes.html",
+      "CAINC91__definition.xml"
+    ))
+    
+    extracted_files <- list.files(target_dir, recursive = TRUE, full.names = TRUE)
+    file.remove(setdiff(extracted_files, keep_files))
+    
+    CAINC91 <- read_csv(file.path(target_dir, "CAINC91_CT_1990_2023.csv"), show_col_types = FALSE) |>
+      select(-TableName, -GeoFIPS, -Region, -LineCode, -IndustryClassification) |>
+      rename(unit = Unit, amount_type = Description) |>
+      mutate(county = str_split(GeoName, ", ", simplify = TRUE)[, 1]) |>
+      pivot_longer(-c(GeoName, amount_type, unit, county), names_to = "year", values_to = "amount") |>
+      mutate(
+        year = as.numeric(str_remove(year, "^X")),
+        amount = as.numeric(amount)
+      ) |>
+      filter(!is.na(amount), year >= 2001) |>
+      select(-GeoName) |>
+      mutate(amount = if_else(unit == "Thousands of dollars", amount * 1000, amount)) |>
+      pivot_wider(id_cols = -unit, names_from = amount_type, values_from = amount) |>
+      clean_names()
+    
+    write_csv(CAINC91, f_path)
+    file.remove(file.path(target_dir, "CAINC91_CT_1990_2023.csv"))
+  } else {
+    message("Reading existing data from CSV...")
+    CAINC91 <- read_csv(f_path, show_col_types = FALSE)
+  }
+  
+  return(CAINC91)
+}
+
+CAINC91 <- load_CAINC91_data()
+```
+
+
+## Unemployment
+
+Monthly local area (LA) unemployment data is reported to the [U.S. Bureau of Labor Statistics (BLS)](https://www.bls.gov/) and published on their website^[@bls_local_area_unemployment]. I used this dataset to help answer my subquestion, since unemployment rates are a core indicator of economic health. I initially attempted to access this data using R, but several limitations with R’s API tools, particularly unhelpful error messages, made it impractical for this task. In contrast, Python offered tools that allowed me to efficiently query and process a high number of series with clearer error diagnostics. For these reasons, I chose to use Python for downloading and managing the BLS unemployment data.
+
+To ensure that an appropriate Python environment is set up for for the task of downloading the files using the BLS API, I defined the function `ensure_python_ready()` which creates and activates a suitable virtual environment.
+```{r}
+#' Ensure Python Environment and Required Packages are Available
+#'
+#' Checks if Python is installed on the system. If not found, it stops execution.
+#' Creates a virtual environment named 'bls_py_env' if it doesn't already exist.
+#' Checks for specified Python packages within the environment and installs any missing ones.
+#'
+#' @param packages A character vector of Python package names to check and install. Defaults to c("pandas", "requests").
+#'
+#' @return NULL. Throws an error if Python is not found.
+#' @examples
+#' ensure_python_ready()
+#' ensure_python_ready(packages = c("pandas", "requests", "beautifulsoup4"))
+ensure_python_ready <- function(packages = c("pandas", "requests")) {
+  if (Sys.which("python") == "") {
+    stop("Python is not available on this system.")
+  }
+  
+  # Creating and activating virtual environment
+  venv_dir <- "bls_py_env"
+  if (!dir.exists(venv_dir)) {
+    system(sprintf("python -m venv %s", venv_dir))
+  }
+  py_exec <- file.path(venv_dir, "bin", "python")
+  
+  # Checking for packages, and installing them if not available.
+  for (pkg in packages) {
+    if (system(sprintf("python -c \"import %s\"", pkg),
+               ignore.stdout = TRUE, ignore.stderr = TRUE) != 0) {
+      cat(sprintf("Installing missing Python package: %s\n", pkg))
+      system(sprintf("python -m pip install %s", pkg))
+    }
+  }
+}
+```
+
+In order for the following Python script to work, [this file](https://download.bls.gov/pub/time.series/la/la.series) containing LA series titles and descriptions must be manually saved to the `data/` directory^[@bls_laus_series]. This is because the BLS server blocks automated requests to this file. Therefore, I create an R function that places a system call to the Python script if a local copy of the data set is not available.
+```{r}
+#' Load BLS Data, Downloading with Python Script if Needed
+#'
+#' Checks if the BLS data CSV file exists locally. If not, it:
+#' - Ensures the required Python environment and packages are available,
+#' - Downloads the series list file if missing,
+#' - Runs a Python script (`bls_api.py`) to download and generate the BLS data CSV,
+#' - Validates the output file creation.
+#' Finally, reads the CSV into an R tibble and returns it.
+#'
+#' @return A tibble containing BLS data.
+#' @examples
+#' bls_data <- load_bls_data()
+#' head(bls_data)
+#' 
+#' @export
+load_bls_data <- function() {
+  f_path <- "data/individual_report/bls_data.csv"
+  
+  # Check if file exists
+  if (!file.exists(f_path)) {
+    message("File not found. Running Python script to download BLS data...")
+    
+    # Ensure file containing series names exists
+    la_series_file <- "data/individual_report/la.series.txt"
+    
+    if (!file.exists(la_series_file)) {
+      url <- "https://download.bls.gov/pub/time.series/la/la.series"
+      stop(paste("LA series list file not found. Go to",url,"and save the file as la.series.txt to data/"))
+    }
+    
+    ensure_python_ready(packages = c("pandas","requests","bs4", "lxml"))
+    
+    # System call to run Python script
+    system("python bls_api.py", intern = TRUE)
+    
+    # Optionally re-check file
+    if (!file.exists(f_path)) {
+      stop("Python script failed to produce the expected file.")
+    }
+  }
+  
+  # Load the CSV
+  bls_data <- read_csv(f_path, show_col_types = FALSE)
+  return(bls_data)
+}
+
+BLS_LABOR <- load_bls_data()
+```
+The Python script used to download the data is shown below.
+```{python}
+import os
+import time
+import json
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from pathlib import Path
+
+api_key = "27f5cf21548149728333c3831176e3e6"
+
+# Define file paths
+csv_file = Path("data/individual_report/bls_data.csv")
+la_series_file = Path("data/individual_report/la.series.txt")
+
+if not os.path.exists('data'):
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+la_series = pd.read_csv(la_series_file, sep="\t")
+for i,column in enumerate(la_series.columns.tolist()):
+    la_series.rename(columns={column: column.strip()}, inplace=True)
+
+la_series = la_series.assign(series_id=lambda x: x["series_id"].str.strip())
+
+ct_towns = la_series[la_series['series_title'].str.contains("town, CT", case=False, na=False)][
+    ["series_id", "series_title"]
+]
+
+# Select series IDs to pull
+series_ids = ct_towns["series_id"].tolist()
+
+def get_bls_data_chunk(series_chunk, startyear, endyear, api_key):
+    url = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+    payload = {
+        "seriesid": series_chunk,
+        "startyear": str(startyear),
+        "endyear": str(endyear),
+        "registrationKey": api_key
+    }
+
+    response = requests.post(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload))
+
+    if response.status_code != 200:
+        print("API request failed:", response.text)
+        return None
+
+    try:
+        json_data = response.json()
+    except json.JSONDecodeError:
+        print("Invalid JSON response.")
+        return None
+
+    if "message" in json_data:
+        print("BLS API message:", "; ".join(json_data["message"]))
+
+    if "Results" not in json_data or "series" not in json_data["Results"]:
+        print("'series' not found in API response.")
+        return None
+
+    series_data = []
+    for series in json_data["Results"]["series"]:
+        data_rows = series.get("data", [])
+        if data_rows:
+            df = pd.DataFrame([
+                {k: v for k, v in row.items() if k != "footnotes"}
+                for row in data_rows
+            ])
+            df["series_id"] = series["seriesID"]
+            series_data.append(df)
+
+    if series_data:
+        return pd.concat(series_data, ignore_index=True)
+    return None
+
+# Request data in chunks and year ranges
+all_data = []
+intervals = [(2001, 2020), (2021, 2023)]
+chunk_size = 50
+series_chunks = [series_ids[i:i + chunk_size] for i in range(0, len(series_ids), chunk_size)]
+
+for startyear, endyear in intervals:
+    for chunk in series_chunks:
+        print(f"Requesting {len(chunk)} series from {startyear} to {endyear}...")
+        time.sleep(1)
+
+        try:
+            chunk_data = get_bls_data_chunk(chunk, startyear, endyear, api_key)
+            if chunk_data is not None:
+                all_data.append(chunk_data)
+        except Exception as e:
+            print("Error retrieving data:", e)
+
+# Combine and clean all data
+BLS_LABOR = pd.concat(all_data, ignore_index=True)
+BLS_LABOR = BLS_LABOR.merge(ct_towns, on="series_id", how="inner")
+
+# Data cleaning and formatting
+BLS_LABOR["year"] = BLS_LABOR["year"].astype(int)
+BLS_LABOR["value"] = pd.to_numeric(BLS_LABOR["value"], errors="coerce")
+
+# Extract values
+BLS_LABOR["value_type"] = BLS_LABOR["series_title"].str.extract(r"^([^:]+)")
+BLS_LABOR["town"] = BLS_LABOR["series_title"].str.extract(
+    r": (.*?)(?= (?:city/town|town|city|borough/town), CT)"
+)
+
+BLS_LABOR["town"] = BLS_LABOR["town"].replace({"Milford (consolidated)": "Milford"})
+
+# Add month number
+month_map = {name: i for i, name in enumerate([
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'], 1)}
+BLS_LABOR["month_number"] = BLS_LABOR["periodName"].map(month_map)
+
+# Pivot the data
+BLS_LABOR = BLS_LABOR.pivot_table(
+    index=["year", "month_number", "town"], 
+    columns="value_type", 
+    values="value", 
+    aggfunc="first"
+).reset_index()
+
+# Rename columns
+BLS_LABOR = BLS_LABOR.rename(columns={
+    "Unemployment Rate": "unemployment_rate",
+    "Unemployment": "unemployment",
+    "Employment": "employment",
+    "Labor Force": "labor_force"
+})
+
+# Download CT Town <- County mapping
+url = "https://libguides.ctstatelibrary.org/cttowns"
+soup = BeautifulSoup(requests.get(url).content, "html.parser")
+tables = pd.read_html(str(soup))
+ct_towns_counties = tables[0]
+
+# Clean header and rows
+ct_towns_counties.columns = ct_towns_counties.iloc[0]
+ct_towns_counties = ct_towns_counties.drop(index=0)
+
+# Merge county data
+BLS_LABOR = BLS_LABOR.merge(
+    ct_towns_counties[["Town name", "County"]],
+    how="left", left_on="town", right_on="Town name"
+).rename(columns={"County": "county"}).drop(columns=["Town name"])
+
+# Save to CSV
+csv_file.parent.mkdir(parents=True, exist_ok=True)
+BLS_LABOR.to_csv(csv_file, index=False)
+
+```
+
+## Municipal Financial Indicators
+
+Besides providing the Real Estate Sales data set, the CT OPM publishes a comprehensive collection of municipal financial data for all 169 towns in Connecticut^[@ct_mfi_2024;@ct_mfi_2003_2007;@ct_mfi_2007_2011;@ct_mfi_2007_2012;@ct_mfi_2011_2015]. These datasets are highly detailed and include annual town-level information on total taxes collected, total revenues, total expenditures, fund balances, among other fiscal indicators. This data set is particularly useful for examining trends in local government revenue, spending priorities, and financial stability.
+
+Since the CT OPM stores some of its older data in Microsoft Access database (MDB) files, I needed to use the `mdbtools` utility to read these files on a non-Windows system^[@mdbtools]. To streamline this process, I wrote a helper function, `ensure_mdbtools()`, which checks for the presence of `mdbtools` and installs it if necessary. This ensures that the required tooling is available before attempting to import any of the data. The code for `ensure_mdbtools()` is presented below. 
+```{r}
+#' Ensure mdbtools is installed on the system
+#'
+#' Checks if the `mdb-export` command from the `mdbtools` package is available.
+#' If not found, attempts to install `mdbtools` using Homebrew on macOS.
+#' Stops execution with an error if Homebrew is not installed or installation fails.
+#'
+#' @return
+#' Invisibly returns `NULL`. Side effect is installing `mdbtools` if needed.
+#'
+#' @examples
+#' \dontrun{
+#' ensure_mdbtools()
+#' }
+ensure_mdbtools <- function() {
+  # Check if mdb-export is already available
+  if (system("which mdb-export", ignore.stdout = TRUE, ignore.stderr = TRUE) != 0) {
+    message("mdbtools not found. Attempting to install via Homebrew...")
+    
+    # Check if Homebrew is installed
+    if (system("which brew", ignore.stdout = TRUE, ignore.stderr = TRUE) != 0) {
+      stop("Unable to install mdbtools: Homebrew is not installed.")
+    }
+    
+    # Try installing mdbtools
+    install_status <- system("brew install mdbtools")
+    
+    if (install_status != 0) {
+      stop("Failed to install mdbtools using Homebrew.")
+    } else {
+      message("mdbtools successfully installed.")
+    }
+  } else {
+    message("mdbtools is already installed.")
+  }
+}
+
+```
+
+Once `mdbtools` has been installed, I can download the data and access the information in the MDB files. The code for downloading and merging the municipal fiscal indicators datafiles is included below.
+```{r}
+#' Load Connecticut Municipal Fiscal Indicators Data (2014-2022)
+#'
+#' Downloads and processes municipal fiscal data from the Connecticut open data portal
+#' if a local CSV file does not already exist. The function:
+#' - Ensures the target directory exists,
+#' - Loads necessary R scripts and packages,
+#' - Fetches data via API call (limited to 2000 records),
+#' - Cleans and formats the data, including town name fixes and joining county info,
+#' - Converts relevant columns to numeric types,
+#' - Filters out statewide aggregates,
+#' - Saves the cleaned data locally as a CSV for future use,
+#' - Otherwise loads data directly from the local CSV file.
+#'
+#' @return A tibble with municipal fiscal indicators data for CT towns (2014-2022).
+#' 
+#' @examples
+#' ct_mfi <- load_MFI_2014_2022_data()
+#' head(ct_mfi)
+#' 
+#' @export
+load_MFI_2014_2022_data <- function() {
+  target_dir <- "data/individual_report/2014-2022"
+  file_name  <- "ct_municipal_fiscal_indicators_2014_2022.csv"
+  file_path  <- file.path(target_dir, file_name)
+  
+  # Create directory if it doesn't exist
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  # Download and process data if file doesn't exist
+  if (!file.exists(file_path)) {
+    base_url <- "https://data.ct.gov/resource/ej6f-y2wf.json"
+    full_url <- paste0(base_url, "?$limit=2000")
+    
+    response <- GET(full_url)
+    raw_data <- fromJSON(content(response, as = "text"))
+    
+    # Load town mapping
+    town_mapping <- load_ct_town_mapping()
+    
+    # Clean and join data
+    cleaned_data <- raw_data |>
+      mutate(
+        town = str_to_title(town),
+        town = case_when(
+          town == "Groton (City)" ~ "Groton",
+          TRUE ~ town
+        )
+      ) |>
+      left_join(
+        town_mapping |> select(`Town name`, County),
+        by = c("town" = "Town name")
+      ) |>
+      mutate(
+        property_tax_revenues = as.numeric(property_tax_revenues),
+        fiscal_year_end = as.integer(fiscal_year_end),
+        across(
+          where(~ is.character(.) && all(!is.na(suppressWarnings(as.numeric(.))))),
+          as.numeric
+        )
+      ) |>
+      filter(town != "Statewide")
+    
+    write_csv(cleaned_data, file_path)
+    ct_revenue_data <- cleaned_data
+    
+  } else {
+    message("Reading existing data from CSV...")
+    ct_revenue_data <- read_csv(file_path, show_col_types = FALSE)
+  }
+  return(ct_revenue_data)
+}
+
+#' Load and Process CT Municipal Fiscal Indicators (2003–2007)
+#'
+#' Downloads, extracts, cleans, and processes Connecticut municipal fiscal indicator data
+#' from 2003 to 2007. This includes:
+#' - Downloading and extracting data from a Microsoft Access database (.mdb)
+#' - Parsing multiple related datasets (FISCIN, NetGL, ACMR)
+#' - Cleaning and harmonizing town names
+#' - Merging fiscal data, mill rates, and grand lists
+#' - Estimating property tax revenues
+#' - Joining with county-level town mapping
+#'
+#' The final dataset is cached locally as a CSV to avoid repeated downloads and processing.
+#'
+#' @return A cleaned `data.frame` (tibble) containing fiscal indicators from 2003–2007,
+#' including town name, county, net grand list, mill rate, estimated property tax revenue,
+#' Moody's bond ratings, population, and other selected fiscal variables.
+#'
+#' @note Requires `mdbtools` to be installed on the system (via Homebrew on macOS).
+#'
+#' @import dplyr readr stringr purrr tidyr
+#' @export
+load_MFI_2003_2007_data <- function(){
+  target_dir <- 'data/individual_report/2003-2007'
+  f_name <- "ct_municipal_fiscal_indicators_2003_2007.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)){
+    dir.create(target_dir, recursive=TRUE)
+  }
+  
+  if (!file.exists(f_path)){
+
+    mdb_file <- file.path(target_dir, "2003-2007.mdb")
+    output_dir <- target_dir
+    if (!file.exists(mdb_file)){
+      # Define the URL
+      download.file("https://data.ct.gov/download/psxm-7fts/application%2Fx-msaccess", destfile = mdb_file)
+    }
+    
+    ensure_mdbtools()
+    
+    # List all table names in the MDB file
+    tables <- system(paste("mdb-tables -1", shQuote(mdb_file)), intern = TRUE)
+    
+    # Loop through each table and export to CSV
+    for (table_name in tables) {
+      # Clean up table name for file output (e.g., replace spaces with underscores)
+      output_file <- file.path(output_dir, paste0(gsub(" ", "_", table_name), ".csv"))
+      
+      # Construct and run the export command
+      cmd <- paste("mdb-export", shQuote(mdb_file), shQuote(table_name), ">", shQuote(output_file))
+      system(cmd)
+    }
+    
+    all_fiscin = data.frame()
+    
+    # Initialize empty data frame
+    all_fiscin <- data.frame()
+    
+    # Read and combine all FISCIN files
+    for (y in 1:7) {
+      df <- read_csv(file.path(target_dir, paste0("FISCIN0", y, ".csv")), show_col_types = FALSE) |>
+        rename_with(str_to_lower)
+      all_fiscin <- bind_rows(all_fiscin, df)
+    }
+    
+    # Compute coalesced columns outside mutate
+    moodys_bond_rating <- coalesce(!!!select(all_fiscin, starts_with("moody's_bond_ratings_july_200")))
+    population <- coalesce(!!!select(all_fiscin, matches("^\\d{4} population$")))
+    tanf_recipients <- coalesce(!!!select(all_fiscin, starts_with("tanf")))
+    acglfy <- coalesce(!!!select(all_fiscin, starts_with("acglfy")))
+    
+    # Final transformation
+    all_fiscin <- all_fiscin |>
+      mutate(
+        municipality = str_to_title(municipality),
+        moodys_bond_rating = moodys_bond_rating,
+        population = population,
+        tanf_recipients = tanf_recipients,
+        acglfy = acglfy
+      ) |>
+      select(
+        -matches("moody's_bond_ratings_july_200"),
+        -matches("^\\d{4} population$"),
+        -matches("^acglfy0"),
+        -matches("^tanf0")
+      ) |>
+      rename_with(~ .x |>
+                    str_replace_all(" ", "_") |>
+                    str_replace_all("[^A-Za-z0-9_]", "") |>
+                    str_replace_all("__", "_")) |>
+      rename(town = municipality)
+    
+    
+    all_gls <- data.frame()
+    all_acmrs <- data.frame()
+    
+    for (year in 2003:2007) {
+      acmr_file_path <- paste0("data/2003-2007/ACMR_", year, "_GL_Year.csv")
+      gl_file_path <- paste0("data/2003-2007/NetGL", year, ".csv")
+      if (year == 2004){
+        gl_file_path <- paste0("data/2003-2007/NetGL_", year, ".csv")
+      }
+      
+      if (year != 2007){
+        df1 <- read_csv(gl_file_path, show_col_types = FALSE) 
+        
+        df1 <- df1 |>
+          mutate(gl_year = year) |> 
+          rename_with(
+            ~ str_replace(., "Net Grand List.*", paste0("Net Grand List - ", year, " GL Year")),
+            matches("Net Grand List")
+          ) |>
+          pivot_longer(
+            cols = starts_with("Net Grand List"),
+            names_to = "gl_year_label",
+            values_to = "net_grand_list"
+          ) |>
+          mutate(
+            gl_year = as.integer(str_extract(gl_year_label, "\\d{4}"))
+          ) |>
+          filter(!is.na(net_grand_list))
+        
+        all_gls <- bind_rows(all_gls, df1)
+      }
+      
+      df2 <- read_csv(acmr_file_path, show_col_types = FALSE)
+      
+      if (year == 2003){
+        df2_long <- df2 |>
+          pivot_longer(
+            cols = c(`Millrate FY 2004-2005`, `FY 2003-04 Millrate`),
+            names_to = "year",
+            values_to = "millrate"
+          ) |>
+          mutate(
+            year = case_when(
+              year == "Millrate FY 2004-2005" ~ 2004,
+              year == "FY 2003-04 Millrate" ~ 2003
+            )
+          )
+        all_acmrs <- bind_rows(all_acmrs, df2_long)
+      } else{
+        df2 <- df2 |>
+          rename(millrate = matches("Mil"))
+        
+        year_col <- grep("Year", names(df2), value = TRUE)
+        
+        if (length(year_col) == 0) {
+          df2 <- df2 |>
+            mutate(year = year) 
+        } else {
+          df2 <- df2 |>
+            rename_with(~ "year", .cols = all_of(year_col[1]))
+        }
+        
+        all_acmrs <- bind_rows(all_acmrs, df2)
+      }
+    }
+    
+    all_gls <-
+      all_gls |>
+      select(-gl_year_label) |>
+      rename(
+        town = Municipality,
+        comptroller_town_code = `Comptroller Town Code`,
+        comments = Comments,
+      ) |>
+      mutate(
+        town = str_to_title(town),
+      )
+    
+    all_acmrs <-
+      all_acmrs |>
+      rename(
+        town = Municipality
+      ) |>
+      mutate(
+        town = str_to_title(town),
+      )
+    
+    ct_towns_counties <- load_ct_town_mapping()
+    
+    final <- inner_join(
+      all_gls, all_acmrs, join_by(town == town, gl_year == year)
+    ) |> mutate(
+      property_tax_revenue = (millrate/1000) * net_grand_list
+    ) |> rename(year = gl_year) |>
+      inner_join(all_fiscin, join_by(town == town, year == fisc_year_end )) |>
+      inner_join(ct_towns_counties |> rename(county = County) |> select("Town name", county), join_by(town == "Town name"))
+    
+    write_csv(final, f_path)
+  } else{
+    final <- read_csv(f_path, show_col_types = FALSE)
+  }
+  return(final)
+}
+
+#' Load Connecticut Municipal Fiscal Indicators Data (2007-2011)
+#'
+#' This function downloads, extracts, processes, and merges municipal fiscal data for
+#' Connecticut towns from 2007 to 2011. It handles the Microsoft Access database file (.mdb),
+#' exports its tables to CSV files using `mdbtools`, reads and cleans specific fiscal indicator
+#' CSVs, and combines these with net grand list and mill rate data.
+#'
+#' If the processed CSV summary file already exists locally, it loads and returns it directly.
+#' Otherwise, it downloads the MDB file, extracts tables, processes and merges relevant data,
+#' and saves the combined data for future use.
+#'
+#' @return A tibble containing merged fiscal, tax, and municipal data for Connecticut towns from 2007-2011,
+#' with columns including town, year, property tax revenue, population, Moody's bond rating,
+#' and other fiscal indicators.
+#'
+#' @details
+#' - Requires `mdbtools` installed and available in the system PATH for exporting Access tables.
+#' - Downloads data from the Connecticut Open Data portal if necessary.
+#' - Uses `dplyr` and `tidyverse` functions for data manipulation.
+#' - Cleans column names and consolidates yearly variables into single columns.
+#' - Joins town-level fiscal indicators with tax and county data.
+#'
+#' @importFrom readr read_csv write_csv
+#' @importFrom dplyr rename_with mutate select rename inner_join bind_rows filter
+#' @importFrom stringr str_to_lower str_to_title str_replace_all str_extract
+#' @importFrom tidyr pivot_longer
+#'
+#' @examples
+#' \dontrun{
+#' fiscal_data <- load_MFI_2007_2011_data()
+#' head(fiscal_data)
+#' }
+load_MFI_2007_2011_data <- function() {
+  target_dir <- 'data/individual_report/2007-2011'
+  f_name <- "ct_municipal_fiscal_indicators_2007_2011.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  if (!file.exists(f_path)) {
+    mdb_fname <- "2007-2011.mdb"
+    mdb_file <- file.path(target_dir, mdb_fname)
+    output_dir <- target_dir
+    
+    if (!file.exists(mdb_file)){
+      download.file(
+        "https://data.ct.gov/download/vwi6-xdyb/application%2Fx-msaccess",
+        destfile = file.path(target_dir, mdb_fname)
+      )
+    }
+    
+    tables <- system(paste("mdb-tables -1", shQuote(mdb_file)), intern = TRUE)
+    
+    for (table_name in tables) {
+      output_file <- file.path(output_dir, paste0(gsub(" ", "_", table_name), ".csv"))
+      cmd <- paste("mdb-export", shQuote(mdb_file), shQuote(table_name), ">", shQuote(output_file))
+      system(cmd)
+    }
+    
+    all_fiscin <- data.frame()
+    all_fiscin <- map_dfr(8:11, ~ {
+      read_csv(file.path(target_dir, paste0("FISCIN", sprintf("%02d", .x), ".csv")), show_col_types = FALSE) |>
+        rename_with(str_to_lower)
+    }) |>
+      mutate(
+        population = coalesce(`2011 population`, `2010 population`, `2009 population`, `2008 population`),
+        moodys_bond_rating = coalesce(`moody's_bond_ratings_july2011`, `moody's_bond_ratings_july2010`, `moody's_bond_ratings_july2009`, `moody's_bond_ratings_july_2008`),
+        acglfy = coalesce(acglfy11, acglfy10, acglfy09, acglfy08),
+        tanf_recipients = coalesce(`tanf11 recipients`, `tanf10 recipients`, `tanf09 recipients`, `tanf08 recipients`)
+      ) |>
+      select(
+        -matches("moody's_bond_ratings_july_200"),
+        -matches("moody's_bond_ratings_july20"),
+        -"2011 population", -"2010 population", -"2009 population", -"2008 population",
+        -matches("acglfy0"), -matches("acglfy1"),
+        -matches("tanf0"), -matches("tanf1")
+      ) |>
+      rename_with(~ .x |>
+                    str_replace_all(" ", "_") |>
+                    str_replace_all("[^A-Za-z0-9_]", "") |>
+                    str_replace_all("__", "_") |>
+                    str_replace_all("2011_", "")) |>
+      rename(town = municipality) |>
+      mutate(town = str_to_title(town))
+    
+    
+    all_gls <- data.frame()
+    all_acmrs <- data.frame()
+    
+    for (year in 2007:2011) {
+      gl_file_path <- file.path(target_dir, paste0("NetGL", year, ".csv"))
+      acmr_file_path <- file.path(target_dir, paste0("ACMR_", year, "_GL_Year.csv"))
+      
+      if (year <= 2008) {
+        df1 <- read_csv(file.path(target_dir, "NGL_2003-08_GL_Years.csv"), show_col_types = FALSE) |>
+          select(Municipality, Numbered, matches(paste0(year, " NGL"))) |>
+          rename(net_grand_list = matches(paste0(year, " NGL"))) |>
+          mutate(year = year)
+      } else if (file.exists(gl_file_path)) {
+        df1 <- read_csv(gl_file_path, show_col_types = FALSE) |>
+          mutate(gl_year = year) |>
+          rename_with(
+            ~ str_replace(., "Net Grand List.*", paste0("Net Grand List - ", year, " GL Year")),
+            matches("Net Grand List")
+          ) |>
+          pivot_longer(
+            cols = starts_with("Net Grand List"),
+            names_to = "gl_year_label",
+            values_to = "net_grand_list"
+          ) |>
+          mutate(gl_year = as.integer(str_extract(gl_year_label, "\\d{4}"))) |>
+          filter(!is.na(net_grand_list))
+      }
+      
+      if (exists("df1")) {
+        all_gls <- bind_rows(all_gls, df1 |> rename_with(tolower))
+        rm(df1)
+      }
+      
+      if (file.exists(acmr_file_path)) {
+        df2 <- read_csv(acmr_file_path, show_col_types = FALSE) |>
+          rename_with(~ "millrate", .cols = matches("Mil Rates|Mill Rates")) |>
+          mutate(year = year)
+        all_acmrs <- bind_rows(all_acmrs, df2 |> rename_with(tolower))
+      }
+    }
+    
+    all_gls <- all_gls |>
+      mutate(year = if_else(!is.na(gl_year), gl_year, year)) |>
+      select(-c(gl_year_label, gl_year)) |>
+      rename(town = municipality) |>
+      mutate(town = str_to_title(town))
+    
+    all_acmrs <- all_acmrs |>
+      rename(town = municipality) |>
+      mutate(town = str_to_title(town))
+    
+    ct_towns_counties <- load_ct_town_mapping()
+    
+    final <- inner_join(all_gls, all_acmrs, join_by(town == town, year == year)) |>
+      mutate(property_tax_revenue = (millrate / 1000) * net_grand_list) |>
+      inner_join(all_fiscin, join_by(town == town, year == fisc_year_end)) |>
+      inner_join(ct_towns_counties |> rename(county = County) |> select("Town name", county), join_by(town == "Town name"))
+    
+    write_csv(final, f_path)
+  } else {
+    message("Reading existing data from CSV...")
+    final <- read_csv(f_path, show_col_types = FALSE)
+  }
+  
+  return(final)
+}
+
+#' Load and Clean CT Municipal Fiscal Indicators (2007–2012)
+#'
+#' This function downloads, cleans, and formats Connecticut municipal fiscal indicators data
+#' for the years 2007 to 2012 from a public JSON API provided by the state. It saves the
+#' cleaned data to disk to avoid redundant downloads and processing in future runs.
+#'
+#' Steps performed:
+#' - Downloads JSON data if a local CSV file does not already exist.
+#' - Cleans non-numeric fields and coerces them into numeric types.
+#' - Standardizes town names and joins them with county mapping data.
+#' - Calculates derived variables (e.g., property tax revenues).
+#' - Filters out aggregate rows (e.g., "Statewide").
+#' - Saves the cleaned data to a CSV file for future use.
+#'
+#' @return A cleaned and joined data.frame (tibble) containing fiscal indicators
+#' for CT municipalities, including town, county, fiscal year, and tax data.
+#' @import dplyr, readr, httr, jsonlite, stringr
+#' @export
+load_MFI_2007_2012_data <- function() {
+  target_dir <- 'data/individual_report/2007-2012'
+  f_name <- "ct_municipal_fiscal_indicators_2007_2012.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive = TRUE)
+  }
+  
+  if (!file.exists(f_path)) {
+    clean_numeric <- function(x) {
+      x |>
+        str_replace_all("[^0-9.-]", "") |>
+        as.numeric()
+    }
+    
+    base_url <- "https://data.ct.gov/resource/h7h2-manp.json"
+    full_url <- paste0(base_url, "?$limit=2000")
+    
+    response <- GET(full_url)
+    ct_revenue_data <- jsonlite::fromJSON(content(response, as = "text")) |> as.data.frame()
+    
+    ct_towns_counties <- load_ct_town_mapping()
+    
+    ct_revenue_data <- ct_revenue_data |>
+      mutate(
+        town = str_to_title(municipality),
+        town = if_else(town == "Groton (City Of)", "Groton", town)
+      ) |>
+      select(-municipality) |>
+      mutate(
+        fisc_year_end = str_trim(fisc_year_end),
+        fiscal_year_end = as.double(fisc_year_end)
+      ) |>
+      select(-fisc_year_end) |>
+      mutate(
+        across(
+          .cols = -c(fiscal_year_end, town, initials, county_identifier),
+          .fns = ~ {
+            num_check <- suppressWarnings(as.numeric(.))
+            if (!all(is.na(num_check))) clean_numeric(.) else .
+          }
+        )
+      ) |>
+      mutate(
+        property_tax_revenues = as.numeric(egl) * (as.numeric(acmr) / 1000)
+      ) |>
+      left_join(
+        ct_towns_counties |> select(`Town name`, County),
+        by = c("town" = "Town name")
+      ) |>
+      mutate(
+        across(
+          where(~ is.character(.) && !anyNA(suppressWarnings(as.numeric(.)))),
+          ~ as.numeric(.)
+        )
+      ) |>
+      filter(town != "Statewide")
+    
+    write_csv(ct_revenue_data, f_path)
+  } else {
+    message("Reading existing data from CSV...")
+    ct_revenue_data <- read_csv(f_path, show_col_types = FALSE)
+  }
+  
+  return(ct_revenue_data)
+}
+
+#' Load and Process CT Municipal Fiscal Indicators (2011–2015)
+#'
+#' This function downloads, extracts, and processes Connecticut municipal fiscal indicators data
+#' for the years 2011–2015. The data is retrieved from a ZIP archive containing an Access (.mdb) database.
+#' It extracts multiple tables, merges key indicators (e.g., population, TANF recipients, Moody's bond ratings,
+#' net assets), and computes derived metrics such as property tax revenue. The processed dataset is saved
+#' as a CSV file for future use to avoid repeated downloading and processing.
+#'
+#' Processing steps include:
+#' - Downloading and unzipping MDB archive from a public data portal if not already present
+#' - Extracting all tables from the Access database using mdb-tools
+#' - Cleaning and combining fiscal data (FISCIN tables from 2010–2015)
+#' - Combining Net Grand List and mill rate (ACMR) tables from 2009–2015
+#' - Computing `property_tax_revenue` from Net Grand List and mill rate
+#' - Standardizing and coalescing fiscal year and town-level indicators
+#' - Merging with a town-to-county mapping dataset
+#'
+#' @return A cleaned and joined `data.frame` (tibble) containing town-level fiscal, demographic, and revenue data
+#'         for CT municipalities from 2011 to 2015, including columns such as `town`, `year`, `population`,
+#'         `net_grand_list`, `millrate`, `property_tax_revenue`, `moodys_bond_rating`, `tanf_recipients`, and `county`.
+#' @import dplyr, readr, tidyr, stringr
+#' @export
+load_MFI_2011_2015_data <- function(){
+  target_dir <- 'data/individual_report/2011-2015'
+  f_name <- "ct_municipal_fiscal_indicators_2011_2015.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)){
+    dir.create(target_dir, recursive=TRUE)
+  }
+  
+  if (!file.exists(f_path)){
+    mdb_file <- file.path(target_dir, "MuniFiscalIndicators_11_15.mdb")
+    output_dir <- target_dir
+    
+    if (!file.exists(file.path(target_dir, "2011-2015.zip"))){
+      # Define the URL
+      download.file("https://data.ct.gov/download/uij9-wzqw/application%2Fzip", destfile = file.path(target_dir, "2011-2015.zip"))
+    }
+    
+    unzip(file.path(target_dir, "2011-2015.zip"),exdir = file.path(target_dir))
+    
+    ensure_mdbtools()
+    
+    # List all table names in the MDB file
+    tables <- system(paste("mdb-tables -1", shQuote(mdb_file)), intern = TRUE)
+    
+    # Loop through each table and export to CSV
+    for (table_name in tables) {
+      # Clean up table name for file output (e.g., replace spaces with underscores)
+      output_file <- file.path(output_dir, paste0(gsub(" ", "_", table_name), ".csv"))
+      
+      # Construct and run the export command
+      cmd <- paste("mdb-export", shQuote(mdb_file), shQuote(table_name), ">", shQuote(output_file))
+      system(cmd)
+    }
+    
+    all_fiscin = data.frame()
+    
+    for (y in 10:15){
+      fiscin_path <- file.path(target_dir,paste0("FISCIN",sprintf("%02d", y),".csv"))
+      df <- read_csv(fiscin_path, show_col_types = FALSE) |>
+        rename_with(str_to_lower)
+      all_fiscin <- bind_rows(all_fiscin, df)
+    }
+    
+    all_fiscin <- 
+      all_fiscin |>
+      mutate(
+        population = coalesce(
+          `2015 population`, `2014 population`, `2013 population`, `2012 population`,
+          `2011 population`, `2010 population`
+        ),
+        moodys_bond_rating = coalesce(
+          `moody's_bond_ratings_nov_2016`, `moody's_bond_ratings_july_2015`,
+          `moody's_bond_ratings_dec_2014`, `moody's_bond_ratings_july_2014`,
+          `moody's_bond_ratings_july_2013`, `moody's_bond_ratings_july2012`,
+          `moody's_bond_ratings_july2011`, `moody's_bond_ratings_july2010`
+        ),
+        acglfy = coalesce(acglfy15, acglfy14, acglfy13, acglfy12, acglfy11, acglfy10),
+        tanf_recipients = coalesce(
+          `tanf15 recipients`, `tanf14 recipients`, `tanf13 recipients`, `tanf12 recipients`,
+          `tanf11 recipients`, `tanf10 recipients`
+        ),
+        net_assets = coalesce(`total net assets`, `total net position`),
+        change_in_net_assets = coalesce(`change in net assets`, `change in net position`),
+        unrestricted_net = coalesce(`unrestricted net assets`, `unrestricted net position`),
+        invested_in_capital = coalesce(
+          `invested in capital assets net of related debt`,
+          `net investment in capital assets`
+        ),
+        restatement = coalesce(
+          `restatement (y or n)`,
+          `restatement of fund balance (y or n)`
+        )
+      ) |>
+      select(-c(
+        matches("^20\\d{2} population$"),
+        matches("moody's_bond_ratings"),
+        matches("^acglfy\\d{2}$"),
+        matches("^tanf\\d{2} recipients$"),
+        "total net assets", "total net position",
+        "change in net assets", "change in net position",
+        "unrestricted net assets", "unrestricted net position",
+        "invested in capital assets net of related debt", "net investment in capital assets",
+        "restatement (y or n)", "restatement of fund balance (y or n)"
+      )
+      ) |> 
+      rename_with(~ .x |>
+                    str_replace_all(" ", "_") |>
+                    str_replace_all("[^A-Za-z0-9_]", "") |>
+                    str_replace_all("__", "_")
+      ) |> 
+      rename(town = municipality) |>
+      mutate(
+        town = str_to_title(town),
+      )
+    
+    all_gls <- data.frame()
+    all_acmrs <- data.frame()
+    
+    for (year in c(2009:2015)){
+      gl_file_path <- file.path(target_dir, paste0("NetGL", year, ".csv"))
+      acmr_file_path <- file.path(target_dir, paste0("ACMR_", year, "_GL_Year.csv"))
+      
+      if (file.exists(gl_file_path)){
+        df1 <- read_csv(gl_file_path, show_col_types = FALSE) |>
+          mutate(gl_year = year) |> 
+          rename_with(
+            ~ str_replace(., "Net Grand List.*", paste0("Net Grand List - ", year, " GL Year")),
+            matches("Net Grand List")
+          ) |>
+          pivot_longer(
+            cols = starts_with("Net Grand List"),
+            names_to = "gl_year_label",
+            values_to = "net_grand_list"
+          ) |>
+          mutate(
+            gl_year = as.integer(str_extract(gl_year_label, "\\d{4}"))
+          ) |>
+          filter(!is.na(net_grand_list))
+      }
+      
+      all_gls <- bind_rows(all_gls, df1 |> rename_with(tolower))
+      
+      if (file.exists(acmr_file_path)){
+        df2 <- read_csv(acmr_file_path, show_col_types = FALSE) 
+        
+        df2 <- df2 |>
+          rename(millrate = matches("Mil"))
+        
+        year_col <- grep("Year", names(df2), value = TRUE)
+        
+        if (length(year_col) == 0) {
+          df2 <- df2 |>
+            mutate(year = year) 
+        } else {
+          df2 <- df2 |>
+            rename_with(~ "year", .cols = all_of(year_col[1]))
+        }
+        all_acmrs <- bind_rows(all_acmrs, df2)
+        
+      }
+    }
+    
+    all_gls <-
+      all_gls |>
+      mutate(year = case_when(
+        !is.na(gl_year) ~ gl_year,
+        TRUE ~ year
+      )
+      ) |>
+      select(-c(gl_year_label, gl_year)) |>
+      rename(
+        town = municipality,
+      ) |>
+      mutate(
+        town = str_to_title(town),
+      )
+    
+    all_acmrs <-
+      all_acmrs |> 
+      mutate(millrate = case_when(
+        is.na(millrate) ~ coalesce(millrate1,millrate2, millrate3),
+        TRUE ~ millrate
+      ))
+    
+    all_acmrs <-
+      all_acmrs |>
+      rename(
+        town = Municipality
+      ) |>
+      mutate(
+        town = str_to_title(town),
+      )
+    
+    ct_towns_counties <- load_ct_town_mapping()
+    
+    final <- inner_join(
+      all_gls, all_acmrs, join_by(town == town, year == year)
+    ) |> mutate(
+      property_tax_revenue = (millrate/1000) * net_grand_list
+    ) |>
+      inner_join(all_fiscin, join_by(town == town, year == fisc_year_end )) |>
+      inner_join(ct_towns_counties |> rename(county = County) |> select("Town name", county), join_by(town == "Town name"))
+    
+    write_csv(final, f_path)
+  } else{
+    message("Reading existing data from CSV...")
+    final <- read_csv(f_path,, show_col_types = FALSE)
+  }
+  return(final)
+}
+
+#' Load and Consolidate CT Municipal Fiscal Revenue Data (2003–2022)
+#'
+#' This function loads, cleans, and merges Connecticut municipal fiscal indicators data
+#' from multiple overlapping sources spanning the years 2003 to 2022. If the consolidated
+#' dataset is not already cached locally, it triggers the loading of five different MFI
+#' (Municipal Fiscal Indicators) datasets, coalesces overlapping columns, and standardizes
+#' key fiscal metrics across years and data formats.
+#'
+#' Data sources:
+#' - 2003–2007
+#' - 2007–2011
+#' - 2007–2012
+#' - 2011–2015
+#' - 2014–2022
+#'
+#' Cleaning operations include:
+#' - Column name normalization using `janitor::clean_names`
+#' - Coalescing duplicate columns for common metrics (e.g., tax rates, population, revenues)
+#' - Renaming columns for consistency across years and sources
+#' - Removing superseded or redundant columns
+#' - Saving the cleaned and unified dataset as a CSV file to avoid redundant computation
+#'
+#' Key output variables include: `year`, `town`, `property_tax_revenues`, `millrate`,
+#' `total_fund_balance`, `education_expenditures`, `school_enrollment_average`, `population`,
+#' `equalized_net_grand_list`, `moodys_bond_rating`, `restatement_y_or_n`, `unemployment_annual_average`,
+#' `invested_in_capital_assets_net_of_related_debt`, among others.
+#'
+#' @return A cleaned and standardized `data.frame` (tibble) of Connecticut municipal revenue data
+#'         from 2003 to 2022, merged from multiple historical sources and enriched with unified fiscal indicators.
+#' @import dplyr, readr, janitor
+#' @export
+load_revenue_data <- function(){
+  target_dir <- 'data/individual_report'
+  f_name <- "MUNICIPAL_FISCAL_INDICATORS_CT_2003_2022.csv"
+  f_path <- file.path(target_dir, f_name)
+  
+  if (!dir.exists(target_dir)){
+    dir.create(target_dir, recursive=TRUE)
+  }
+  
+  if (!file.exists(f_path)){
+
+    CT_REVENUE_2014_2022 <- load_MFI_2014_2022_data() |> clean_names()
+    CT_REVENUE_2003_2007 <- load_MFI_2003_2007_data() |> clean_names()
+    CT_REVENUE_2007_2011 <- load_MFI_2007_2011_data() |> clean_names()
+    CT_REVENUE_2007_2012 <- load_MFI_2007_2012_data() |> clean_names()
+    CT_REVENUE_2011_2015 <- load_MFI_2011_2015_data() |> clean_names()
+    
+    CT_REVENUE <- bind_rows(CT_REVENUE_2014_2022, CT_REVENUE_2003_2007, CT_REVENUE_2007_2011, CT_REVENUE_2007_2012, CT_REVENUE_2011_2015)
+    
+    CT_REVENUE <- 
+      CT_REVENUE |> 
+      mutate(
+        # Taxes
+        current_year_adjusted_tax = coalesce(current_year_adjusted_tax, curr_year_adjusted_taxes_collectible),
+        current_year_tax_collection = coalesce(current_year_tax_collection, curr_year_tax_collection_rate),
+        property_tax_revenues = coalesce(property_tax_revenues, property_tax_revenue),
+        
+        # Fund balances
+        assigned = coalesce(assigned, assigned_fund_bal),
+        committed = coalesce(committed, committed_fund_bal),
+        design_fund_bal = coalesce(design_fund_bal),
+        nonspendable = coalesce(nonspendable, nonspendable_fund_bal),
+        restricted = coalesce(restricted, restricted_fund_bal),
+        total_fund_balance = coalesce(total_fund_balance, total_fund_bal),
+        unassigned = coalesce(unassigned, unassigned_fund_bal),
+        unrestricted = coalesce(unrestricted_fund_bal),
+        
+        # Revenues & transfers
+        total_revenues = coalesce(total_revenues, total_revenue),
+        total_revenues_and_other = coalesce(total_revenues_and_other),
+        intergovernmental_revenues = coalesce(intergovernmental_revenues, inter_gov_rev),
+        total_transfers_in_from_other = coalesce(total_transfers_in_from_other, total_trans_from_genl_fund),
+        total_transfers_out_to_other = coalesce(total_transfers_out_to_other, total_trans_to_genl_fund),
+        millrate = coalesce(millrate, millrate1, millrate2, millrate3),
+        
+        # Expenditures
+        education_expenditures = coalesce(education_expenditures, education),
+        total_net_assets = coalesce(net_assets,total_net_assets),
+        
+        # Enrollment / population
+        school_enrollment_average = coalesce(school_enrollment_average, enrollmt),
+        population = coalesce(population, population_state_dept_of_public_health),
+        
+        # Labor
+        unemployment_annual_average = coalesce(unemployment_annual_average, empl),
+        
+        # Equalized values
+        equalized_net_grand_list = coalesce(equalized_net_grand_list, egl),
+        equalized_mill_rate = coalesce(equalized_mill_rate, acmr),
+        
+        # Net assets / liabilities
+        invested_in_capital_assets_net_of_related_debt = coalesce(invested_in_capital_assets_net_of_related_debt, invested_in_capital),
+        unrestricted_net_assets = coalesce(unrestricted_net_assets, unrestricted_net),
+        
+        # Moody's ratings
+        moodys_bond_rating = coalesce(moodys_bond_rating, moody_s_bond_ratings, bond_rating_moodys_as_of),
+        
+        # Restatement flag
+        restatement_y_or_n = coalesce(restatement_y_or_n, restatement),
+        
+        # Misc
+        year = coalesce(year, fiscal_year_end),
+        comments = coalesce(comments, comments_2, comments_a, comments_b),
+        tax_code = coalesce(tax_code, town_code, comptroller_town_code, comptroller_town_code_x, comptroller_town_code_y)
+        
+      ) |>
+      select(
+        -curr_year_adjusted_taxes_collectible,
+        -curr_year_tax_collection_rate,
+        -property_tax_revenue,
+        -assigned_fund_bal,
+        -committed_fund_bal,
+        -nonspendable_fund_bal,
+        -restricted_fund_bal,
+        -total_fund_bal,
+        -unassigned_fund_bal,
+        -unrestricted_fund_bal,
+        -total_revenue,
+        -inter_gov_rev,
+        -total_trans_from_genl_fund,
+        -total_trans_to_genl_fund,
+        -millrate1,
+        -millrate2,
+        -millrate3,
+        -education,
+        -enrollmt,
+        -empl,
+        -egl,
+        -acmr,
+        -invested_in_capital,
+        -unrestricted_net,
+        -moody_s_bond_ratings,
+        -restatement, 
+        -fiscal_year_end,
+        -bond_rating_moodys_as_of,
+        -population_state_dept_of_public_health,
+        -comments_2, -comments_a, -comments_b,
+        -comptroller_town_code_x, -comptroller_town_code_y,
+        -town_code, -comptroller_town_code, -county_identifier,
+        -numbered_x, -numbered_y, -numbered,-net_assets
+      )
+    
+    write_csv(CT_REVENUE, f_path)
+    
+  } else{
+    CT_REVENUE <- read_csv(f_path, show_col_types = FALSE)
+  }
+  return(CT_REVENUE)
+}
+
+CT_REVENUE <- load_revenue_data()
+```
+
+# Merging
+
+Because the economic data spans multiple geographic units (e.g., county, town, and property level), I needed to standardize the level of geographic aggregation across datasets. County was the most consistent and broadly shared geographic unit, so I aggregated datasets as needed to the county level. This allowed me to create a unified data frame containing the fiscal data, as shown in the code below.
+```{r}
+CT_ECONOMY <-
+  CAGDP2 |> 
+  filter(
+    industry_desc == "All industry total",
+    county != "Connecticut"
+    ) |>
+  left_join(CAINC1 |>
+              filter(county != "Connecticut"),
+            join_by(
+              year == year,
+              county == county)) |>
+  left_join(CAINC4 |>
+              filter(county != "Connecticut"), 
+             join_by(year == year, 
+                     county == county, 
+                     population == population, 
+                     per_capita_personal_income == per_capita_personal_income)) |>
+  left_join(CAINC30 |>
+              filter(county != "Connecticut"), 
+             join_by(year == year, 
+                     county == county, 
+                     population == population)) |>
+  left_join(CAINC91,
+             join_by(year == year,
+                     county == county)) |>
+  left_join(CT_REVENUE |>
+              group_by(
+                county, year
+                ) |>
+              summarize(
+                across(c(
+                  "equalized_net_grand_list","current_year_adjusted_tax",
+                  "property_tax_revenues", "intergovernmental_revenues",
+                  "total_revenues","total_transfers_in_from_other",
+                  "total_revenues_and_other","education_expenditures",
+                  "operating_expenditures", "total_expenditures","total_transfers_out_to_other",
+                  "total_expenditures_and_other","net_change_in_fund_balance",
+                  "nonspendable","restricted","committed","assigned","unassigned",
+                  "total_fund_balance","net_pension_liability","net_opeb_liability",
+                  "bonded_long_term_debt","annual_debt_service","tax_rev",
+                  "debt_service","other_financing_sources",
+                  "operating_surplus_deficit_including_sources_and_uses",
+                  "rsd_debt","town_bonded_long_term_debt","total_bonded_long_term_debt_rsd_town",
+                  "reserv_fund_bal","design_fund_bal","unreserved_fund_bal",
+                  "fund_equity_enterprise", "fund_equity_internal_service",
+                  "curr_year_taxes_collected","total_adjusted_taxes_collectible",
+                  "total_taxes_collected","overal_total_tax_collection_rate",
+                  "area_lmt","invested_in_capital_assets_net_of_related_debt",
+                  "unrestricted_net_assets", "total_net_assets",
+                  "change_in_net_assets","population","tanf_recipients",
+                  "acglfy","onbehalf_payments_obp_teachers_retirement_plan",
+                  "obp_allocation_from_pob_contribution","unrestricted",
+                  "total_net_pension_liability"
+                ), ~ sum(.x, na.rm = TRUE)),
+                across(c("school_enrollment_average","unemployment_annual_average",
+                         "equalized_mill_rate","mill_rate_real_estate_personal",
+                         "mill_rate_motor_vehicle","current_year_tax_collection",
+                         "total_taxes_collected_as","millrate"
+                ), ~ median(.x, na.rm = TRUE)),
+                across(c("tax_code",
+                         "municipality_fips", "municipality_fips_geoid",
+                         "moodys_bond_rating",
+                ), ~ first(.x))
+                
+              )
+            ,
+             join_by(
+               year == year,
+               county == county
+               )
+            ) |>
+  left_join(BLS_LABOR |>
+              group_by(county, year) |>
+              summarize(
+                unemployment_rate = median(unemployment_rate),
+                unemployment = median(unemployment)
+                ), join_by(year == year, county == county))
+
+
+# Identify .x and .y columns
+x_vars <- names(CT_ECONOMY)[grepl("\\.x$", names(CT_ECONOMY))]
+y_vars <- names(CT_ECONOMY)[grepl("\\.y$", names(CT_ECONOMY))]
+
+# Loop through matching pairs
+for (x in x_vars) {
+  base <- sub("\\.x$", "", x)
+  y <- paste0(base, ".y")
+  
+  if (y %in% y_vars) {
+    # Coerce both to character for comparison
+    x_vals <- as.character(CT_ECONOMY[[x]])
+    y_vals <- as.character(CT_ECONOMY[[y]])
+    
+    # Compare, handling NA
+    same_vals <- (x_vals == y_vals) | (is.na(x_vals) & is.na(y_vals))
+    
+    if (all(same_vals, na.rm = TRUE)) {
+      # If all values are the same, keep one and drop the other
+      CT_ECONOMY[[base]] <- CT_ECONOMY[[x]]
+      CT_ECONOMY[[x]] <- NULL
+      CT_ECONOMY[[y]] <- NULL
+    }
+  }
+}
+
+CT_ECONOMY <- 
+  CT_ECONOMY |>
+  mutate(population = coalesce(`population.x`, `population.y`)) |>
+  select(-c("population.x","population.y")) |> clean_names()
+```
+Then I added the real estate sales data, as reproduced in the code below.
+```{r}
+CT_SALES_SUMMARY <- 
+  CT_SALES |>
+  group_by(year_recorded, county) |>
+  summarize(
+    median_sale_price = median(sale_amount, na.rm=TRUE),
+    median_sales_ratio = median(sales_ratio, na.rm=TRUE),
+    sum_sale_price = sum(sale_amount, na.rm=TRUE),
+    most_common_property_type = property_type[which.max(tabulate(match(property_type, unique(property_type))))],
+    .groups = "drop"
+  )
+
+CT_SALES_ECONOMY <-
+  CT_SALES_SUMMARY |>
+  inner_join(CT_ECONOMY, 
+             join_by("county" == "county", "year_recorded" == "year")) |>
+  mutate(
+    log_median_sale_price = log(median_sale_price, base = 10),
+    sqrt_median_sale_price = sqrt(median_sale_price),
+    inv_median_sale_price = 1/median_sale_price,
+    per_capita_gdp = gdp / population,
+    per_capita_property_tax_revenues = property_tax_revenues / population,
+    per_capita_ui_comp = unemployment_insurance_compensation / population,
+    per_capita_farm_income = farm_income/population,
+    per_capita_employer_contributions_soc_ins = employer_contributions_for_government_social_insurance / population,
+    per_capita_wages_and_salaries = wages_and_salaries / population,
+    per_capita_proprietors_income = proprietors_income / population,
+    per_capita_annual_debt_service = annual_debt_service / population,
+    per_capita_dividends_proportion = ((per_capita_dividends_interest_and_rent * population) / personal_income) / population,
+    dividends_proportion = ((per_capita_dividends_interest_and_rent * population) / personal_income),
+    per_capita_farm_proportion = (farm_income / personal_income) / population,
+    farm_proportion = (farm_income / personal_income),
+    retirement_proportion = (retirement_and_other / personal_income),
+    per_capita_wage_salary_proportion = (wages_and_salaries / personal_income) / population,
+    wage_salary_proportion = (wages_and_salaries / personal_income),
+    ui_comp_proportion = (unemployment_insurance_compensation / personal_income),
+    proprietors_income_proportion = proprietors_income / personal_income
+    )
+```
+Finally, I wanted to add county population classifications to the merged dataset to include it as a categorical predictor in the modeling portion of the analysis. I accomplished that with the following code.
+``` {r}
+quantiles <- quantile(CT_SALES_ECONOMY$population, probs = c(0.33, 0.66), na.rm = TRUE)
+
+CT_SALES_ECONOMY <-
+  CT_SALES_ECONOMY |>
+  mutate(
+    population_class = case_when(
+      population < quantiles[[1]] ~ "small",
+      population >= quantiles[[1]] & population < quantiles[[2]] ~ "medium",
+      population >= quantiles[[2]] ~ "large",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+# Main Statistical Analysis
+
+My goal was to build a random forest model that explains as much variance in median sales price (Y) as possible using a set of economic predictors. To do this, I broke the broad concept of "the economy" into three core dimensions of economic strength, and selected 11 predictors which fit into the delineated categories.
+
+| **Economic Dimension**                  | **Associated Variables**                                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Government Capacity & Fiscal Health** | Per Capita GDP, Per Capita Property Tax Revenues, Per Capita Annual Debt Service                                                            |
+| **Labor Market Conditions**             | Unemployment Rate, Unemployment Insurance Compensation Proportion                                                                           |
+| **Household Income**                    | Per Capita Income, Dividends Proportion, Farm Proportion, Retirement Proportion, Wage and Salary Proportion, Proprietors’ Income Proportion |
+
+I define the predictor and response variables in the lines of code below.
+```{r}
+NUMERIC_PREDICTORS <- c(
+  "per_capita_gdp",
+  "per_capita_property_tax_revenues",
+  "unemployment_rate",
+  "per_capita_personal_income",
+  "per_capita_annual_debt_service",
+  "dividends_proportion",
+  "farm_proportion",
+  "retirement_proportion",
+  "wage_salary_proportion",
+  "ui_comp_proportion",
+  "proprietors_income_proportion"
+)
+
+FACTOR_PREDICTORS <- c("population_class")
+
+RESPONSE <- "median_sale_price"
+```
+
+## Box-Cox Transformations
+
+First, I applied the Box-Cox transformation to the predictor variables to address potential violations of the normality assumption in the data. This method helps stabilize variance and makes the data more normally distributed, improving model performance. The code used for this transformation is shown below.
+
+``` {r}
+#' Transform Features for Modeling
+#'
+#' This function prepares a dataset for modeling by:
+#' - Removing rows with missing values in the response or predictor variables
+#' - Estimating Box-Cox transformation parameters for numeric predictors
+#' - Applying Box-Cox transformations to the numeric predictors
+#' - Applying a specified transformation to the response variable
+#' - Returning a data frame with transformed predictors and response
+#'
+#' @param data A data frame containing at least the predictors and a response column.
+#'             Uses globally defined `NUMERIC_PREDICTORS` and `RESPONSE`.
+#' @return A cleaned and transformed data frame ready for modeling.
+#' @importFrom car powerTransform
+#' @importFrom purrr map2_dfc
+#' @importFrom dplyr filter if_all mutate bind_cols
+transform_features <- function(data) {
+  numeric_predictors <- NUMERIC_PREDICTORS
+  factor_predictors <- FACTOR_PREDICTORS
+
+  # Remove rows with missing values in predictors or response
+  data_clean <- data |>
+    filter(!is.na(median_sale_price)) |>
+    filter(if_all(all_of(c(numeric_predictors, factor_predictors)), ~ !is.na(.)))
+
+  # Estimate Box-Cox lambdas for numeric predictors
+  bc_model <- powerTransform(data_clean[numeric_predictors])
+  
+  cat("Box-Cox Lambda Table:\n")
+  print(summary(bc_model))
+  cat("######################\n")
+
+  lambdas <- bc_model$lambda
+
+  # Apply Box-Cox transformation to numeric predictors
+  bc_transformed <- map2_dfc(data_clean[numeric_predictors], lambdas, function(x, lambda) {
+    if (lambda == 0) log(x) else (x^lambda - 1) / lambda
+  })
+
+  colnames(bc_transformed) <- paste0("bc_transformed_", numeric_predictors)
+
+  # Transform the response variable
+  data_clean <- data_clean |>
+    mutate(response = case_when(
+      RESPONSE == "log_median_sale_price" ~ log_median_sale_price,
+      RESPONSE == "sqrt_median_sale_price" ~ sqrt_median_sale_price,
+      RESPONSE == "inv_median_sale_price" ~ inv_median_sale_price,
+      TRUE ~ median_sale_price
+    ))
+
+  # Combine transformed predictors, factors, and response
+  final_data <- bind_cols(
+    data_clean[factor_predictors],
+    bc_transformed,
+    response = data_clean$response
+  )
+
+  return(final_data)
+}
+```
+The estimated Box-Cox $\lambda$ values for each predictor are summarized in the table below:
+
+| Predictor                         | Est Power |
+| --------------------------------- | --------- |
+| Per Capita GDP                    | -0.4589   |
+| Per Capita Property Tax Revenues  | 1.6948    |
+| Unemployment Rate                 | -0.2257   |
+| Per Capita Personal Income        | -0.0226   |
+| Per Capita Annual Debt Service    | 0.7702    |
+| Dividends Proportion              | -1.4057   |
+| Farm Proportion                   | 0.1607    |
+| Retirement Proportion             | 0.4059    |
+| Wage and Salary Proportion        | -0.4699   |
+| Unemployment Insurance Proportion | -0.1981   |
+| Proprietors' Income Proportion    | -0.1797   |
+
+
+Two likelihood ratio tests were conducted to evaluate the necessity and appropriateness of these transformations. The first test compared the fitted $\lambda$ values to the null hypothesis that all $\lambda$ equal zero. The test statistic (LRT = 85.21, df = 11) produced a highly significant p-value (p $\approx$ 1.44e-13), indicating that the estimated $\lambda$ values differ significantly from zero and that a pure log transformation is not sufficient for all predictors. The second test compared the fitted $\lambda$ values to the hypothesis that $\lambda=1$ for all of the predictors. This test was also highly significant (LRT = 383.71, df = 11, p < 2.22e$^{-16}$), confirming that the predictors require transformation to improve model fit.
+
+Together, these tests support the use of the Box-Cox method with the estimated $\lambda$ rather than defaulting to no transformation or simple log transformations.
+
+## Correlation Matrix
+
+Next, I calculated the correlation matrix, and identified predictors with correlations > 0.8. The following pairs were identified as highly correlated:
+
+- Box-Cox transformed per capita property tax_revenues and Box-Cox transformed per capita personal income ($r = 0.97$)
+- Box-Cox transformed per capita GDP and Box-Cox transformed per capita annual debt service ($r = 0.80$)
+- Box-Cox transformed per capita_property_tax_revenues and Box-Cox transformed per capita annual debt service ($r = 0.83$)
+- Box-Cox transformed dividends proportion and Box-Cox transformed retirement proportion ($r = -0.83$)
+  
+After examining scatterplots of these pairs, I determined that the variables provide distinct information despite high correlation, and decided to retain all predictors. The code for the correlation check is in `run_rf_pipeline()`, which I will define later.
+
+## Backwards Elimination
+
+After examining the correlation matrix, I fit a random forest model using the selected predictors. I then applied a backward elimination algorithm that iteratively removes the least important predictor, as determined by the percentage increase in mean squared error. The implementation of this process is shown in the code below.
+```{r}
+#' Perform backward elimination for random forest model predictors
+#'
+#' This function iteratively fits random forest models, starting with all specified predictors,
+#' and at each step removes the least important predictor based on "%IncMSE" importance measure.
+#' The process continues until a minimum number of predictors (`min_vars`) is reached.
+#'
+#' @param data A data frame containing the response variable and predictors.
+#' @param response A string specifying the name of the response variable in `data`.
+#' @param predictors A character vector of predictor variable names to include initially.
+#' @param min_vars An integer specifying the minimum number of predictors to keep (default is 2).
+#' @param ntree Number of trees to grow in the random forest (default is 5000).
+#' @param verbose Logical; if TRUE, prints progress messages during elimination (default TRUE).
+#'
+#' @return A list of model performance results for each iteration. Each list element contains:
+#' \itemize{
+#'   \item \code{predictors}: the set of predictors used in the model
+#'   \item \code{var_explained}: percent variance explained by the model on training data
+#'   \item \code{mse}: mean squared error of the model
+#'   \item \code{importance}: variable importance scores (%IncMSE) for each predictor
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' results <- backward_elimination_rf(
+#'   data = mydata,
+#'   response = "target_variable",
+#'   predictors = c("var1", "var2", "var3"),
+#'   min_vars = 2,
+#'   ntree = 1000
+#' )
+#' }
+backward_elimination_rf <- function(data, response, predictors, min_vars = 4, ntree = 5000, verbose = TRUE) {
+  results <- list()
+  current_predictors <- predictors
+  
+  while (length(current_predictors) >= min_vars) {
+    # Build formula
+    formula <- as.formula(paste("response ~", paste(current_predictors, collapse = " + ")))
+    
+    # Train model
+    rf_model <- randomForest(formula, data = data, importance = TRUE, ntree = ntree)
+    
+    # Store performance
+    model_perf <- list(
+      predictors = current_predictors,
+      var_explained = rf_model$rsq[length(rf_model$rsq)] * 100,
+      mse = rf_model$mse[length(rf_model$mse)],
+      importance = importance(rf_model)[, "%IncMSE"]
+    )
+    results[[length(results) + 1]] <- model_perf
+    
+    if (verbose) {
+      cat("Variables:", paste(current_predictors, collapse = ", "), "\n")
+      cat("\t% Var Explained:", round(model_perf$var_explained, 2), "\n")
+    }
+    
+    # Drop least important predictor
+    if (length(current_predictors) > min_vars) {
+      least_important <- names(which.min(model_perf$importance))
+      current_predictors <- setdiff(current_predictors, least_important)
+    } else {
+      break
+    }
+  }
+  return(results)
+}
+```
+
+## Model Validation
+
+I used several diagnostic tools to assess the performance and reliability of the final random forest model.
+
+### Coefficient of Determination
+
+After selecting the final model through backward elimination, I fit the model to a 70/30 train-test split to evaluate its performance. I calculated the test set $R^2$ and RMSE to measure how well the model generalizes to unseen data. This was done using the function below.
+```{r}
+#' Fit Random Forest Model with Train-Test Split and Evaluate Performance
+#'
+#' Splits the data into training (70%) and testing (30%) sets, fits a random forest model on the training set,
+#' and evaluates performance on the test set. Returns the fitted model, predictions, performance metrics, and variable importance.
+#'
+#' @param data Data frame containing the response and predictor variables.
+#' @param formula A formula object specifying the model (e.g., response ~ predictors).
+#'
+#' @return A list containing:
+#' \item{model}{The fitted random forest model object.}
+#' \item{r_squared}{R-squared value on the test data.}
+#' \item{rmse}{Root Mean Squared Error on the test data.}
+#' \item{predictions}{Predicted values on the test data.}
+#' \item{test_data}{The subset of data used as the test set.}
+#' \item{importance}{Variable importance scores from the fitted model.}
+#' 
+#' @export
+fit_rf_model <- function(data, formula) {
+  set.seed(SEED)
+  sample_size <- floor(0.7 * nrow(data))
+  train_idx <- sample(seq_len(nrow(data)), size = sample_size)
+  
+  train_data <- data[train_idx, ]
+  test_data <- data[-train_idx, ]
+  
+  model <- randomForest(formula, data = train_data, ntree = 500, importance = TRUE)
+  predictions <- predict(model, newdata = test_data)
+  
+  r_squared <- cor(predictions, test_data$response)^2
+  rmse <- sqrt(mean((predictions - test_data$response)^2))
+  
+  
+  
+  list(model = model, r_squared = r_squared, rmse = rmse, predictions = predictions, test_data = test_data, importance = model$importance)
+}
+```
+In this analysis, the test set $R^2 = 0.8981$, and the RMSE = 18661.07. This indicates that the final random forest model explains approximately 89.8% of the variance in median real estate sale prices on unseen data. The relatively low RMSE suggests that the typical prediction error is within a reasonable range, given the scale of home prices in Connecticut. 
+
+### Residual Plots
+
+![](figs/median_sale_price/residuals_vs_predicted_plot.png)
+A good model should show residuals randomly scattered around zero, with no clear patterns or heteroscedasticity. In this residuals vs. predicted values plot, the residuals appear roughly centered around zero, suggesting that the model is not systematically over- or under-predicting.
+
+The main pipeline function, `run_rf_pipeline()`, for the complete statistical analysis--from Box-Cox transformations to model diagnostics--and its associated helper functions are found in the code below:
+```{r}
+#' Print Summary and Diagnostics for a Random Forest Model
+#'
+#' Displays the model formula, transformed predictor variable names, a summary of the random forest model,
+#' variable importance scores, and generates a variable importance plot.
+#'
+#' @param rf_model A fitted random forest model object.
+#' @param formula The formula object used to fit the model.
+#' @param data Data frame containing the transformed predictor variables.
+#'
+#' @return None (prints output and plot to console).
+#' @export
+inspect_rf_model <- function(rf_model, formula, data) {
+  cat("Model formula used:\n")
+  print(formula)
+  
+  cat("\nTransformed predictor variables:\n")
+  print(colnames(data))
+  
+  cat("\nRandom Forest Summary:\n")
+  print(rf_model)
+  
+  cat("\nVariable Importance:\n")
+  print(importance(rf_model))
+  
+  varImpPlot(rf_model, main = "Variable Importance Plot")
+}
+
+#' Plot Predicted vs Actual Values and Residuals, Save Plots to File
+#'
+#' Generates and saves scatter plots of predicted vs actual values and residuals vs predicted values for a random forest model.
+#' Also prints the plots to the console.
+#'
+#' @param predictions Numeric vector of predicted values from the model.
+#' @param actuals Numeric vector of actual observed values.
+#' @param save_dir Character string specifying the directory path to save the plots. Default is "figs/RESPONSE".
+#'
+#' @return Numeric vector of residuals (actuals - predictions).
+#' @export
+plot_rf_results <- function(predictions, actuals, save_dir = file.path("figs",RESPONSE)) {
+  df <- data.frame(predicted = predictions, actual = actuals)
+  df$residuals <- df$actual - df$predicted
+  
+  # Create directory if it doesn't exist
+  if (!dir.exists(file.path(save_dir))) {
+    dir.create(save_dir)
+  }
+  
+  # Predicted vs Actual plot
+  p1 <- ggplot(df, aes(x = actual, y = predicted)) +
+    geom_point(alpha = 0.6, color = "blue") +
+    geom_abline(color = "red", linetype = "dashed") +
+    labs(title = "Predicted vs Actual", x = "Actual", y = "Predicted")
+    
+  
+  # Residuals vs Predicted plot
+  p2 <- ggplot(df, aes(x = predicted, y = residuals)) +
+    geom_point(alpha = 0.6, color = "darkgreen") +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+    labs(title = "Residuals vs Predicted", x = "Predicted", y = "Residuals")
+    
+  
+  # Save plots to the specified directory with descriptive names
+  ggsave(file.path(save_dir, "predicted_vs_actual_plot.png"), p1, width = 8, height = 6)
+  ggsave(file.path(save_dir, "residuals_vs_predicted_plot.png"), p2, width = 8, height = 6)
+  
+  # Print both plots
+  print(p1)
+  print(p2)
+  
+  return(df$residuals)
+}
+
+#' Plot Residuals vs Each Predictor Variable, Save Plots to File
+#'
+#' Creates and saves scatter plots showing residuals against each predictor variable to help diagnose model fit.
+#' Prints each plot to the console.
+#'
+#' @param predictions Numeric vector of predicted values from the model.
+#' @param actuals Numeric vector of actual observed values.
+#' @param data Data frame containing the predictor variables.
+#' @param predictors Character vector of predictor variable names to plot residuals against.
+#' @param save_dir Character string specifying the directory path to save the plots. Default is "figs".
+#'
+#' @return None (invisible NULL).
+#' @export
+plot_residuals_vs_predictors <- function(predictions, actuals, data, predictors, save_dir = "figs") {
+  residuals <- actuals - predictions
+  df <- data.frame(residuals = residuals)
+  df <- cbind(df, data[, predictors, drop = FALSE])
+  
+  # Create directory if it doesn't exist
+  if (!dir.exists(save_dir)) {
+    dir.create(save_dir)
+  }
+  
+  for (predictor in predictors) {
+    p <- ggplot(df, aes_string(x = predictor, y = "residuals")) +
+      geom_point(alpha = 0.6, color = "purple") +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+      labs(title = paste("Residuals vs", predictor),
+           x = predictor, y = "Residuals") +
+      theme_minimal()
+    
+    ggsave(file.path(save_dir, RESPONSE, paste0("residuals_vs_", predictor, ".png")),
+           p, width = 8, height = 6)
+    
+    print(p)
+  }
+}
+
+#' Run Full Random Forest Modeling Pipeline with Backward Elimination and Diagnostics
+#'
+#' Executes the entire modeling workflow on the provided dataset, including:
+#' - Filtering and transforming features
+#' - Correlation check and optional variable removal
+#' - Random forest modeling with backward elimination based on variable importance (%IncMSE)
+#' - Selection of best model balancing explained variance and parsimony
+#' - Model fitting and performance evaluation on test data
+#' - Generation and saving of partial dependence plots
+#' - Plotting residual diagnostics and saving results
+#'
+#' @param data Data frame containing the input data, including response and predictor variables.
+#'
+#' @return A list containing:
+#' \item{model}{The final fitted random forest model object.}
+#' \item{outliers}{Data frame of test set observations with large residuals (absolute residual > 0.3).}
+#' \item{backward_results}{List of results from the backward elimination process.}
+#' \item{importance}{Variable importance scores from the final model.}
+#' 
+#' @export
+run_rf_pipeline <- function(data) {
+  corr_threshold <- CORR_THRESHOLD
+  numeric_predictors <- NUMERIC_PREDICTORS
+  factor_predictors <- c("population_class")
+  
+  clean_data <- data |>
+    filter(
+      if_all(all_of(numeric_predictors), ~ !is.na(.) & . > 0)
+    ) |>
+    transform_features() |>
+    select(
+      response,
+      all_of(paste0("bc_transformed_", numeric_predictors)),
+      all_of(factor_predictors)
+    ) |>
+    na.omit()
+  
+  predictors = c(paste0("bc_transformed_", numeric_predictors), "population_class")
+  
+  # --- CORRELATION CHECK ---
+  numeric_data <- clean_data |> select(all_of(paste0("bc_transformed_", numeric_predictors)))
+  cor_matrix <- cor(numeric_data)
+  
+  high_corr_pairs <- which(abs(cor_matrix) > corr_threshold & upper.tri(cor_matrix), arr.ind = TRUE)
+  
+  if (nrow(high_corr_pairs) > 0) {
+    cat("Highly correlated predictors found:\n")
+    for (i in seq_len(nrow(high_corr_pairs))) {
+      var1 <- rownames(cor_matrix)[high_corr_pairs[i, 1]]
+      var2 <- colnames(cor_matrix)[high_corr_pairs[i, 2]]
+      corr_val <- cor_matrix[high_corr_pairs[i, 1], high_corr_pairs[i, 2]]
+      cat(sprintf("  - %s and %s (cor = %.2f)\n", var1, var2, corr_val))
+    }
+    
+    cat("\nConsider dropping one variable from each highly correlated pair.\n")
+    drop_vars <- readline(prompt = "Enter comma-separated variables to drop (or press Enter to skip): ")
+    drop_vars <- trimws(strsplit(drop_vars, ",")[[1]])
+    
+    if (length(drop_vars) > 0 && any(nzchar(drop_vars))){
+      predictors <- setdiff(predictors, drop_vars)
+      clean_data <- clean_data |> select(-all_of(drop_vars))
+    }
+  } else {
+    cat("No highly correlated predictor pairs found above the threshold.\n")
+  }
+  # Run backward elimination
+  elim_results <- backward_elimination_rf(
+    data = clean_data,
+    response = RESPONSE,
+    predictors = predictors,
+    min_vars = 3,
+    ntree = 5000,
+    verbose = TRUE
+  )
+  
+  # Choose the best model: prioritize high var_explained and fewest predictors
+  best_model_idx <- which.max(map_dbl(elim_results, "var_explained"))
+  best_model <- elim_results[[best_model_idx]]
+  
+  # If there are multiple models with the same variance explained, choose the one with fewer predictors
+  best_model_with_fewest_predictors <- best_model
+  for (i in seq_along(elim_results)) {
+    if (elim_results[[i]]$var_explained == best_model$var_explained) {
+      if (length(elim_results[[i]]$predictors) < length(best_model$predictors)) {
+        best_model_with_fewest_predictors <- elim_results[[i]]
+      }
+    }
+  }
+  
+  final_predictors <- best_model_with_fewest_predictors$predictors
+  
+  cat("Final predictors used:", paste(final_predictors, collapse = ", "), "\n")
+  
+  formula <- as.formula(paste("response ~", paste(final_predictors, collapse = " + ")))
+  
+  rf_results <- fit_rf_model(clean_data, formula)
+  
+  cat("Test R-squared:", round(rf_results$r_squared, 4), "\n")
+  cat("Test RMSE:", round(rf_results$rmse, 2), "\n")
+  
+  # --- Partial Dependence Plot for retirement proportion ---
+  
+  # List of variables you want to include in the grid
+  top_vars <- rownames(as.data.frame(importance(rf_results$model, type = 1)))
+  
+  # Create PDPs for each variable and combine them
+  pdp_list <- map(top_vars, function(var) {
+    pd <- pdp::partial(
+      object = rf_results$model,
+      pred.var = var,
+      train = clean_data |> select(all_of(top_vars),response),
+      plot = FALSE
+    )
+    pd$variable <- var
+    return(pd)
+  })
+  
+  pdp_df = data.frame()
+  for (list_item in pdp_list){
+    df <- as.data.frame(list_item)
+    pred <- 
+      df |> select(matches("bc_transformed")) |> colnames()
+    df <- df |> 
+      rename(x = pred)
+    pdp_df <- bind_rows(pdp_df, df)
+  }
+
+  pdp_df <- pdp_df |>
+    mutate(
+      variable = variable |> 
+        str_remove("bc_transformed_") |> 
+        str_replace_all("_", " ") |> 
+        str_to_sentence() |> 
+        str_replace("gdp", "GDP") |> 
+        str_replace("proportion", "income (%)") |> 
+        str_replace("Per capita", "Per-capita") |> 
+        str_replace("Wage salary", "Wages and salary")
+    )
+  
+  # Plot using facet_wrap
+  pdp_plot_grid <- ggplot(pdp_df, aes(x = x, y = yhat / 1000)) + 
+    geom_line(color = "steelblue", linewidth = 1) +
+    facet_wrap(~ variable, scales = "free_x") +
+    labs(
+      x = "Predictor Value (transformed)",
+      y = "Predicted Median Sale Price ($K)", 
+      title = "Partial Dependence Plots"
+    ) +
+    scale_y_continuous(labels = label_dollar(suffix = "K", prefix = "$", accuracy = 1)) + 
+    theme_minimal()
+  
+  # Save the grid plot
+  ggsave("figs/pdp_grid.png", pdp_plot_grid, width = 10, height = 6)
+  
+  residuals <- plot_rf_results(rf_results$predictions, rf_results$test_data$response)
+  
+  outliers <- rf_results$test_data[abs(residuals) > 0.3, ]
+  
+  inspect_rf_model(rf_results$model, formula, clean_data)
+  
+  residuals <- plot_rf_results(rf_results$predictions, rf_results$test_data$response)
+  
+  # Plot residuals vs each predictor
+  plot_residuals_vs_predictors(
+    predictions = rf_results$predictions,
+    actuals = rf_results$test_data$response,
+    data = rf_results$test_data,
+    predictors = final_predictors,
+    save_dir = "figs"
+  )
+  
+  return(list(model = rf_results$model, outliers = outliers, backward_results = elim_results, importance = rf_results$importance))
+}
+```
+The final model is:
+```
+Random Forest Summary:
+
+Call:
+ randomForest(formula = formula, data = train_data, ntree = 500,      importance = TRUE) 
+               Type of random forest: regression
+                     Number of trees: 500
+No. of variables tried at each split: 2
+
+          Mean of squared residuals: 735163952
+                    % Var explained: 85.77
+
+Variable Importance:
+                                                  %IncMSE IncNodePurity
+bc_transformed_per_capita_property_tax_revenues 12.503693   48364055442
+bc_transformed_per_capita_personal_income       13.373119   47956084292
+bc_transformed_per_capita_annual_debt_service   10.253276   34566690121
+bc_transformed_dividends_proportion             10.267172   42577015458
+bc_transformed_retirement_proportion            11.088946   47134800132
+bc_transformed_ui_comp_proportion                7.364885   11584204293
+bc_transformed_proprietors_income_proportion     6.634609   20111304578
+```
+
+# Conclusion
+
+Overall, the model diagnostics suggest that the final random forest model performs well in predicting median real estate sales prices across Connecticut counties. The high test set $R^2$ value and relatively low RMSE indicate strong predictive power and a good fit to the data. The residuals plot shows no major patterns or systematic bias, leading me to the conclusion that the model's errors are fairly random. These findings support the conclusion that county-level economic indicators are significant predictors of housing market outcomes. In particular, variables related to income levels, fiscal health, and employment conditions show strong correlations with real estate prices and shape property values across the state.
+
+That said, the analysis is subject to a few limitations. Aggregating data to the county level considerably reduced the sample size and limited the model's ability to detect more granular patterns. Additionally, missing values in the original datasets required exclusion of certain observations, further reducing the sample size and potentially decreasing the robustness of the model. Future work could benefit from more detailed, town-level data and a wider temporal range to capture economic dynamics over time.

@@ -1,0 +1,14 @@
+---
+title: "group_mypart"
+format: html
+---
+
+Partial Dependence Plots
+
+
+Partial dependence plots (PDPs) were generated to visualize the marginal effect of each predictor on the response variable, while averaging out the effects of other predictors. These plots help interpret the "black box" nature of the random forest. The PDPs reveal nonlinear relationships between several predictors and the median sale price, such as a positive association with per-capita GDP and a sharp drop-off at extreme values for dividends income proportion. These insights support the choice of using a flexible, nonlinear model like random forests.
+
+Variable Importance
+
+
+The variable importance plot displays each predictor’s contribution to model accuracy, measured by the percentage increase in MSE when that variable is permuted. Predictors such as per-capita GDP, dividends income proportion, and unemployment rate had the highest influence on predictions. This aligns with economic intuition, as these features are closely tied to housing market performance.

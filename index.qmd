@@ -35,4 +35,9 @@ Welcome to the course submissions page for the 2025 Spring Semester of STA9750!
 <p>Exploring Recent US Political Shifts</p>
 </div>
 
+<div style="flex: 1 1 250px; background-color: #78c2ad; padding: 20px; border-radius: 20px; box-shadow: 0 0 10px #78c2ad;">
+<h3><a href="individual_report.html" style="color: #fffefe; text-decoration: none;">Final Project</a></h3>
+<p>Examining the Effect of Local Economy on Connecticut's Real Estate Market</p>
+</div>
+
 </div>
