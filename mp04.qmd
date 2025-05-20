@@ -493,7 +493,9 @@ plot <- ggplot() +
     axis.ticks = element_blank(),
     legend.position = "bottom",
   ) +
-  labs(color = "Shift")
+  labs(color = "Shift",
+       title = "Voter County-level Shift between 2020 and 2024",
+       caption = "Source: Wikipedia Presidential Election Results Data.")
 
 # Convert to plotly
 ggplotly(plot, tooltip = "text") |>
