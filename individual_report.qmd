@@ -20,9 +20,9 @@ csl: apa.csl
 
 # Introduction
 
-This work is part of a final course project, where my teammates, [Craig](https://allcr.github.io/STA9750-2025-SPRING/about.html), and  [Hong](https://hongzhuang1.github.io/STA9750-2025-SPRING/), and I explored what factors drive real estate prices in Connecticut. To narrow down such a broad question, we split it into three subquestions, each focused on a key meta-factor: the local economy, [education quality](), and [public transit accessibility](). I was randomly assigned the question: How strongly does Connecticut's real estate market correlate with economic growth? To answer it, I built a random forest model that predicts the median sale price of a home in Connecticut using county-level economic indicators. This page documents the technical details of the analysis, including data acquisition, cleaning, exploratory data analysis, and the modeling process. It provides reproducible code snippets and explanations to illustrate how the random forest model was developed and evaluated using county-level economic data.
+This work is part of a [final course project](https://allcr.github.io/STA9750-2025-SPRING/group_report.html), where my teammates, [Craig](https://allcr.github.io/STA9750-2025-SPRING/about.html), and  [Hong](https://hongzhuang1.github.io/STA9750-2025-SPRING/), and I explored what factors drive real estate prices in Connecticut. To narrow down such a broad question, we split it into three subquestions, each focused on a key meta-factor: the local economy, [education quality](https://allcr.github.io/STA9750-2025-SPRING/education_reconciliation.html), and [public transit accessibility](https://hongzhuang1.github.io/STA9750-2025-SPRING/final_project.html). I was randomly assigned the question: How strongly does Connecticut's real estate market correlate with economic growth? To answer it, I built a random forest model that predicts the median sale price of a home in Connecticut using county-level economic indicators. This page documents the technical details of the analysis, including data acquisition, cleaning, exploratory data analysis, and the modeling process. It provides reproducible code snippets and explanations to illustrate how the random forest model was developed and evaluated using county-level economic data.
 
-The analysis in this project was completed with R and selected packages^[@baseR; @readr; @dplyr; @stringr; @rvest; @httr; @jsonlite; @lubridate; @tidyr; @janitor; @purrr; @tidyverse; @car; @randomForest; @scales], and with Python and selected packages^[@python; @pandas; @requests; @beautifulsoup4; @pathlib].
+The analysis in this project was completed with R and selected packages^[@baseR; @readr; @dplyr; @stringr; @rvest; @httr; @jsonlite; @lubridate; @tidyr; @janitor; @purrr; @tidyverse; @car; @randomForest; @scales; @ggplot2; @plotly; @viridis], and with Python and selected packages^[@python; @pandas; @requests; @beautifulsoup4; @pathlib].
 
 
 # Data Acquisition
@@ -45,7 +45,9 @@ load_if_needed <- function(pkg) {
 
 PACKAGES <- c("readr", "dplyr", "stringr", "rvest", "httr", "jsonlite",
               "lubridate", "tidyr", "janitor", "purrr", "tidyverse", "car",
-              "randomForest", "scales", "ggplot2", "plotly", "viridis")
+              "randomForest", "scales", "ggplot2", "plotly", "viridis",
+              "tigris", "sf", "utils", "base64enc", "shadowtext",
+              "gganimate")
 
 lapply(PACKAGES, load_if_needed)
 
@@ -53,9 +55,12 @@ SEED <- 1747187262
 CORR_THRESHOLD <- 0.8
 ```
 
-## Connecticut Town-to-County Mapping
+## Connecticut Geographical Data
 
-While downloading and cleaning up the various datasets, I noticed that many of the town-level sources didn’t include the county each town belonged to. To fix this, I pulled in the [Connecticut State Library’s](https://portal.ct.gov/csl?language=en_US) online list of Connecticut Towns & Counties^[@cttowns2025]. This dataset includes all 169 municipalities, their corresponding counties, year of incorporation, and parent town. I used the code below to download it and merge the county information into the relevant datasets.
+Starting in 2022, Connecticut introduced new planning regions that function as county-equivalent units. However, these planning regions do not correspond exactly to the historical county boundaries. Since all of the county-level data I analyzed predates this change, I relied on the historical county designations for accuracy. 
+## Town-to-County Mapping
+
+While downloading and cleaning up the various datasets, I noticed that many of the town-level sources didn’t include the county each town belonged to. To fix this, I pulled in the [Connecticut State Library’s](https://portal.ct.gov/csl?language=en_US) online list of Connecticut Towns & Counties^[@cttowns2025]. This dataset includes all 169 municipalities, their corresponding historical counties, year of incorporation, and parent town. I used the code below to download it and merge the county information into the relevant datasets.
 
 ```{r}
 #' Load or download Connecticut town-to-county mapping.
@@ -97,12 +102,63 @@ load_ct_town_mapping <- function() {
 }
 ```
 
+## Historical County Shapefiles
+
+For mapping purposes, I downloaded historical county boundary shapefiles from the UConn MAGIC Library^[@uconn_magic_ct_counties_2010], rather than using the TIGRIS files with the newer designations, to ensure that the maps accurately reflect the traditional county boundaries.
+
+```{r}
+#' Download, unzip, and load Connecticut county shapefiles
+#'
+#' This function downloads the 2010 Connecticut county shapefiles zip archive from
+#' a specified URL, extracts the shapefiles into a local directory if not already present,
+#' and reads the shapefile into an sf object. It also standardizes the county names for easier joins.
+#'
+#' @param zip_url URL of the shapefile zip archive (default provided)
+#' @param zip_file Local filename for the downloaded zip file (default "countyct_2010_shp.zip")
+#' @param output_dir Directory to unzip and store shapefiles (default "data/individual_report/")
+#' @return An sf object with Connecticut county geometries and a standardized 'county' column
+#' @importFrom sf read_sf
+#' @importFrom stringr str_to_title
+#' @export
+load_ct_shapefiles <- function(
+  zip_url = "http://magic.lib.uconn.edu/magic_2/vector/37800/countyct_37800_0000_2010_s100_census_1_shp.zip",
+  zip_file = "countyct_2010_shp.zip",
+  output_dir = "data/individual_report/"
+) {
+  # Create directory if it doesn't exist
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+
+  # Unzip if no .shp files exist
+  shp_files <- list.files(output_dir, pattern = "\\.shp$", full.names = TRUE, recursive = TRUE)
+  if (length(shp_files) == 0) {
+    if (!file.exists(zip_file)) {
+      message("Downloading shapefile...")
+      download.file(zip_url, zip_file, mode = "wb")
+    }
+    unzip(zip_file, exdir = output_dir)
+    shp_files <- list.files(output_dir, pattern = "\\.shp$", full.names = TRUE, recursive = TRUE)
+  } else {
+    message("Shapefiles already exist.")
+  }
+
+  # Read shapefile (pick first one found)
+  shp_path <- shp_files[1]
+  ct_counties <- sf::read_sf(shp_path)
+  ct_counties$county <- stringr::str_to_title(ct_counties$NAME10)
+
+  return(ct_counties)
+}
+ct_counties <- load_ct_shapefiles()
+```
+
 ## Connecticut Real Estate Sales 
 
 The Connecticut Real Estate Sales data set contained sales information about all real estate transactions greater than $2,000 between October 1, 2001 and September 30, 2022. This comprehensive data set was compiled and published by [Connecticut's Office of Policy and Management](https://portal.ct.gov/opm) (CT OPM)^[@ctrealesales2025]. 
 With over 1.09 million records and 20 attributes per transaction, the data set includes information on the sale amount, the sales ratio, and the property's assessed value for each transaction. This data set is valuable for researchers looking to explore the spatio-temporal dynamics of Connecticut's real estate market. The code used to download this data set is included below.
 
-``` {r}
+```{r}
 #' Load and clean Connecticut real estate sales data.
 #'
 #' Downloads, processes, and saves Connecticut real estate sales data from the CT Open Data portal.
@@ -206,7 +262,7 @@ CT_SALES <- load_ct_sales()
 
 The [U.S. Bureau of Economic Analysis (BEA)](https://bea.gov) publishes annual county-level GDP estimates by industry for every state^[@beagdp2023]. The Connecticut file covers all 8 counties from 2001 to 2023. When paired with the real estate sales data, this dataset makes it possible to explore how local GDP relates to housing prices. I downloaded it using the code below.
 
-``` {r}
+```{r}
 #' Load and process BEA County-level GDP data (CAGDP2) for Connecticut (2001–2023).
 #'
 #' Downloads and processes GDP data if not already saved locally. 
@@ -1853,7 +1909,7 @@ CT_ECONOMY <-
   select(-c("population.x","population.y")) |> clean_names()
 ```
 I then summarized the real estate sales data, as reproduced in the code below. 
-```{r, }
+```{r}
 CT_SALES_SUMMARY <- 
   CT_SALES |>
   group_by(year_recorded, county) |>
@@ -1866,7 +1922,7 @@ CT_SALES_SUMMARY <-
   )
 ```
 Finally, I merged the sales data and the economy data I appended county population classifications to the merged data set to include it as a categorical predictor in the modeling portion of the analysis.
-```{r, eval=TRUE}
+```{r, eval = TRUE}
 merged_fpath <- file.path("data/individual_report","CT_SALES_ECONOMY.csv")
 if(!file.exists(merged_fpath)){
   CT_SALES_ECONOMY <-
@@ -1874,6 +1930,7 @@ if(!file.exists(merged_fpath)){
   inner_join(CT_ECONOMY, 
              join_by("county" == "county", "year_recorded" == "year")) |>
   mutate(
+    wages_and_salaries = wages_and_salaries * 1000,
     log_median_sale_price = log(median_sale_price, base = 10),
     sqrt_median_sale_price = sqrt(median_sale_price),
     inv_median_sale_price = 1/median_sale_price,
@@ -1943,29 +2000,30 @@ The plot above shows how median housing prices in Connecticut’s eight counties
 
 ## The Relationship Between Economic Indicators and Home Prices Across Counties
 ```{r, eval = TRUE}
+# Define variables and labels
 x_vars <- c("per_capita_gdp", "unemployment_rate", "per_capita_personal_income", "per_capita_property_tax_revenues",
-            "per_capita_annual_debt_service", "dividends_proportion", "farm_proportion", "retirement_proportion",
-            "wage_salary_proportion", "ui_comp_proportion", "proprietors_income_proportion")
+            "per_capita_annual_debt_service", "dividends_proportion", "farm_proportion", "retirement_proportion", "ui_comp_proportion", "proprietors_income_proportion")
 
 x_labels <- c("Per Capita GDP", "Unemployment Rate", "Per Capita Personal Income", "Per Capita Property Tax Revenues",
               "Per Capita Annual Debt Service", "Dividends Proportion", "Farm Proportion", "Retirement Proportion",
-              "Wage & Salary Proportion", "UI Compensation Proportion", "Proprietors' Income Proportion")
+              "UI Compensation Proportion", "Proprietors' Income Proportion")
 
 names(x_labels) <- x_vars
 
+# Prepare data and color mapping
 counties <- unique(CT_SALES_ECONOMY$county)
 n_counties <- length(counties)
-
-# Generating a discrete viridis color palette, one color per county
 county_colors <- viridis(n_counties, option = "D")
 names(county_colors) <- counties
 
+# Choose initial x variable (e.g., randomly or based on time)
 mod_index <- (floor(as.numeric(Sys.time())) %% length(x_vars)) + 1
 initial_xvar <- x_vars[mod_index]
 
+# Initialize plot
 p <- plot_ly()
 
-# Add each county trace
+# Add a trace for each county
 for (county_name in counties) {
   data_sub <- CT_SALES_ECONOMY |> filter(county == county_name)
   p <- p |>
@@ -1979,7 +2037,7 @@ for (county_name in counties) {
     )
 }
 
-# Create dropdown buttons for selecting x variable
+# Create dropdown buttons
 buttons <- lapply(seq_along(x_vars), function(i) {
   xvar <- x_vars[i]
   x_data <- lapply(counties, function(county_name) {
@@ -1987,12 +2045,9 @@ buttons <- lapply(seq_along(x_vars), function(i) {
   })
   
   list(
-    method = "restyle",
+    method = "update",
     args = list(
-      list(
-        x = x_data,
-        marker = list(color = county_colors)  # keep colors consistent on update
-      ),
+      list(x = x_data),
       list(xaxis = list(title = x_labels[xvar]))
     ),
     label = x_labels[xvar]
@@ -2032,165 +2087,185 @@ p <- p |>
   )
 
 p
+
 ```
+The plots above reveal patterns in how different economic indicators relate to median home sale prices. For example, indicators like GDP, per capita personal income, dividend proportion, and proprietors' income proportion show a strong positive correlation with home prices, suggesting wealthier or more economically active counties tend to have higher home values. On the contrary, indicators such as wage & salary proportion, UI compensation proportion, and unemployment rate appear to have little to no clear correlation with home prices. Farm proportion and retirement proportion exhibit weak negative correlations, suggesting that counties with larger agricultural or retiree populations may have slightly lower median home prices.
 
-The plots above reveal clear patterns in how different economic indicators relate to median home sale prices. For example, indicators like GDP, per capita personal income, dividend proportion, and proprietors' income proportion show a strong positive correlation with home prices, suggesting wealthier or more economically active counties tend to have higher home values. On the other hand, indicators such as wage & salary proportion, UI compensation proportion, and unemployment rate appear to have little to no clear correlation with home prices. Farm proportion and retirement proportion exhibit weak negative correlations, suggesting that counties with larger agricultural or retiree populations may have slightly lower median home prices.
+## Comparison of Economic Indicators Across Counties and Time
 
-## Comparison of Economic Indicators Across Counties
-```{r, eval = TRUE}
+```{r, eval=TRUE}
 indicators <- c("per_capita_gdp", "unemployment_rate", "per_capita_personal_income",
                 "per_capita_property_tax_revenues", "per_capita_annual_debt_service",
                 "dividends_proportion", "farm_proportion", "retirement_proportion",
-                "wage_salary_proportion", "ui_comp_proportion", "proprietors_income_proportion")
+                "ui_comp_proportion", "proprietors_income_proportion")
 
 pretty_labels <- c("Per Capita GDP", "Unemployment Rate", "Per Capita Personal Income",
                    "Per Capita Property Tax Revenues", "Per Capita Annual Debt Service",
                    "Dividends Proportion", "Farm Proportion", "Retirement Proportion",
-                   "Wage & Salary Proportion", "UI Compensation Proportion",
-                   "Proprietors' Income Proportion")
+                   "UI Compensation Proportion", "Proprietors' Income Proportion")
 names(pretty_labels) <- indicators
 
-# Prep my data
-plot_data <- CT_SALES_ECONOMY |>
-  select(county, year_recorded, all_of(indicators)) |>
-  pivot_longer(cols = all_of(indicators), names_to = "indicator", values_to = "value")
+years <- sort(unique(CT_SALES_ECONOMY$year_recorded))
 
-years <- sort(unique(plot_data$year_recorded))
-
-# add frames
-frames <- list()
-for (yr in years) {
+generate_indicator_gifs <- function(indicators, years, ct_counties, CT_SALES_ECONOMY, pretty_labels, overwrite = FALSE) {
+  if (!dir.exists('figs/ct_maps')) dir.create('figs/ct_maps')
+  
   for (ind in indicators) {
-    frame_name <- paste(yr, ind, sep = "_")
-    frame_data <- plot_data |>
-      filter(year_recorded == yr, indicator == ind) |>
-      arrange(value)
-    frames[[frame_name]] <- frame_data
+    
+    file_path <- file.path('figs/ct_maps', paste0(ind, "_animated.gif"))
+    
+    if (!overwrite && file.exists(file_path)) {
+      message("Skipping ", ind, " because file already exists: ", file_path)
+      next 
+    }
+    
+    merged_list <- list()
+    for (yr in years) {
+      econ_slice <- CT_SALES_ECONOMY |>
+        filter(year_recorded == yr) |>
+        select(county, Value = all_of(ind))
+      
+      merged <- left_join(ct_counties, econ_slice, by = "county") |>
+        mutate(year_recorded = yr)
+      
+      merged_list[[as.character(yr)]] <- merged
+    }
+    
+    merged_all <- do.call(rbind, merged_list)
+    
+    # Ensure Value is numeric (sometimes sf joins mess this up)
+    merged_all <- merged_all |> mutate(Value = as.numeric(Value))
+    
+    # Calculate centroids for shadowtext
+    centroids_sf <- st_centroid(merged_all)
+    coords_tbl <- as_tibble(st_coordinates(centroids_sf))
+    
+    merged_centroids <- centroids_sf |>
+      bind_cols(coords_tbl) |>
+      rename(x = X, y = Y)
+    
+    # Label formatting
+    label_format <- dollar_format(scale = 1e-3, suffix = "K")
+    if (ind == "unemployment_rate") {
+      label_format <- label_number(suffix = "%")
+    }
+    if (str_detect(ind, "proportion")) {
+      label_format <- percent_format(accuracy = 0.01)
+    }
+    
+    # Add label column safely
+    merged_centroids <- merged_centroids |>
+      mutate(
+        Value = abs(Value),
+        label = ifelse(is.na(Value), NA_character_, paste0(label_format(Value), "\n", county)))
+    
+    # Plot
+    p <- ggplot(merged_all) +
+      geom_sf(aes(fill = Value), color = "white", show.legend = TRUE) +
+      geom_shadowtext(
+        data = merged_centroids,
+        aes(x = x, y = y, label = label),
+        size = 4,
+        color = "white",
+        bg.color = "black",
+        bg.r = 0.15
+      ) +
+      scale_fill_viridis_c(
+        option = "D",
+        na.value = "grey80",
+        name = pretty_labels[ind],
+        labels = label_format
+      ) +
+      theme_minimal() +
+      labs(
+        title = paste0(pretty_labels[ind], " by County"),
+        subtitle = "Year: {frame_time}",
+        fill = pretty_labels[ind]
+      ) +
+      theme(
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank()
+      ) +
+      transition_time(year_recorded) +
+      ease_aes('linear')
+    
+    animate(p, width = 800, height = 600, fps = 1, duration = length(years), renderer = gifski_renderer(file_path))
   }
 }
 
-# Start with first frame data
-init_year <- years[1]
-init_indicator <- indicators[1]
-init_frame <- frames[[paste(init_year, init_indicator, sep = "_")]]
+generate_indicator_gifs(indicators, years,  ct_counties, CT_SALES_ECONOMY, pretty_labels, overwrite = FALSE)
 
-counties <- init_frame$county
+gif_files <- list.files("figs/ct_maps", pattern = "_animated\\.gif$", full.names = TRUE)
 
-# Initialize plot
+labels <- sapply(gif_files, function(f) {
+  base <- tools::file_path_sans_ext(basename(f))
+  base <- gsub("_", " ", base)
+  base <- gsub(" animated", "", base)
+  str_to_title(base)
+  
+})
+
+gif_sources <- sapply(gif_files, function(f) {
+  base64enc::dataURI(file = f, mime = "image/gif")
+})
+
+images <- lapply(seq_along(gif_sources), function(i) {
+  list(
+    source = gif_sources[i],
+    xref = "paper",
+    yref = "paper",
+    x = 0,
+    y = 1,
+    sizex = 1,
+    sizey = 1,
+    sizing = "stretch",
+    opacity = ifelse(i == 1, 1, 0),
+    layer = "below"
+  )
+})
+
+buttons <- lapply(seq_along(gif_sources), function(i) {
+  opacity_vec <- rep(0, length(gif_sources))
+  opacity_vec[i] <- 1
+  opacity_list <- setNames(as.list(opacity_vec), paste0("images[", 0:(length(gif_sources)-1), "].opacity"))
+  
+  list(
+    method = "relayout",
+    args = list(opacity_list),
+    label = labels[i]
+  )
+})
+
 fig <- plot_ly(
-  data = init_frame,
-  x = ~value,
-  y = ~county,
-  type = "bar",
-  orientation = "h",
-  marker = list(color = '#21918c')
+  x = c(0, 1),
+  y = c(0, 1),
+  type = "scatter",
+  mode = "markers",
+  marker = list(opacity = 0)
 ) |>
   layout(
-    title = paste0("Indicator: ", pretty_labels[init_indicator], " in Year ", init_year),
-    xaxis = list(title = "Value"),
-    yaxis = list(title = "County", categoryorder = "total ascending"),
-    margin = list(l = 100, r = 50, t = 100, b = 100)
-  )
-
-# Helper to generate x and y data for a specific year and indicator
-get_xy <- function(yr, ind) {
-  df <- frames[[paste(yr, ind, sep = "_")]]
-  list(x = df$value, y = df$county)
-}
-
-# Dropdown for years
-year_buttons <- lapply(years, function(yr) {
-  list(
-    method = "restyle",
-    args = list(
-      list(
-        x = lapply(indicators, function(ind) frames[[paste(yr, ind, sep = "_")]]$value)[[1]],
-        y = list(counties)
-      )
-    ),
-    label = as.character(yr),
-    execute = TRUE
-  )
-})
-
-# Dropdown for indicators
-indicator_buttons <- lapply(indicators, function(ind) {
-  list(
-    method = "restyle",
-    args = list(
-      list(
-        x = list(frames[[paste(init_year, ind, sep = "_")]]$value),
-        y = list(counties)
-      )
-    ),
-    label = pretty_labels[ind],
-    execute = TRUE
-  )
-})
-
-# Build year dropdown
-year_buttons <- lapply(years, function(yr) {
-  list(
-    method = "update",
-    args = list(
-      list(
-        x = list(frames[[paste(yr, init_indicator, sep = "_")]]$value),
-        y = list(counties)
-      ),
-      list(
-        title = paste0("Indicator: ", pretty_labels[init_indicator], " in Year ", yr)
-      )
-    ),
-    label = as.character(yr)
-  )
-})
-
-# Build indicator dropdown 
-indicator_buttons <- lapply(indicators, function(ind) {
-  list(
-    method = "update",
-    args = list(
-      list(
-        x = list(frames[[paste(init_year, ind, sep = "_")]]$value),
-        y = list(counties)
-      ),
-      list(
-        title = paste0(pretty_labels[ind], " in Year ", init_year)
-      )
-    ),
-    label = pretty_labels[ind]
-  )
-})
-
-fig <- fig |>
-  layout(
+    images = images,
     updatemenus = list(
       list(
-        y = -0.2,
-        x = 0,
-        buttons = year_buttons,
-        direction = "up",
-        showactive = TRUE,
-        xanchor = "left",
-        type = "dropdown",
-        pad = list(r = 10, t = 10)
-      ),
-      list(
-        y = -0.2,
-        x = 0.3,
-        buttons = indicator_buttons,
-        direction = "up",
-        showactive = TRUE,
-        xanchor = "left",
-        type = "dropdown",
-        pad = list(r = 10, t = 10)
+        x = 1,
+        y = 1,
+        buttons = buttons,
+        type = "dropdown"
       )
-    )
+    ),
+    xaxis = list(visible = FALSE, range = c(0, 1)),
+    yaxis = list(visible = FALSE, range = c(0, 1))
   )
 
 fig
 ```
-Fairfield tops nearly all economic indicators, including the less favorable ones, which strongly suggests that population size is the primary driver of these differences. Larger populations tend to amplify both positive and negative metrics simply due to scale. This population effect underscores how county size can influence economic and housing market indicators, making it important to consider population when comparing counties.
+
+
+Fairfield County consistently ranks at the top across nearly all positive economic indicators, such as per capita GDP, personal income, and property tax revenues. This dominance supports the view that Fairfield's local economy is robust. Hartford County also performs well on many of these favorable measures, suggesting a generally healthy economic climate.
+
+n stark contrast, Windham County tends to occupy the lower end of the spectrum on many positive economic indicators. It also ranks higher on some measures typically associated with economic vulnerability, such as unemployment rate and reliance on unemployment compensation. However, its relatively high proportion of retirement income--23% in 2021--may reflect a different dynamic. Not one of economic distress, but potentially a larger retiree population choosing to settle in the area. This could indicate a local economy shaped more by fixed incomes and less by active labor market participation. Compared to Fairfield County’s clear economic strength, Windham’s profile illustrates how different demographic and structural factors can shape economic outcomes across the state.
 
 # Main Statistical Analysis
 
@@ -2227,7 +2302,7 @@ RESPONSE <- "median_sale_price"
 
 First, I applied the Box-Cox transformation to the predictor variables to address potential violations of the normality assumption in the data. This method helps stabilize variance and makes the data more normally distributed, improving model performance. The code used for this transformation is shown below.
 
-``` {r}
+```{r}
 #' Transform Features for Modeling
 #'
 #' This function prepares a dataset for modeling by:
@@ -2440,6 +2515,7 @@ In this analysis, the test set $R^2 = 0.8981$, and the RMSE = 18661.07. This ind
 ### Residual Plots
 
 ![](figs/median_sale_price/residuals_vs_predicted_plot.png)
+
 A good model should show residuals randomly scattered around zero, with no clear patterns or heteroscedasticity. In this residuals vs. predicted values plot, the residuals appear roughly centered around zero, suggesting that the model is not systematically over- or under-predicting.
 
 The main pipeline function, `run_rf_pipeline()`, for the complete statistical analysis--from Box-Cox transformations to model diagnostics--and its associated helper functions are found in the code below:
@@ -2491,27 +2567,35 @@ plot_rf_results <- function(predictions, actuals, save_dir = file.path("figs",RE
     dir.create(save_dir)
   }
   
-  # Predicted vs Actual plot
   p1 <- ggplot(df, aes(x = actual, y = predicted)) +
-    geom_point(alpha = 0.6, color = "blue") +
-    geom_abline(color = "red", linetype = "dashed") +
-    labs(title = "Predicted vs Actual", x = "Actual", y = "Predicted")
+  geom_point(alpha = 0.6, color = "black") +
+  geom_abline(color = "red", linetype = "dashed") +
+  labs(
+    title = "Predicted vs Actual",
+    x = "Actual",
+    y = "Predicted"
+  ) +
+  scale_x_continuous(labels = label_dollar(scale = 1/1000, suffix = "K")) +
+  scale_y_continuous(labels = label_dollar(scale = 1/1000, suffix = "K")) +
+  theme_minimal()
     
   
-  # Residuals vs Predicted plot
   p2 <- ggplot(df, aes(x = predicted, y = residuals)) +
-    geom_point(alpha = 0.6, color = "darkgreen") +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
-    labs(title = "Residuals vs Predicted", x = "Predicted", y = "Residuals")
+  geom_point(alpha = 0.6, color = "black") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Residuals vs Predicted",
+    x = "Predicted",
+    y = "Residuals"
+  ) +
+  scale_x_continuous(labels = label_dollar(scale = 1/1000, suffix = "K")) +
+  scale_y_continuous(labels = label_dollar(scale = 1/1000, suffix = "K")) +
+  theme_minimal()
     
   
-  # Save plots to the specified directory with descriptive names
+  # Save plots 
   ggsave(file.path(save_dir, "predicted_vs_actual_plot.png"), p1, width = 8, height = 6)
   ggsave(file.path(save_dir, "residuals_vs_predicted_plot.png"), p2, width = 8, height = 6)
-  
-  # Print both plots
-  print(p1)
-  print(p2)
   
   return(df$residuals)
 }
@@ -2541,7 +2625,7 @@ plot_residuals_vs_predictors <- function(predictions, actuals, data, predictors,
   
   for (predictor in predictors) {
     p <- ggplot(df, aes_string(x = predictor, y = "residuals")) +
-      geom_point(alpha = 0.6, color = "purple") +
+      geom_point(alpha = 0.6, color = "black") +
       geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
       labs(title = paste("Residuals vs", predictor),
            x = predictor, y = "Residuals") +
@@ -2593,7 +2677,7 @@ run_rf_pipeline <- function(data) {
   
   predictors = c(paste0("bc_transformed_", numeric_predictors), "population_class")
   
-  # --- CORRELATION CHECK ---
+  # Correlation matrix
   numeric_data <- clean_data |> select(all_of(paste0("bc_transformed_", numeric_predictors)))
   cor_matrix <- cor(numeric_data)
   
@@ -2629,7 +2713,7 @@ run_rf_pipeline <- function(data) {
     verbose = TRUE
   )
   
-  # Choose the best model: prioritize high var_explained and fewest predictors
+  # Prioritize high var_explained and fewest predictors
   best_model_idx <- which.max(map_dbl(elim_results, "var_explained"))
   best_model <- elim_results[[best_model_idx]]
   
@@ -2654,12 +2738,10 @@ run_rf_pipeline <- function(data) {
   cat("Test R-squared:", round(rf_results$r_squared, 4), "\n")
   cat("Test RMSE:", round(rf_results$rmse, 2), "\n")
   
-  # --- Partial Dependence Plot for retirement proportion ---
+  # Partial Dependence Plots for retirement proportion 
   
-  # List of variables you want to include in the grid
   top_vars <- rownames(as.data.frame(importance(rf_results$model, type = 1)))
   
-  # Create PDPs for each variable and combine them
   pdp_list <- map(top_vars, function(var) {
     pd <- pdp::partial(
       object = rf_results$model,
@@ -2689,11 +2771,13 @@ run_rf_pipeline <- function(data) {
         str_to_sentence() |> 
         str_replace("gdp", "GDP") |> 
         str_replace("proportion", "income (%)") |> 
+        str_replace("Proprietors income", "Proprietors") |>
+        str_replace("Ui", "UI") |>
         str_replace("Per capita", "Per-capita") |> 
         str_replace("Wage salary", "Wages and salary")
     )
   
-  # Plot using facet_wrap
+
   pdp_plot_grid <- ggplot(pdp_df, aes(x = x, y = yhat / 1000)) + 
     geom_line(color = "steelblue", linewidth = 1) +
     facet_wrap(~ variable, scales = "free_x") +
