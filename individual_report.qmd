@@ -2638,6 +2638,55 @@ plot_residuals_vs_predictors <- function(predictions, actuals, data, predictors,
   }
 }
 
+#' Plot variable importance from random forest results
+#'
+#' @param results Output from `run_rf_pipeline()` containing the trained model
+#' @param output_path Path to save the plot (default: "figs/variable_importance.png")
+#' @param height Plot height in inches (default: 4)
+#' @param width Plot width in inches (default: 10)
+#'
+#' @return Invisibly returns the ggplot object
+#' @importFrom ggplot2 ggplot geom_bar aes coord_flip labs theme_minimal ggsave
+#' @importFrom stringr str_remove str_replace_all str_to_sentence str_replace str_wrap
+#' @importFrom randomForest importance
+#' @export
+plot_variable_importance <- function(results,
+                                     output_path = file.path("figs", "variable_importance.png"),
+                                     height = 4,
+                                     width = 10) {
+  importance_df <- as.data.frame(randomForest::importance(results$model, type = 1))
+  importance_df$variable <- rownames(importance_df)
+
+  baseline_mse <- mean(results$model$mse)
+  importance_df$rel_inc_mse <- (importance_df$`%IncMSE` / baseline_mse) * 100
+
+  plot <- ggplot(
+    importance_df |>
+      dplyr::mutate(
+        variable = stringr::str_remove(variable, "bc_transformed_"),
+        variable = stringr::str_replace_all(variable, "_", " "),
+        variable = stringr::str_to_sentence(variable),
+        variable = stringr::str_replace(variable, "proportion", "income (%)"),
+        variable = stringr::str_replace(variable, "Per capita", "Per-capita"),
+        variable = stringr::str_replace(variable, "gdp", "GDP"),
+        variable = stringr::str_replace(variable, "Wage salary", "Wages and salary"),
+        variable = stringr::str_wrap(variable, width = 15)
+      ),
+    aes(x = reorder(variable, `%IncMSE`), y = `%IncMSE`)
+  ) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    coord_flip() +
+    labs(title = "% Increase in MSE",
+                  x = "Variable",
+                  y = "% Increase") +
+    ylim(0, 20) +
+    theme_minimal()
+
+  ggsave(output_path, plot, width = width, height = height)
+
+  invisible(plot)
+}
+
 #' Run Full Random Forest Modeling Pipeline with Backward Elimination and Diagnostics
 #'
 #' Executes the entire modeling workflow on the provided dataset, including:
@@ -2809,7 +2858,10 @@ run_rf_pipeline <- function(data) {
     save_dir = "figs"
   )
   
-  return(list(model = rf_results$model, outliers = outliers, backward_results = elim_results, importance = rf_results$importance))
+  result <- list(model = rf_results$model, outliers = outliers, backward_results = elim_results, importance = rf_results$importance)
+    
+  plot_variable_importance(result)
+  return(result)
 }
 ```
 The final model is:
